@@ -1,0 +1,112 @@
+/* INVENTORY PRO ADDITIONS */
+.inventory-header-actions,
+.inventory-filters {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.inventory-type-filter {
+  height: 48px;
+  border: 1px solid #dbe3ef;
+  border-radius: 16px;
+  padding: 0 14px;
+  outline: none;
+  background: white;
+  color: #334155;
+  font-weight: 800;
+}
+
+.badge.warning {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.badge.neutral {
+  background: #e2e8f0;
+  color: #334155;
+}
+
+.reactivate-btn {
+  width: auto !important;
+  padding: 0 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #166534 !important;
+  background: #dcfce7 !important;
+  font-weight: 900;
+}
+
+.checkbox-row {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.switch-line {
+  height: 49px;
+  border: 1px solid #dbe3ef;
+  border-radius: 16px;
+  padding: 0 14px;
+  display: flex !important;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  margin-bottom: 0 !important;
+}
+
+.switch-line input {
+  width: 18px !important;
+  height: 18px;
+}
+
+.input-with-icon {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid #dbe3ef;
+  border-radius: 16px;
+  padding: 0 14px;
+  background: white;
+  color: #64748b;
+}
+
+.input-with-icon input {
+  border: none !important;
+  box-shadow: none !important;
+  padding-left: 0 !important;
+}
+
+.movement-form-modal {
+  width: 100%;
+  max-width: 720px;
+  max-height: 92vh;
+  overflow-y: auto;
+  background: white;
+  border-radius: 34px;
+  box-shadow: 0 30px 100px rgba(0, 0, 0, 0.35);
+}
+
+.movement-current-stock {
+  grid-column: span 2;
+  padding: 16px 18px;
+  border-radius: 18px;
+  background: #eef2ff;
+  color: #334155;
+  font-weight: 850;
+}
+
+.movement-current-stock strong {
+  color: #4f46e5;
+  font-weight: 950;
+}
+
+@media (max-width: 900px) {
+  .inventory-filters,
+  .inventory-search,
+  .inventory-type-filter {
+    width: 100%;
+  }
+}

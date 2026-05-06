@@ -1,0 +1,125 @@
+.qb-customization-layout {
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  gap: 22px;
+}
+
+.qb-customization-card {
+  padding: 24px;
+  display: grid;
+  gap: 18px;
+}
+
+.qb-logo-upload {
+  height: 150px;
+  border: 2px dashed #cbd5e1;
+  border-radius: 18px;
+  display: grid;
+  place-items: center;
+  gap: 8px;
+  cursor: pointer;
+  color: #475569;
+  font-weight: 800;
+}
+
+.qb-logo-upload input {
+  display: none;
+}
+
+.qb-color-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.qb-color-row input[type="color"] {
+  width: 60px;
+  height: 44px;
+  border: none;
+  background: transparent;
+}
+
+.qb-color-row input:not([type="color"]) {
+  flex: 1;
+}
+
+.qb-invoice-preview-card {
+  background: #fff;
+  border-radius: 24px;
+  padding: 34px;
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
+}
+
+.qb-preview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 3px solid;
+  padding-bottom: 20px;
+  margin-bottom: 24px;
+}
+
+.qb-preview-header h2 {
+  margin: 0;
+  font-size: 30px;
+}
+
+.qb-preview-logo {
+  width: 120px;
+  height: 90px;
+  border-radius: 18px;
+  background: #f8fafc;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  font-weight: 900;
+  color: #94a3b8;
+}
+
+.qb-preview-logo img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.qb-preview-company {
+  background: #f8fafc;
+  border-radius: 16px;
+  padding: 18px;
+  margin-bottom: 24px;
+}
+
+.qb-preview-company p {
+  margin: 4px 0;
+  color: #64748b;
+}
+
+.qb-preview-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.qb-preview-table th {
+  color: #fff;
+  padding: 12px;
+  text-align: left;
+}
+
+.qb-preview-table td {
+  padding: 14px 12px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.qb-preview-total {
+  margin-top: 28px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 22px;
+  font-size: 22px;
+}
+
+.qb-logo-box img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}

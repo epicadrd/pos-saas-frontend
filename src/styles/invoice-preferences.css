@@ -1,0 +1,58 @@
+.qb-preferences-card {
+  padding: 26px;
+  max-width: 850px;
+  display: grid;
+  gap: 22px;
+}
+
+.qb-preferences-title {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+}
+
+.qb-preferences-title h3 {
+  margin: 0;
+  font-size: 20px;
+  color: #111827;
+}
+
+.qb-preferences-title p {
+  margin: 4px 0 0;
+  color: #64748b;
+}
+
+.qb-preference-switch {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 800;
+  color: #334155;
+}
+
+.qb-preference-switch input {
+  width: 18px;
+  height: 18px;
+}
+
+.qb-form-grid select {
+  border: 1px solid #dbe3ef;
+  border-radius: 14px;
+  padding: 11px 12px;
+  outline: none;
+  background: #fff;
+  color: #111827;
+}
+
+.qb-form-grid select:focus {
+  border-color: #6d4aff;
+  box-shadow: 0 0 0 4px rgba(109, 74, 255, 0.1);
+}
+
+.qb-preference-note {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 14px 16px;
+  color: #475569;
+}

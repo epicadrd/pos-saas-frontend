@@ -1,0 +1,561 @@
+import { useEffect, useMemo, useState } from "react";
+import {
+  Plus,
+  Printer,
+  ReceiptText,
+  Search,
+  Trash2,
+  WalletCards,
+  X,
+} from "lucide-react";
+import { api } from "../../api/axios";
+
+const emptyReceipt = {
+  invoiceId: "",
+  customerName: "",
+  concept: "Pago de factura",
+  amount: "",
+  paymentMethod: "cash",
+  reference: "",
+  notes: "",
+};
+
+export default function Receipts() {
+  const [receipts, setReceipts] = useState([]);
+  const [invoices, setInvoices] = useState([]);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [form, setForm] = useState(emptyReceipt);
+  const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  const money = new Intl.NumberFormat("es-DO", {
+    style: "currency",
+    currency: "DOP",
+  });
+
+  const filteredReceipts = receipts.filter((receipt) => {
+    const text = `${receipt.receiptNumber} ${receipt.customerName} ${receipt.reference || ""}`.toLowerCase();
+    return text.includes(search.toLowerCase());
+  });
+
+  const pendingInvoices = invoices.filter(
+    (invoice) =>
+      invoice.status !== "paid" &&
+      invoice.status !== "cancelled" &&
+      Number(invoice.balance || invoice.total || 0) > 0
+  );
+
+  const stats = useMemo(() => {
+    const totalReceipts = receipts.length;
+
+    const totalReceived = receipts.reduce(
+      (acc, item) => acc + Number(item.amount || 0),
+      0
+    );
+
+    const cashTotal = receipts
+      .filter((item) => item.paymentMethod === "cash")
+      .reduce((acc, item) => acc + Number(item.amount || 0), 0);
+
+    const transferTotal = receipts
+      .filter((item) => item.paymentMethod === "transfer")
+      .reduce((acc, item) => acc + Number(item.amount || 0), 0);
+
+    return {
+      totalReceipts,
+      totalReceived,
+      cashTotal,
+      transferTotal,
+    };
+  }, [receipts]);
+
+  const loadReceipts = async () => {
+    try {
+      setLoading(true);
+      const { data } = await api.get("/receipts");
+      setReceipts(data);
+    } catch (error) {
+      console.log(error);
+      alert(error.response?.data?.message || "Error cargando recibos");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadInvoices = async () => {
+    try {
+      const { data } = await api.get("/invoices");
+      setInvoices(data);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  useEffect(() => {
+    loadReceipts();
+    loadInvoices();
+  }, []);
+
+  const openModal = () => {
+    setForm(emptyReceipt);
+    setModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setForm(emptyReceipt);
+    setModalOpen(false);
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    if (name === "invoiceId") {
+      const invoice = invoices.find((item) => String(item.id) === String(value));
+
+      if (invoice) {
+        setForm({
+          ...form,
+          invoiceId: value,
+          customerName: invoice.customerName,
+          concept: `Pago a factura ${invoice.invoiceNumber}`,
+          amount: invoice.balance || invoice.total || "",
+        });
+        return;
+      }
+    }
+
+    setForm({
+      ...form,
+      [name]: value,
+    });
+  };
+
+  const handleSave = async (e) => {
+    e.preventDefault();
+
+    if (!form.customerName.trim()) {
+      alert("El cliente es obligatorio");
+      return;
+    }
+
+    if (!form.amount || Number(form.amount) <= 0) {
+      alert("El monto debe ser mayor a 0");
+      return;
+    }
+
+    try {
+      setSaving(true);
+
+      await api.post("/receipts", {
+        ...form,
+        invoiceId: form.invoiceId || null,
+        amount: Number(form.amount),
+        status: "paid",
+      });
+
+      closeModal();
+      loadReceipts();
+      loadInvoices();
+    } catch (error) {
+      console.log(error);
+      alert(error.response?.data?.message || "Error creando recibo");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async (receipt) => {
+    const confirmDelete = confirm(
+      `¿Seguro que quieres eliminar el recibo ${receipt.receiptNumber}?`
+    );
+
+    if (!confirmDelete) return;
+
+    try {
+      await api.delete(`/receipts/${receipt.id}`);
+      loadReceipts();
+      loadInvoices();
+    } catch (error) {
+      console.log(error);
+      alert(error.response?.data?.message || "Error eliminando recibo");
+    }
+  };
+
+  const getPaymentMethodLabel = (method) => {
+    const methods = {
+      cash: "Efectivo",
+      transfer: "Transferencia",
+      card: "Tarjeta",
+      check: "Cheque",
+      other: "Otro",
+    };
+
+    return methods[method] || method;
+  };
+
+  const handlePrint = (receipt) => {
+    const html = `
+      <html>
+        <head>
+          <title>${receipt.receiptNumber}</title>
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              padding: 40px;
+              color: #0f172a;
+            }
+
+            .header {
+              display: flex;
+              justify-content: space-between;
+              border-bottom: 2px solid #4f46e5;
+              padding-bottom: 20px;
+              margin-bottom: 30px;
+            }
+
+            h1 {
+              margin: 0;
+              color: #4f46e5;
+            }
+
+            .box {
+              border: 1px solid #e5e7eb;
+              border-radius: 14px;
+              padding: 18px;
+              margin-bottom: 20px;
+            }
+
+            .amount {
+              background: #eef2ff;
+              border-radius: 18px;
+              padding: 24px;
+              font-size: 28px;
+              font-weight: bold;
+              color: #4f46e5;
+              text-align: center;
+              margin: 30px 0;
+            }
+
+            .signatures {
+              display: flex;
+              gap: 70px;
+              margin-top: 80px;
+            }
+
+            .signature {
+              flex: 1;
+              text-align: center;
+              border-top: 1px solid #0f172a;
+              padding-top: 10px;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <div>
+              <h1>RECIBO DE PAGO</h1>
+              <p>${receipt.receiptNumber}</p>
+            </div>
+            <div>
+              <strong>Fecha:</strong><br/>
+              ${new Date(receipt.createdAt).toLocaleDateString("es-DO")}
+            </div>
+          </div>
+
+          <div class="box">
+            <strong>Cliente:</strong> ${receipt.customerName}<br/>
+            <strong>Concepto:</strong> ${receipt.concept}<br/>
+            <strong>Método:</strong> ${getPaymentMethodLabel(receipt.paymentMethod)}<br/>
+            <strong>Referencia:</strong> ${receipt.reference || "-"}<br/>
+            <strong>Factura:</strong> ${receipt.Invoice?.invoiceNumber || "-"}
+          </div>
+
+          <div class="amount">
+            ${money.format(Number(receipt.amount))}
+          </div>
+
+          ${
+            receipt.notes
+              ? `<div class="box"><strong>Notas:</strong><br/>${receipt.notes}</div>`
+              : ""
+          }
+
+          <div class="signatures">
+            <div class="signature">Recibido por</div>
+            <div class="signature">Cliente</div>
+          </div>
+        </body>
+      </html>
+    `;
+
+    const printWindow = window.open("", "_blank");
+    printWindow.document.write(html);
+    printWindow.document.close();
+    printWindow.print();
+  };
+
+  return (
+    <div className="receipt-page">
+      <section className="receipt-header">
+        <div>
+          <span>Recibos</span>
+          <h2>Pagos y abonos</h2>
+          <p>
+            Registra pagos completos o abonos por cuotas, vinculados a facturas
+            pendientes.
+          </p>
+        </div>
+
+        <button onClick={openModal} className="primary-btn">
+          <Plus size={18} />
+          Nuevo recibo
+        </button>
+      </section>
+
+      <section className="receipt-stats">
+        <div className="receipt-stat-card">
+          <div className="stat-icon">
+            <ReceiptText size={22} />
+          </div>
+          <div>
+            <span>Recibos</span>
+            <strong>{stats.totalReceipts}</strong>
+          </div>
+        </div>
+
+        <div className="receipt-stat-card">
+          <div className="stat-icon">
+            <WalletCards size={22} />
+          </div>
+          <div>
+            <span>Total recibido</span>
+            <strong>{money.format(stats.totalReceived)}</strong>
+          </div>
+        </div>
+
+        <div className="receipt-stat-card">
+          <div className="stat-icon">
+            <WalletCards size={22} />
+          </div>
+          <div>
+            <span>Efectivo</span>
+            <strong>{money.format(stats.cashTotal)}</strong>
+          </div>
+        </div>
+
+        <div className="receipt-stat-card">
+          <div className="stat-icon">
+            <WalletCards size={22} />
+          </div>
+          <div>
+            <span>Transferencia</span>
+            <strong>{money.format(stats.transferTotal)}</strong>
+          </div>
+        </div>
+      </section>
+
+      <section className="receipt-panel">
+        <div className="receipt-toolbar">
+          <div>
+            <h3>Listado de recibos</h3>
+            <p>Busca, imprime o elimina recibos registrados.</p>
+          </div>
+
+          <div className="receipt-search">
+            <Search size={18} />
+            <input
+              placeholder="Buscar recibo, cliente o referencia..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+        </div>
+
+        <div className="receipt-table-wrap">
+          <table className="receipt-table">
+            <thead>
+              <tr>
+                <th>Recibo</th>
+                <th>Cliente</th>
+                <th>Factura</th>
+                <th>Método</th>
+                <th>Referencia</th>
+                <th>Monto</th>
+                <th>Fecha</th>
+                <th></th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td colSpan="8" className="table-empty">
+                    Cargando recibos...
+                  </td>
+                </tr>
+              ) : filteredReceipts.length === 0 ? (
+                <tr>
+                  <td colSpan="8" className="table-empty">
+                    No hay recibos registrados.
+                  </td>
+                </tr>
+              ) : (
+                filteredReceipts.map((receipt) => (
+                  <tr key={receipt.id}>
+                    <td>
+                      <div className="receipt-number-cell">
+                        <div className="receipt-icon">
+                          <ReceiptText size={18} />
+                        </div>
+                        <strong>{receipt.receiptNumber}</strong>
+                      </div>
+                    </td>
+
+                    <td>{receipt.customerName}</td>
+                    <td>{receipt.Invoice?.invoiceNumber || "-"}</td>
+                    <td>{getPaymentMethodLabel(receipt.paymentMethod)}</td>
+                    <td>{receipt.reference || "-"}</td>
+                    <td>
+                      <strong>{money.format(Number(receipt.amount || 0))}</strong>
+                    </td>
+                    <td>{new Date(receipt.createdAt).toLocaleDateString("es-DO")}</td>
+                    <td>
+                      <div className="table-actions">
+                        <button onClick={() => handlePrint(receipt)}>
+                          <Printer size={17} />
+                        </button>
+
+                        <button
+                          className="danger-btn"
+                          onClick={() => handleDelete(receipt)}
+                        >
+                          <Trash2 size={17} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      {modalOpen && (
+        <div className="modal-overlay">
+          <div className="receipt-modal">
+            <div className="modal-header">
+              <div>
+                <span>Nuevo recibo</span>
+                <h3>Registrar pago</h3>
+              </div>
+
+              <button onClick={closeModal} className="modal-close">
+                <X size={20} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSave} className="receipt-form">
+              <div className="receipt-form-grid">
+                <div className="form-row full">
+                  <label>Factura pendiente</label>
+                  <select
+                    name="invoiceId"
+                    value={form.invoiceId}
+                    onChange={handleChange}
+                  >
+                    <option value="">Sin vincular a factura</option>
+                    {pendingInvoices.map((invoice) => (
+                      <option key={invoice.id} value={invoice.id}>
+                        {invoice.invoiceNumber} - {invoice.customerName} - Pendiente:{" "}
+                        {money.format(Number(invoice.balance || invoice.total || 0))}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="form-row">
+                  <label>Cliente *</label>
+                  <input
+                    name="customerName"
+                    value={form.customerName}
+                    onChange={handleChange}
+                    placeholder="Nombre del cliente"
+                  />
+                </div>
+
+                <div className="form-row">
+                  <label>Monto recibido *</label>
+                  <input
+                    name="amount"
+                    type="number"
+                    step="0.01"
+                    value={form.amount}
+                    onChange={handleChange}
+                    placeholder="0.00"
+                  />
+                </div>
+
+                <div className="form-row">
+                  <label>Método de pago</label>
+                  <select
+                    name="paymentMethod"
+                    value={form.paymentMethod}
+                    onChange={handleChange}
+                  >
+                    <option value="cash">Efectivo</option>
+                    <option value="transfer">Transferencia</option>
+                    <option value="card">Tarjeta</option>
+                    <option value="check">Cheque</option>
+                    <option value="other">Otro</option>
+                  </select>
+                </div>
+
+                <div className="form-row">
+                  <label>Referencia</label>
+                  <input
+                    name="reference"
+                    value={form.reference}
+                    onChange={handleChange}
+                    placeholder="No. transferencia / voucher"
+                  />
+                </div>
+
+                <div className="form-row full">
+                  <label>Concepto</label>
+                  <input
+                    name="concept"
+                    value={form.concept}
+                    onChange={handleChange}
+                    placeholder="Concepto del pago"
+                  />
+                </div>
+
+                <div className="form-row full">
+                  <label>Notas</label>
+                  <textarea
+                    name="notes"
+                    value={form.notes}
+                    onChange={handleChange}
+                    placeholder="Observaciones del pago..."
+                  />
+                </div>
+              </div>
+
+              <div className="modal-actions">
+                <button type="button" onClick={closeModal} className="cancel-btn">
+                  Cancelar
+                </button>
+
+                <button disabled={saving} className="primary-btn">
+                  {saving ? "Guardando..." : "Guardar recibo"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

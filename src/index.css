@@ -1,0 +1,21 @@
+@import "tailwindcss";
+
+@import "./styles/global.css";
+@import "./styles/auth.css";
+@import "./styles/layout.css";
+
+@import "./styles/inventory.css";
+@import "./styles/inventory-movements.css";
+@import "./styles/inventory-pro.css";
+
+@import "./styles/invoices.css";
+@import "./styles/qb-invoices.css";
+@import "./styles/payment-history.css";
+@import "./styles/invoice-customization.css";
+@import "./styles/invoice-preferences.css";
+@import "./styles/invoice-responsive.css";
+
+@import "./styles/quotes.css";
+@import "./styles/delivery.css";
+@import "./styles/receipts.css";
+@import "./styles/purchase.css";

@@ -1,0 +1,87 @@
+/* FIX FACTURACIÓN RESPONSIVE */
+.qb-invoice-page {
+  width: 100%;
+  max-width: 100% !important;
+}
+
+.qb-document {
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.qb-company {
+  grid-template-columns: 1.2fr 1fr 180px;
+}
+
+.qb-logo-box {
+  width: 180px;
+  min-width: 180px;
+  overflow: hidden;
+}
+
+.qb-logo-box img {
+  width: 100%;
+  max-width: 150px;
+  height: auto;
+  object-fit: contain;
+}
+
+.qb-items-card {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.qb-items-table {
+  width: 100%;
+  min-width: 1150px;
+}
+
+.qb-client-zone {
+  grid-template-columns: 1.4fr 0.8fr;
+}
+
+@media (max-width: 1366px) {
+  .saas-content {
+    padding: 28px;
+  }
+
+  .qb-company {
+    grid-template-columns: 1fr 1fr 150px;
+  }
+
+  .qb-logo-box {
+    width: 150px;
+    min-width: 150px;
+  }
+
+  .qb-logo-box img {
+    max-width: 125px;
+  }
+
+  .qb-client-zone {
+    grid-template-columns: 1fr;
+  }
+
+  .qb-bottom-area {
+    grid-template-columns: 1fr;
+  }
+
+  .qb-totals {
+    width: 100%;
+    max-width: 420px;
+    margin-left: auto;
+  }
+}
+
+@media (max-width: 1100px) {
+  .qb-company {
+    grid-template-columns: 1fr;
+  }
+
+  .qb-logo-box {
+    width: 100%;
+    min-width: 0;
+    max-width: 220px;
+  }
+}

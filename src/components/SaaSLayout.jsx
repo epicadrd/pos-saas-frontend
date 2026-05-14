@@ -102,12 +102,12 @@ const links = [
   useEffect(() => {
   loadNotifications();
 
-  const eventSource = new EventSource(
-    "http://localhost:8080/api/notifications/stream",
-    {
-      withCredentials: true,
-    }
-  );
+ const eventSource = new EventSource(
+  `${import.meta.env.VITE_API_URL}/notifications/stream`,
+  {
+    withCredentials: true,
+  }
+);
 
   eventSource.onmessage = (event) => {
     const data = JSON.parse(event.data);

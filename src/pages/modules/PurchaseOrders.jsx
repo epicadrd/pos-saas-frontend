@@ -29,6 +29,7 @@ export default function PurchaseOrders() {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [suppliers, setSuppliers] = useState([]);
 
   const money = new Intl.NumberFormat("es-DO", {
     style: "currency",
@@ -71,6 +72,60 @@ export default function PurchaseOrders() {
     };
   }, [orders]);
 
+  const selectedSupplierStats = useMemo(() => {
+  if (!form.supplierName) return null;
+
+  const supplierOrders = orders
+    .filter((order) => order.supplierName === form.supplierName)
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+  const totalPurchased = supplierOrders.reduce(
+    (acc, order) => acc + Number(order.total || 0),
+    0
+  );
+
+  const pendingOrders = supplierOrders.filter(
+    (order) => order.status !== "received" && order.status !== "cancelled"
+  );
+
+  const pendingBalance = pendingOrders.reduce(
+    (acc, order) => acc + Number(order.total || 0),
+    0
+  );
+
+  return {
+    totalOrders: supplierOrders.length,
+    totalPurchased,
+    pendingOrders: pendingOrders.length,
+    pendingBalance,
+    lastOrders: supplierOrders.slice(0, 3),
+  };
+}, [orders, form.supplierName]);
+
+const getLastProductPurchase = (productId) => {
+  if (!productId) return null;
+
+  const matches = [];
+
+  orders.forEach((order) => {
+    order.items?.forEach((item) => {
+      if (String(item.productId) === String(productId)) {
+        matches.push({
+          cost: item.cost,
+          quantity: item.quantity,
+          supplierName: order.supplierName,
+          orderNumber: order.orderNumber,
+          createdAt: order.createdAt,
+        });
+      }
+    });
+  });
+
+  return matches.sort(
+    (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+  )[0];
+};
+
   const loadOrders = async () => {
     try {
       setLoading(true);
@@ -93,9 +148,19 @@ export default function PurchaseOrders() {
     }
   };
 
+  const loadSuppliers = async () => {
+    try {
+      const { data } = await api.get("/suppliers");
+      setSuppliers(Array.isArray(data) ? data.filter((s) => s.isActive !== false) : []);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   useEffect(() => {
     loadOrders();
     loadProducts();
+    loadSuppliers();
   }, []);
 
   const openModal = () => {
@@ -114,6 +179,30 @@ export default function PurchaseOrders() {
     setForm({
       ...form,
       [e.target.name]: e.target.value,
+    });
+  };
+
+    const handleSupplierSelect = (e) => {
+    const supplierId = e.target.value;
+    const supplier = suppliers.find((item) => String(item.id) === String(supplierId));
+
+    if (!supplier) {
+      setForm({
+        ...form,
+        supplierName: "",
+        supplierRnc: "",
+        supplierPhone: "",
+        supplierEmail: "",
+      });
+      return;
+    }
+
+    setForm({
+      ...form,
+      supplierName: supplier.name || "",
+      supplierRnc: supplier.rnc || "",
+      supplierPhone: supplier.phone || "",
+      supplierEmail: supplier.email || "",
     });
   };
 
@@ -199,19 +288,27 @@ export default function PurchaseOrders() {
     }
   };
 
-  const handleStatusChange = async (order, newStatus) => {
-    try {
-      await api.patch(`/purchase-orders/${order.id}/status`, {
-        status: newStatus,
-      });
+    const handleStatusChange = async (order, newStatus) => {
+      if (newStatus === "received") {
+        const ok = confirm(
+          `¿Seguro que quieres recibir la orden ${order.orderNumber}? Esto aumentará el inventario.`
+        );
 
-      loadOrders();
-      loadProducts();
-    } catch (error) {
-      console.log(error);
-      alert(error.response?.data?.message || "Error cambiando estado");
-    }
-  };
+        if (!ok) return;
+      }
+
+      try {
+        await api.patch(`/purchase-orders/${order.id}/status`, {
+          status: newStatus,
+        });
+
+        loadOrders();
+        loadProducts();
+      } catch (error) {
+        console.log(error);
+        alert(error.response?.data?.message || "Error cambiando estado");
+      }
+    };
 
   const handleDelete = async (order) => {
     const confirmDelete = confirm(
@@ -255,14 +352,14 @@ export default function PurchaseOrders() {
             .header {
               display: flex;
               justify-content: space-between;
-              border-bottom: 2px solid #4f46e5;
+              border-bottom: 2px solid #00bfae;
               padding-bottom: 20px;
               margin-bottom: 30px;
             }
 
             h1 {
               margin: 0;
-              color: #4f46e5;
+              color: #00bfae;
             }
 
             .box {
@@ -488,6 +585,7 @@ export default function PurchaseOrders() {
                 <th>Subtotal</th>
                 <th>ITBIS</th>
                 <th>Total</th>
+                <th>Creada por</th>
                 <th>Estado</th>
                 <th></th>
               </tr>
@@ -496,13 +594,13 @@ export default function PurchaseOrders() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan="9" className="table-empty">
+                  <td colSpan="10" className="table-empty">
                     Cargando órdenes de compra...
                   </td>
                 </tr>
               ) : filteredOrders.length === 0 ? (
                 <tr>
-                  <td colSpan="9" className="table-empty">
+                  <td colSpan="10" className="table-empty">
                     No hay órdenes de compra registradas.
                   </td>
                 </tr>
@@ -530,6 +628,7 @@ export default function PurchaseOrders() {
                     <td>
                       <strong>{money.format(Number(order.total || 0))}</strong>
                     </td>
+                      <td>{order.creator?.name || "Sistema"}</td>
                     <td>
                       <select
                         className={
@@ -555,17 +654,28 @@ export default function PurchaseOrders() {
                     </td>
                     <td>
                       <div className="table-actions">
-                        <button onClick={() => handlePrint(order)}>
-                          <Printer size={17} />
-                        </button>
+                              {order.status !== "received" && order.status !== "cancelled" && (
+                                <button
+                                  type="button"
+                                  className="receive-order-btn"
+                                  onClick={() => handleStatusChange(order, "received")}
+                                  title="Recibir inventario"
+                                >
+                                  <PackagePlus size={17} />
+                                </button>
+                              )}
 
-                        <button
-                          className="danger-btn"
-                          onClick={() => handleDelete(order)}
-                        >
-                          <Trash2 size={17} />
-                        </button>
-                      </div>
+                              <button onClick={() => handlePrint(order)}>
+                                <Printer size={17} />
+                              </button>
+
+                              <button
+                                className="danger-btn"
+                                onClick={() => handleDelete(order)}
+                              >
+                                <Trash2 size={17} />
+                              </button>
+                            </div>
                     </td>
                   </tr>
                 ))
@@ -591,69 +701,110 @@ export default function PurchaseOrders() {
 
             <form onSubmit={handleSave} className="purchase-form">
               <div className="purchase-form-grid">
-                <div className="form-row">
-                  <label>Suplidor *</label>
-                  <input
-                    name="supplierName"
-                    value={form.supplierName}
-                    onChange={handleChange}
-                    placeholder="Nombre del suplidor"
-                  />
+                <div className="form-row full">
+  <label>Suplidor *</label>
+
+  <select
+    value={suppliers.find((s) => s.name === form.supplierName)?.id || ""}
+    onChange={handleSupplierSelect}
+  >
+    <option value="">Seleccionar suplidor</option>
+
+    {suppliers.map((supplier) => (
+      <option key={supplier.id} value={supplier.id}>
+        {supplier.name}
+        {supplier.phone ? ` · ${supplier.phone}` : ""}
+      </option>
+    ))}
+  </select>
+</div>
+
+{form.supplierName && (
+  <div className="selected-supplier-card full">
+    <div>
+      <span>Suplidor seleccionado</span>
+      <strong>{form.supplierName}</strong>
+    </div>
+
+    <div className="supplier-info-grid">
+      <p>
+        <small>RNC</small>
+        {form.supplierRnc || "-"}
+      </p>
+
+      <p>
+        <small>Teléfono</small>
+        {form.supplierPhone || "-"}
+      </p>
+
+      <p>
+        <small>Email</small>
+        {form.supplierEmail || "-"}
+      </p>
+    </div>
+
+    {selectedSupplierStats && (
+      <>
+        <div className="supplier-business-grid">
+          <div>
+            <small>Órdenes registradas</small>
+            <strong>{selectedSupplierStats.totalOrders}</strong>
+          </div>
+
+          <div>
+            <small>Total comprado</small>
+            <strong>{money.format(selectedSupplierStats.totalPurchased)}</strong>
+          </div>
+
+          <div>
+            <small>Órdenes pendientes</small>
+            <strong>{selectedSupplierStats.pendingOrders}</strong>
+          </div>
+
+          <div>
+            <small>Balance pendiente</small>
+            <strong>{money.format(selectedSupplierStats.pendingBalance)}</strong>
+          </div>
+        </div>
+
+        <div className="supplier-last-orders">
+          <h4>Últimas compras</h4>
+
+          {selectedSupplierStats.lastOrders.length === 0 ? (
+            <p className="supplier-empty-history">
+              Este suplidor aún no tiene compras registradas.
+            </p>
+          ) : (
+            selectedSupplierStats.lastOrders.map((order) => (
+              <div key={order.id} className="supplier-last-order-row">
+                <div>
+                  <strong>{order.orderNumber}</strong>
+                  <span>
+                    {new Date(order.createdAt).toLocaleDateString("es-DO")} ·{" "}
+                    {getStatusLabel(order.status)}
+                  </span>
                 </div>
 
-                <div className="form-row">
-                  <label>RNC</label>
-                  <input
-                    name="supplierRnc"
-                    value={form.supplierRnc}
-                    onChange={handleChange}
-                    placeholder="RNC del suplidor"
-                  />
-                </div>
+                <strong>{money.format(Number(order.total || 0))}</strong>
+              </div>
+            ))
+          )}
+        </div>
+      </>
+    )}
+  </div>
+)}
 
-                <div className="form-row">
-                  <label>Teléfono</label>
-                  <input
-                    name="supplierPhone"
-                    value={form.supplierPhone}
-                    onChange={handleChange}
-                    placeholder="809-000-0000"
-                  />
-                </div>
+<div className="form-row full">
+  <label>Entrega esperada</label>
 
-                <div className="form-row">
-                  <label>Email</label>
-                  <input
-                    name="supplierEmail"
-                    value={form.supplierEmail}
-                    onChange={handleChange}
-                    placeholder="suplidor@email.com"
-                  />
-                </div>
-
-                <div className="form-row">
-                  <label>Entrega esperada</label>
-                  <input
-                    name="expectedDate"
-                    type="date"
-                    value={form.expectedDate}
-                    onChange={handleChange}
-                  />
-                </div>
-
-                <div className="form-row">
-                  <label>Estado</label>
-                  <select
-                    name="status"
-                    value={form.status}
-                    onChange={handleChange}
-                  >
-                    <option value="draft">Borrador</option>
-                    <option value="sent">Enviada</option>
-                    <option value="received">Recibida</option>
-                    <option value="cancelled">Cancelada</option>
-                  </select>
-                </div>
+  <input
+    type="date"
+    name="expectedDate"
+    value={form.expectedDate}
+    onChange={handleChange}
+  />
+</div>
               </div>
 
               <div className="purchase-items-box">
@@ -721,6 +872,20 @@ export default function PurchaseOrders() {
                           }
                           placeholder="Costo"
                         />
+
+                        {item.productId && getLastProductPurchase(item.productId) && (
+                          <div className="product-last-cost">
+                            Último costo:{" "}
+                            <strong>
+                              {money.format(Number(getLastProductPurchase(item.productId).cost || 0))}
+                            </strong>
+                            <br />
+                            <span>
+                              {getLastProductPurchase(item.productId).supplierName} ·{" "}
+                              {getLastProductPurchase(item.productId).orderNumber}
+                            </span>
+                          </div>
+                        )}
 
                         <strong>
                           {money.format(

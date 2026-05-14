@@ -10,14 +10,14 @@ export default function InvoiceCustomization() {
 
   const [form, setForm] = useState({
     logoDataUrl: "",
-    primaryColor: "#6d4aff",
+    primaryColor: "#00bfae",
   });
 
   useEffect(() => {
     if (tenant) {
       setForm({
         logoDataUrl: tenant.logoDataUrl || "",
-        primaryColor: tenant.primaryColor || "#6d4aff",
+        primaryColor: tenant.primaryColor || "#00bfae",
       });
     }
   }, [tenant]);

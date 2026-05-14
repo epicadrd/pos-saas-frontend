@@ -8,6 +8,12 @@ export function AuthProvider({ children }) {
   const [tenant, setTenant] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const clearSession = () => {
+    setAccessToken(null);
+    setUser(null);
+    setTenant(null);
+  };
+
   const loadSession = async () => {
     try {
       const { data } = await api.get("/auth/me");
@@ -16,9 +22,7 @@ export function AuthProvider({ children }) {
       setUser(data.user);
       setTenant(data.tenant);
     } catch (error) {
-      setAccessToken(null);
-      setUser(null);
-      setTenant(null);
+      clearSession();
     } finally {
       setLoading(false);
     }
@@ -34,27 +38,42 @@ export function AuthProvider({ children }) {
     return data;
   };
 
-  const register = async (form) => {
-    const { data } = await api.post("/auth/register", form);
-
-    setAccessToken(data.accessToken);
-    setUser(data.user);
-    setTenant(data.tenant);
-
-    return data;
-  };
+const register = async (form) => {
+  const { data } = await api.post("/auth/register", form);
+  return data;
+};
 
   const logout = async () => {
-    await api.post("/auth/logout");
-
-    setAccessToken(null);
-    setUser(null);
-    setTenant(null);
+    try {
+      await api.post("/auth/logout");
+    } finally {
+      clearSession();
+    }
   };
 
   useEffect(() => {
     loadSession();
+
+    const handleForcedLogout = () => {
+      clearSession();
+    };
+
+    window.addEventListener("auth:logout", handleForcedLogout);
+
+    return () => {
+      window.removeEventListener("auth:logout", handleForcedLogout);
+    };
   }, []);
+
+  const refreshSession = async () => {
+  const { data } = await api.get("/auth/me");
+
+  setAccessToken(data.accessToken);
+  setUser(data.user);
+  setTenant(data.tenant);
+
+  return data;
+};
 
   return (
     <AuthContext.Provider
@@ -66,7 +85,9 @@ export function AuthProvider({ children }) {
         register,
         logout,
         isAuthenticated: !!user,
-        setTenant
+        setTenant,
+        clearSession,
+        refreshSession,
       }}
     >
       {children}

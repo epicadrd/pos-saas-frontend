@@ -209,14 +209,14 @@ export default function Receipts() {
             .header {
               display: flex;
               justify-content: space-between;
-              border-bottom: 2px solid #4f46e5;
+              border-bottom: 2px solid #00bfae;
               padding-bottom: 20px;
               margin-bottom: 30px;
             }
 
             h1 {
               margin: 0;
-              color: #4f46e5;
+              color: #00bfae;
             }
 
             .box {
@@ -232,7 +232,7 @@ export default function Receipts() {
               padding: 24px;
               font-size: 28px;
               font-weight: bold;
-              color: #4f46e5;
+              color: #00bfae;
               text-align: center;
               margin: 30px 0;
             }
@@ -383,20 +383,21 @@ export default function Receipts() {
                 <th>Referencia</th>
                 <th>Monto</th>
                 <th>Fecha</th>
-                <th></th>
+                <th>Creado por</th>
+                <th>Acciones</th>
               </tr>
             </thead>
 
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan="8" className="table-empty">
+                  <td colSpan="9" className="table-empty">
                     Cargando recibos...
                   </td>
                 </tr>
               ) : filteredReceipts.length === 0 ? (
                 <tr>
-                  <td colSpan="8" className="table-empty">
+                  <td colSpan="9" className="table-empty">
                     No hay recibos registrados.
                   </td>
                 </tr>
@@ -419,7 +420,13 @@ export default function Receipts() {
                     <td>
                       <strong>{money.format(Number(receipt.amount || 0))}</strong>
                     </td>
-                    <td>{new Date(receipt.createdAt).toLocaleDateString("es-DO")}</td>
+
+                    <td>
+                      {new Date(receipt.createdAt).toLocaleDateString("es-DO")}
+                    </td>
+
+                    <td>{receipt.creator?.name || "Sistema"}</td>
+
                     <td>
                       <div className="table-actions">
                         <button onClick={() => handlePrint(receipt)}>

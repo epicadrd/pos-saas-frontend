@@ -38,7 +38,7 @@
 }
 
 .qb-primary-btn {
-  background: #6d4aff;
+  background: #00bfae;
   color: #fff;
 }
 
@@ -103,7 +103,7 @@
 
 .qb-partial {
   background: #dbeafe;
-  color: #1d4ed8;
+  color: #00bfae;
 }
 
 .qb-issued {
@@ -197,8 +197,8 @@
 }
 
 .qb-tabs .active {
-  color: #6d4aff;
-  border-bottom: 3px solid #6d4aff;
+  color: #00bfae;
+  border-bottom: 3px solid #00bfae;
 }
 
 .qb-layout {
@@ -221,7 +221,7 @@
 
 .qb-company h2 {
   margin: 0 0 12px;
-  color: #6d4aff;
+  color: #00bfae;
   font-size: 30px;
   font-weight: 900;
   letter-spacing: 0.06em;
@@ -234,7 +234,7 @@
 
 .qb-company a,
 .qb-side-panel a {
-  color: #6d4aff;
+  color: #00bfae;
   font-size: 13px;
   font-weight: 800;
   cursor: pointer;
@@ -248,7 +248,7 @@
 
 .qb-logo-box {
   background: #f5f3ff;
-  color: #6d4aff;
+  color: #00bfae;
   border-radius: 22px;
   display: flex;
   flex-direction: column;
@@ -279,7 +279,7 @@
 .qb-client-btn {
   border: 1px solid #ddd6fe;
   background: #fff;
-  color: #6d4aff;
+  color: #00bfae;
   padding: 10px 14px;
   border-radius: 14px;
   margin-bottom: 18px;
@@ -332,7 +332,7 @@
 .qb-items-table select:focus,
 .qb-bottom-area textarea:focus,
 .qb-totals input:focus {
-  border-color: #6d4aff;
+  border-color: #00bfae;
   box-shadow: 0 0 0 4px rgba(109, 74, 255, 0.1);
 }
 
@@ -355,7 +355,7 @@
 .qb-items-head button {
   border: 1px solid #ddd6fe;
   background: #fff;
-  color: #6d4aff;
+  color: #00bfae;
   padding: 10px 14px;
   border-radius: 14px;
   font-weight: 900;
@@ -515,7 +515,7 @@
 .qb-footer-bar > button {
   border: 0;
   background: transparent;
-  color: #6d4aff;
+  color: #00bfae;
 }
 
 .qb-footer-bar div {
@@ -576,7 +576,7 @@ flex-shrink: 0;
 
 .qb-actions-menu button:hover {
   background: #f8fafc;
-  color: #6d4aff;
+  color: #00bfae;
 }
 
 .qb-actions-menu button:disabled {
@@ -587,7 +587,7 @@ flex-shrink: 0;
 .qb-client-select {
   border: 1px solid #ddd6fe;
   background: #fff;
-  color: #6d4aff;
+  color: #00bfae;
   padding: 11px 14px;
   border-radius: 14px;
   margin-bottom: 18px;
@@ -624,7 +624,7 @@ flex-shrink: 0;
 }
 
 .qb-modal-head span {
-  color: #6d4aff;
+  color: #00bfae;
   font-weight: 900;
   font-size: 12px;
   letter-spacing: 0.08em;
@@ -669,7 +669,7 @@ flex-shrink: 0;
 
 .qb-customer-grid input:focus,
 .qb-customer-grid textarea:focus {
-  border-color: #6d4aff;
+  border-color: #00bfae;
   box-shadow: 0 0 0 4px rgba(109, 74, 255, 0.1);
 }
 
@@ -711,14 +711,14 @@ flex-shrink: 0;
   display: flex;
   justify-content: space-between;
   gap: 24px;
-  border-bottom: 2px solid #6d4aff;
+  border-bottom: 2px solid #00bfae;
   padding-bottom: 18px;
   margin-bottom: 20px;
 }
 
 .qb-preview-header h2 {
   margin: 0;
-  color: #6d4aff;
+  color: #00bfae;
 }
 
 .qb-preview-header p {

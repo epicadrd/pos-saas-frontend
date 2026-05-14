@@ -69,7 +69,7 @@ export default function DeliveryNotes() {
     currency: "DOP",
   });
 
-  const color = tenant?.primaryColor || "#6d4aff";
+  const color = tenant?.primaryColor || "#00bfae";
   const logo = tenant?.logoDataUrl || "";
 
   const taxRate = Number(tenant?.invoiceTaxRate || 18);
@@ -570,6 +570,7 @@ export default function DeliveryNotes() {
                 <th>Entrega</th>
                 <th>Total</th>
                 <th>Estado</th>
+                <th>Creado por</th>
                 <th>Acciones</th>
               </tr>
             </thead>
@@ -577,13 +578,13 @@ export default function DeliveryNotes() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan="7" className="table-empty">
+                  <td colSpan="8" className="table-empty">
                     Cargando conduces...
                   </td>
                 </tr>
               ) : filteredDeliveryNotes.length === 0 ? (
                 <tr>
-                  <td colSpan="7" className="table-empty">
+                  <td colSpan="8" className="table-empty">
                     No hay conduces registrados.
                   </td>
                 </tr>
@@ -615,6 +616,8 @@ export default function DeliveryNotes() {
                         {statusLabel[note.status] || "Borrador"}
                       </span>
                     </td>
+
+                    <td>{note.creator?.name || "Sistema"}</td>
 
                     <td>
                       <div className="table-actions quote-actions">

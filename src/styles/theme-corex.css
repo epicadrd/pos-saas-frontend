@@ -1,0 +1,146 @@
+:root {
+  --brand-primary: #00bfae;
+  --brand-primary-dark: #009e93;
+  --brand-primary-soft: rgba(0, 191, 174, 0.12);
+
+  --brand-dark: #111827;
+  --brand-dark-2: #0f172a;
+  --brand-white: #ffffff;
+
+  --brand-bg: #f8fafc;
+  --brand-border: #e5e7eb;
+}
+
+/* Layout principal */
+.saas-shell {
+  background: var(--brand-bg);
+}
+
+.saas-sidebar {
+  background: var(--brand-dark);
+}
+
+.sidebar-logo,
+.sidebar-link.active,
+.sidebar-ribbon-btn,
+.card-icon,
+.billing-icon,
+.primary-action,
+.billing-btn-primary,
+.auth-button,
+.subscription-required-actions button {
+  background: linear-gradient(
+    135deg,
+    var(--brand-primary),
+    var(--brand-primary-dark)
+  ) !important;
+  color: white !important;
+}
+
+.sidebar-link:hover {
+  background: rgba(0, 191, 174, 0.12);
+  color: white;
+}
+
+/* Topbar */
+.saas-topbar {
+  background: var(--brand-white);
+  border-bottom: 1px solid var(--brand-border);
+}
+
+.search-box {
+  background: #f1f5f9;
+}
+
+/* Cards y detalles */
+.dashboard-card,
+.billing-card,
+.auth-card {
+  border-color: var(--brand-border);
+}
+
+.card-icon,
+.billing-icon {
+  box-shadow: 0 12px 28px rgba(0, 191, 174, 0.25);
+}
+
+/* Billing */
+.billing-hero {
+  background: linear-gradient(
+    135deg,
+    var(--brand-dark),
+    #123c43,
+    var(--brand-primary)
+  ) !important;
+}
+
+.billing-info-item svg,
+.billing-renew,
+.module-eyebrow {
+  color: var(--brand-primary-dark) !important;
+}
+
+.billing-badge {
+  background: var(--brand-primary-soft) !important;
+  color: var(--brand-primary-dark) !important;
+}
+
+/* Auth */
+.auth-bg {
+  background:
+    radial-gradient(circle at top left, rgba(0, 191, 174, 0.32), transparent 34%),
+    radial-gradient(circle at bottom right, rgba(0, 191, 174, 0.22), transparent 32%),
+    linear-gradient(135deg, #020617, #0f172a) !important;
+}
+
+.brand-icon,
+.auth-badge {
+  background: var(--brand-primary-soft) !important;
+  color: var(--brand-primary) !important;
+}
+
+.input-group:focus-within {
+  border-color: var(--brand-primary) !important;
+  box-shadow: 0 0 0 4px rgba(0, 191, 174, 0.12) !important;
+}
+
+/* Suscripción requerida */
+.subscription-required-bg {
+  background:
+    radial-gradient(circle at top left, rgba(0, 191, 174, 0.38), transparent 34%),
+    radial-gradient(circle at bottom right, rgba(0, 191, 174, 0.28), transparent 32%),
+    linear-gradient(135deg, #020617, #0f172a) !important;
+}
+
+.subscription-required-icon {
+  background: linear-gradient(
+    135deg,
+    var(--brand-primary),
+    var(--brand-primary-dark)
+  ) !important;
+  box-shadow: 0 18px 45px rgba(0, 191, 174, 0.35) !important;
+}
+
+/* Botones secundarios */
+.secondary-btn,
+.billing-btn-secondary {
+  background: rgba(0, 191, 174, 0.1) !important;
+  color: var(--brand-primary-dark) !important;
+}
+
+/* Tablas, links y acentos */
+a,
+button,
+.sidebar-link,
+.billing-btn,
+.primary-action {
+  transition: 0.2s ease;
+}
+
+a {
+  color: var(--brand-primary-dark);
+}
+
+button:hover {
+  filter: brightness(0.97);
+}

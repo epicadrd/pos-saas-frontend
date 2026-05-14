@@ -45,7 +45,7 @@
 }
 
 .qb-form-grid select:focus {
-  border-color: #6d4aff;
+  border-color: #00bfae;
   box-shadow: 0 0 0 4px rgba(109, 74, 255, 0.1);
 }
 

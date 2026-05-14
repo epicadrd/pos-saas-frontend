@@ -20,6 +20,12 @@ import Suppliers from "./pages/modules/Suppliers";
 import DeliveryNotes from "./pages/modules/DeliveryNotes";
 import UsersManagement from "./pages/modules/UsersManagement";
 import RoleRoute from "./components/RoleRoute";
+import ActivityLog from "./pages/modules/ActivityLog";
+import VerifyEmail from "./pages/VerifyEmail";
+import SelectPlan from "./pages/SelectPlan";
+import SubscriptionRoute from "./components/SubscriptionRoute";
+import Billing from "./pages/modules/Billing";
+import SubscriptionRequired from "./pages/SubscriptionRequired";
 
 function App() {
   return (
@@ -28,12 +34,33 @@ function App() {
 
       <Route path="/login" element={<Login />} />
       <Route path="/registro" element={<Register />} />
+      <Route path="/verificar-correo/:token" element={<VerifyEmail />} />
+
+      <Route
+        path="/seleccionar-plan"
+        element={
+          <ProtectedRoute>
+            <SelectPlan />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/suscripcion-requerida"
+        element={
+          <ProtectedRoute>
+            <SubscriptionRequired />
+          </ProtectedRoute>
+        }
+      />
 
       <Route
         path="/dashboard"
         element={
           <ProtectedRoute>
-            <SaaSLayout />
+            <SubscriptionRoute>
+              <SaaSLayout />
+            </SubscriptionRoute>
           </ProtectedRoute>
         }
       >
@@ -45,6 +72,8 @@ function App() {
         <Route path="facturacion/preferencias" element={<InvoicePreferences />}/>
         <Route path="facturacion/numeracion" element={<InvoiceNumbering />} />
         <Route path="usuarios" element={<UsersManagement />} />
+        <Route path="activity-log" element={<ActivityLog />} />
+        <Route path="facturacion/billing" element={<Billing />} />
         
         <Route
             path="inventario"

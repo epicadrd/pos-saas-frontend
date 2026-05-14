@@ -16,7 +16,7 @@
   margin-bottom: 6px;
   font-size: 13px;
   font-weight: 800;
-  color: #6d4aff;
+  color: #00bfae;
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
@@ -47,7 +47,7 @@
 }
 
 .users-primary-btn {
-  background: linear-gradient(135deg, #6d4aff, #8f6cff);
+  background: linear-gradient(135deg, #00bfae, #00bfae);
   color: #fff;
   box-shadow: 0 14px 30px rgba(109, 74, 255, 0.22);
 }
@@ -81,7 +81,7 @@
 }
 
 .users-stat-card svg {
-  color: #6d4aff;
+  color: #00bfae;
 }
 
 .users-stat-card strong {
@@ -154,7 +154,7 @@
   height: 38px;
   border-radius: 14px;
   background: #ede9fe;
-  color: #6d4aff;
+  color: #00bfae;
   display: grid;
   place-items: center;
   font-weight: 900;
@@ -187,12 +187,12 @@
 
 .users-role.admin {
   background: #dbeafe;
-  color: #1d4ed8;
+  color: #00bfae;
 }
 
 .users-role.employee {
   background: #ede9fe;
-  color: #6d28d9;
+  color: #00bfae;
 }
 
 .users-status.active {
@@ -285,7 +285,7 @@
 
 .users-form input:focus,
 .users-form select:focus {
-  border-color: #6d4aff;
+  border-color: #00bfae;
   box-shadow: 0 0 0 4px rgba(109, 74, 255, 0.1);
 }
 
@@ -306,7 +306,7 @@
 }
 
 .users-denied svg {
-  color: #6d4aff;
+  color: #00bfae;
   margin: 0 auto 12px;
 }
 

@@ -1,6 +1,8 @@
 import axios from "axios";
 
 let accessToken = null;
+let isRefreshing = false;
+let refreshQueue = [];
 
 export const setAccessToken = (token) => {
   accessToken = token;
@@ -8,8 +10,10 @@ export const setAccessToken = (token) => {
 
 export const getAccessToken = () => accessToken;
 
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080/api";
+
 export const api = axios.create({
-  baseURL: "http://localhost:8080/api",
+  baseURL: API_URL,
   headers: {
     "Content-Type": "application/json",
   },
@@ -23,3 +27,64 @@ api.interceptors.request.use((config) => {
 
   return config;
 });
+
+const processQueue = (error, token = null) => {
+  refreshQueue.forEach((promise) => {
+    if (error) {
+      promise.reject(error);
+    } else {
+      promise.resolve(token);
+    }
+  });
+
+  refreshQueue = [];
+};
+
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+
+    if (
+      error.response?.status !== 401 ||
+      originalRequest?._retry ||
+      originalRequest?.url?.includes("/auth/login") ||
+      originalRequest?.url?.includes("/auth/register") ||
+      originalRequest?.url?.includes("/auth/refresh")
+    ) {
+      return Promise.reject(error);
+    }
+
+    originalRequest._retry = true;
+
+    if (isRefreshing) {
+      return new Promise((resolve, reject) => {
+        refreshQueue.push({ resolve, reject });
+      }).then((token) => {
+        originalRequest.headers.Authorization = `Bearer ${token}`;
+        return api(originalRequest);
+      });
+    }
+
+    isRefreshing = true;
+
+    try {
+      const { data } = await api.post("/auth/refresh");
+
+      setAccessToken(data.accessToken);
+      processQueue(null, data.accessToken);
+
+      originalRequest.headers.Authorization = `Bearer ${data.accessToken}`;
+      return api(originalRequest);
+    } catch (refreshError) {
+      setAccessToken(null);
+      processQueue(refreshError, null);
+
+      window.dispatchEvent(new Event("auth:logout"));
+
+      return Promise.reject(refreshError);
+    } finally {
+      isRefreshing = false;
+    }
+  }
+);

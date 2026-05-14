@@ -20,7 +20,7 @@
   letter-spacing: 0.22em;
   font-size: 12px;
   font-weight: 900;
-  color: #4f46e5;
+  color: #00bfae;
 }
 
 .purchase-header h2 {
@@ -151,14 +151,14 @@
   height: 42px;
   border-radius: 15px;
   background: #eef2ff;
-  color: #4f46e5;
+  color: #00bfae;
   display: grid;
   place-items: center;
 }
 
 .status-select.info {
   background: #dbeafe;
-  color: #1d4ed8;
+  color: #00bfae;
 }
 
 .purchase-modal {
@@ -279,6 +279,210 @@
 @media (max-width: 700px) {
   .purchase-stats,
   .purchase-form-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.selected-supplier-card {
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 22px;
+  padding: 18px;
+}
+
+.selected-supplier-card span {
+  display: block;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 6px;
+}
+
+.selected-supplier-card strong {
+  font-size: 18px;
+  color: #0f172a;
+}
+
+.supplier-info-grid {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+.supplier-info-grid p {
+  margin: 0;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 12px;
+  font-weight: 800;
+  color: #334155;
+}
+
+.supplier-info-grid small {
+  display: block;
+  margin-bottom: 4px;
+  color: #64748b;
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
+@media (max-width: 700px) {
+  .supplier-info-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.receive-order-btn {
+  background: #dcfce7 !important;
+  color: #15803d !important;
+}
+
+.selected-supplier-card {
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 22px;
+  padding: 18px;
+}
+
+.selected-supplier-card span {
+  display: block;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 6px;
+}
+
+.selected-supplier-card strong {
+  font-size: 18px;
+  color: #0f172a;
+}
+
+.supplier-info-grid {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+.supplier-info-grid p {
+  margin: 0;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 12px;
+  font-weight: 800;
+  color: #334155;
+}
+
+.supplier-info-grid small {
+  display: block;
+  margin-bottom: 4px;
+  color: #64748b;
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
+@media (max-width: 700px) {
+  .supplier-info-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.supplier-business-grid {
+  margin-top: 18px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.supplier-business-grid div {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 14px;
+}
+
+.supplier-business-grid small {
+  display: block;
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.supplier-business-grid strong {
+  color: #0f172a;
+  font-size: 16px;
+}
+
+.supplier-last-orders {
+  margin-top: 18px;
+}
+
+.supplier-last-orders h4 {
+  margin: 0 0 10px;
+  color: #0f172a;
+  font-size: 15px;
+}
+
+.supplier-last-order-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 12px 14px;
+  margin-top: 8px;
+}
+
+.supplier-last-order-row span {
+  display: block;
+  margin-top: 3px;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.supplier-empty-history {
+  margin: 0;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.product-last-cost {
+  grid-column: 1 / -1;
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: 14px;
+  padding: 10px 12px;
+  color: #475569;
+  font-size: 12px;
+}
+
+.product-last-cost strong {
+  color: #0f172a;
+}
+
+.product-last-cost span {
+  color: #64748b;
+}
+
+@media (max-width: 900px) {
+  .supplier-business-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .supplier-business-grid {
     grid-template-columns: 1fr;
   }
 }

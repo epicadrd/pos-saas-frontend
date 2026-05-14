@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Mail, Lock, ArrowRight, ShieldCheck, BarChart3 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
@@ -11,6 +11,9 @@ export default function Login() {
     email: "",
     password: "",
   });
+
+  const location = useLocation();
+  const successMessage = location.state?.message || "";
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -28,10 +31,72 @@ export default function Login() {
     setError("");
 
     try {
-      await login(form);
-      navigate("/dashboard");
+      const data = await login(form);
+
+    const activeStatuses = ["active", "trialing"];
+
+    const isActive = activeStatuses.includes(data.tenant?.subscriptionStatus);
+
+    if (!isActive) {
+      if (data.tenant?.subscriptionStatus === "inactive") {
+        navigate("/seleccionar-plan");
+        return;
+      }
+
+      navigate("/suscripcion-requerida");
+      return;
+    }
+    
+navigate("/dashboard");
+
     } catch (error) {
-      setError(error.response?.data?.message || "Error iniciando sesión");
+      const status = error.response?.status;
+      const backendMessage = error.response?.data?.message;
+
+      if (status === 429) {
+        const blockedMinutesLeft =
+          error.response?.data?.blockedMinutesLeft;
+
+        setError(
+          blockedMinutesLeft
+            ? `Por seguridad, el acceso fue bloqueado temporalmente. Podrás intentar nuevamente en ${blockedMinutesLeft} minuto(s).`
+            : "Por seguridad, el acceso fue bloqueado temporalmente. Intenta nuevamente en unos minutos."
+        );
+
+        return;
+      }
+      if (status === 401) {
+        const remainingAttempts =
+          error.response?.data?.remainingAttempts;
+
+        if (remainingAttempts > 0) {
+          setError(
+            `Correo o contraseña incorrectos. Te quedan ${remainingAttempts} intento(s) antes del bloqueo temporal.`
+          );
+        } else {
+          setError(
+            "Demasiados intentos fallidos. El acceso fue bloqueado temporalmente."
+          );
+        }
+
+        return;
+      }
+
+      if (status === 403) {
+        if (error.response?.data?.code === "EMAIL_NOT_VERIFIED") {
+          setError(
+            "Debes confirmar tu cuenta antes de iniciar sesión. Revisa el enlace que enviamos a tu correo."
+          );
+          return;
+        }
+
+        setError(
+          backendMessage || "Tu usuario está desactivado. Contacta al administrador."
+        );
+        return;
+      }
+
+      setError(backendMessage || "No pudimos iniciar sesión. Intenta nuevamente.");
     } finally {
       setLoading(false);
     }
@@ -46,7 +111,7 @@ export default function Login() {
           <div className="brand-icon">
             <BarChart3 size={26} />
           </div>
-          <span>POS Épico</span>
+          <span>Corex</span>
         </div>
 
         <div className="auth-header">
@@ -60,6 +125,8 @@ export default function Login() {
         </div>
 
         {error && <div className="auth-error">{error}</div>}
+
+        {successMessage && <div className="auth-success">{successMessage}</div>}
 
         <form onSubmit={handleLogin} className="auth-form">
           <label>Correo electrónico</label>

@@ -64,7 +64,7 @@ export default function Quotes() {
   const [saving, setSaving] = useState(false);
 
   const { tenant } = useAuth();
-  const quoteColor = tenant?.primaryColor || "#6d4aff";
+  const quoteColor = tenant?.primaryColor || "#00bfae";
   const quoteLogo = tenant?.logoDataUrl || "";
   const [editingQuoteId, setEditingQuoteId] = useState(null);
 

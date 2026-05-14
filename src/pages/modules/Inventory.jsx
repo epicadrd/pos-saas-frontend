@@ -15,9 +15,11 @@ import {
   Search,
   Trash2,
   X,
+  Download
 } from "lucide-react";
 import { api } from "../../api/axios";
 import { useAuth } from "../../context/AuthContext";
+import * as XLSX from "xlsx";
 
 const emptyForm = {
   name: "",
@@ -60,7 +62,23 @@ const movementBadgeClass = {
 
 export default function Inventory() {
   const { user } = useAuth();
+   
   const [products, setProducts] = useState([]);
+
+  
+  const [pagination, setPagination] = useState({
+  page: 1,
+  limit: 25,
+  total: 0,
+  totalPages: 1,
+});
+
+const [inventorySummary, setInventorySummary] = useState({
+  totalProducts: 0,
+  totalServices: 0,
+  lowStock: 0,
+  inventoryValue: 0,
+});
   const [search, setSearch] = useState("");
   const [productStatus, setProductStatus] = useState("active");
   const [productTypeFilter, setProductTypeFilter] = useState("all");
@@ -94,61 +112,95 @@ export default function Inventory() {
     currency: "DOP",
   });
 
-  const stats = useMemo(() => {
-    const stockProducts = products.filter(
-      (item) => item.productType !== "service" && item.trackStock !== false
-    );
-
-    const totalProducts = products.filter(
-      (item) => item.productType !== "service"
-    ).length;
-
-    const totalServices = products.filter(
-      (item) => item.productType === "service"
-    ).length;
-
-    const totalStock = stockProducts.reduce(
-      (acc, item) => acc + Number(item.stock || 0),
-      0
-    );
-
-    const inventoryValue = stockProducts.reduce(
-      (acc, item) =>
-        acc + Number(item.stock || 0) * Number(item.costPrice || 0),
-      0
-    );
-
-    const lowStock = stockProducts.filter(
-      (item) => Number(item.stock || 0) <= Number(item.minStock || 0)
-    ).length;
-
-    return { totalProducts, totalServices, totalStock, inventoryValue, lowStock };
-  }, [products]);
-
-  const loadProducts = async () => {
-    try {
-      setLoading(true);
-
-      const params = new URLSearchParams({
-        search,
-        status: productStatus,
-        type: productTypeFilter,
-      });
-
-      const { data } = await api.get(`/products?${params.toString()}`);
-      setProducts(data);
-    } catch (error) {
-      console.log(error);
-      alert(error.response?.data?.message || "Error cargando productos");
-    } finally {
-      setLoading(false);
-    }
+const stats = useMemo(() => {
+  return {
+    totalProducts: inventorySummary.totalProducts || 0,
+    totalServices: inventorySummary.totalServices || 0,
+    totalStock: 0,
+    inventoryValue: inventorySummary.inventoryValue || 0,
+    lowStock: inventorySummary.lowStock || 0,
   };
+}, [inventorySummary]);
+
+const loadProducts = async (pageToLoad = pagination.page) => {
+  try {
+    setLoading(true);
+
+    const params = new URLSearchParams({
+      search,
+      status: productStatus,
+      type: productTypeFilter,
+      paginated: "true",
+      page: pageToLoad,
+      limit: pagination.limit,
+    });
+
+    const { data } = await api.get(`/products?${params.toString()}`);
+
+    setProducts(data.data || []);
+    setPagination(data.pagination || {
+      page: 1,
+      limit: 25,
+      total: 0,
+      totalPages: 1,
+    });
+    setInventorySummary(data.summary || {
+      totalProducts: 0,
+      totalServices: 0,
+      lowStock: 0,
+      inventoryValue: 0,
+    });
+  } catch (error) {
+    console.log(error);
+    alert(error.response?.data?.message || "Error cargando productos");
+  } finally {
+    setLoading(false);
+  }
+};
+
+  const exportInventoryToExcel = () => {
+  if (!products.length) {
+    alert("No hay productos para exportar.");
+    return;
+  }
+
+  const rows = products.map((product) => {
+    const isService = product.productType === "service";
+    const controlsStock = !isService && product.trackStock !== false;
+
+    return {
+      Nombre: product.name || "",
+      Tipo: isService ? "Servicio" : "Producto",
+      SKU: product.sku || "",
+      "Código de barras": product.barcode || "",
+      Categoría: product.category || "",
+      Unidad: product.unit || "",
+      Descripción: product.description || "",
+      Costo: Number(product.costPrice || 0),
+      "Precio venta": Number(product.salePrice || 0),
+      "Controla inventario": controlsStock ? "Sí" : "No",
+      Stock: controlsStock ? Number(product.stock || 0) : "",
+      "Stock mínimo": controlsStock ? Number(product.minStock || 0) : "",
+      Estado: productStatus === "inactive" ? "Inactivo" : "Activo",
+    };
+  });
+
+  const worksheet = XLSX.utils.json_to_sheet(rows);
+  const workbook = XLSX.utils.book_new();
+
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Inventario");
+
+  const today = new Date().toISOString().slice(0, 10);
+  XLSX.writeFile(workbook, `inventario-${today}.xlsx`);
+};
 
   useEffect(() => {
-    const timer = setTimeout(loadProducts, 350);
-    return () => clearTimeout(timer);
-  }, [search, productStatus, productTypeFilter]);
+  const timer = setTimeout(() => {
+    loadProducts(1);
+  }, 350);
+
+  return () => clearTimeout(timer);
+}, [search, productStatus, productTypeFilter]);
 
   const openCreateModal = () => {
     setEditingProduct(null);
@@ -385,7 +437,17 @@ export default function Inventory() {
           </p>
         </div>
 
-        <div className="inventory-header-actions">
+        <div className="inventory-header-actions inventory-header-actions-fixed">
+          <button
+            type="button"
+            className="secondary-btn"
+            onClick={exportInventoryToExcel}
+          >
+            <Download size={18} />
+            
+            Exportar Excel
+          </button>
+
           <button
             type="button"
             className="secondary-btn"
@@ -462,6 +524,33 @@ export default function Inventory() {
               <option value="service">Servicios</option>
             </select>
           </div>
+
+          <div className="inventory-pagination">
+            <span>
+              Mostrando página {pagination.page} de {pagination.totalPages} ·{" "}
+              {pagination.total} registros
+            </span>
+
+            <div>
+              <button
+                type="button"
+                disabled={pagination.page <= 1 || loading}
+                onClick={() => loadProducts(pagination.page - 1)}
+              >
+                Anterior
+              </button>
+
+              <button
+                type="button"
+                disabled={pagination.page >= pagination.totalPages || loading}
+                onClick={() => loadProducts(pagination.page + 1)}
+              >
+                Siguiente
+              </button>
+            </div>
+          </div>
+
+
         </div>
 
         <div className="inventory-table-wrap">
@@ -807,6 +896,8 @@ export default function Inventory() {
           </div>
         </div>
       )}
+       
+
     </div>
   );
 }

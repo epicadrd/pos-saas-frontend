@@ -76,7 +76,7 @@
   height: 52px;
   border-radius: 18px;
   background: #f5f3ff;
-  color: #6d4aff;
+  color: #00bfae;
   display: grid;
   place-items: center;
 }
@@ -209,7 +209,7 @@
 }
 
 .qb-customer-suggestion.add {
-  color: #6d4aff;
+  color: #00bfae;
   font-weight: 900;
 }
 

@@ -41,8 +41,13 @@ export default function Register() {
     setError("");
 
     try {
-      await register(form);
-      navigate("/dashboard");
+      const data = await register(form);
+      navigate("/login", {
+        state: {
+          message: data.message,
+          email: form.email,
+        },
+      });
     } catch (error) {
       setError(error.response?.data?.message || "Error creando la cuenta");
     } finally {
@@ -59,7 +64,7 @@ export default function Register() {
           <div className="brand-icon">
             <Sparkles size={26} />
           </div>
-          <span>POS Épico</span>
+          <span>Corex</span>
         </div>
 
         <div className="auth-header center">

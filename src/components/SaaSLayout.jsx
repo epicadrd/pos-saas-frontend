@@ -41,6 +41,12 @@ const links = [
     roles: ["master", "admin", "employee"],
   },
   {
+    to: "/dashboard/facturacion/billing",
+    label: "Plan y suscripción",
+    icon: CreditCard,
+    roles: ["master", "admin"],
+  },
+  {
     to: "/dashboard/inventario",
     label: "Inventario",
     icon: Package,
@@ -140,7 +146,7 @@ const links = [
             <BarChart3 size={24} />
           </div>
           <div>
-            <h2>POS Épico</h2>
+            <h2>Corex</h2>
             <span>Business</span>
           </div>
         </div>

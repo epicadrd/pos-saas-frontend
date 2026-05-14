@@ -40,7 +40,7 @@ export default function Invoices() {
   const navigate = useNavigate();
   const { tenant, setTenant } = useAuth();
 
-  const invoiceColor = tenant?.primaryColor || "#6d4aff";
+  const invoiceColor = tenant?.primaryColor || "#00bfae";
   const invoiceLogo = tenant?.logoDataUrl || "";
 
   const [invoices, setInvoices] = useState([]);

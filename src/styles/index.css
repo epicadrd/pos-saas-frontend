@@ -36,7 +36,7 @@
   margin-bottom: 6px;
   font-size: 13px;
   font-weight: 800;
-  color: #6d4aff;
+  color: #00bfae;
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
@@ -67,7 +67,7 @@
 }
 
 .users-primary-btn {
-  background: linear-gradient(135deg, #6d4aff, #8f6cff);
+  background: linear-gradient(135deg, #00bfae, #00bfae);
   color: #fff;
   box-shadow: 0 14px 30px rgba(109, 74, 255, 0.22);
 }
@@ -101,7 +101,7 @@
 }
 
 .users-stat-card svg {
-  color: #6d4aff;
+  color: #00bfae;
 }
 
 .users-stat-card strong {
@@ -174,7 +174,7 @@
   height: 38px;
   border-radius: 14px;
   background: #ede9fe;
-  color: #6d4aff;
+  color: #00bfae;
   display: grid;
   place-items: center;
   font-weight: 900;
@@ -207,12 +207,12 @@
 
 .users-role.admin {
   background: #dbeafe;
-  color: #1d4ed8;
+  color: #00bfae;
 }
 
 .users-role.employee {
   background: #ede9fe;
-  color: #6d28d9;
+  color: #00bfae;
 }
 
 .users-status.active {
@@ -305,7 +305,7 @@
 
 .users-form input:focus,
 .users-form select:focus {
-  border-color: #6d4aff;
+  border-color: #00bfae;
   box-shadow: 0 0 0 4px rgba(109, 74, 255, 0.1);
 }
 
@@ -326,7 +326,7 @@
 }
 
 .users-denied svg {
-  color: #6d4aff;
+  color: #00bfae;
   margin: 0 auto 12px;
 }
 
@@ -354,4 +354,73 @@
     width: 100%;
     justify-content: center;
   }
+}
+
+.activity-page {
+  display: grid;
+  gap: 20px;
+}
+
+.activity-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.activity-header span {
+  color: #00bfae;
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: 13px;
+}
+
+.activity-header h1 {
+  margin: 4px 0;
+  font-size: 32px;
+}
+
+.activity-header p {
+  color: #6b7280;
+  margin: 0;
+}
+
+.activity-card {
+  background: #fff;
+  border: 1px solid #eef0f5;
+  border-radius: 24px;
+  overflow: hidden;
+}
+
+.activity-item {
+  display: flex;
+  gap: 14px;
+  padding: 18px 20px;
+  border-bottom: 1px solid #eef0f5;
+}
+
+.activity-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 16px;
+  background: #ede9fe;
+  color: #00bfae;
+  display: grid;
+  place-items: center;
+}
+
+.activity-item strong {
+  display: block;
+  color: #111827;
+}
+
+.activity-item p {
+  margin: 5px 0 0;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.activity-empty {
+  padding: 32px;
+  text-align: center;
+  color: #6b7280;
 }

@@ -74,7 +74,15 @@ export default function SelectPlan() {
     <div className="auth-page">
       <div className="auth-bg"></div>
 
-      <div style={{ width: "100%", maxWidth: 1180, padding: "42px 20px" }}>
+      <div
+        style={{
+          width: "100%",
+          maxWidth: 1180,
+          padding: "42px 20px",
+          position: "relative",
+          zIndex: 2,
+        }}
+      >
         <div style={{ textAlign: "center", marginBottom: 34 }}>
           <h1 style={{ color: "white", fontSize: 44, marginBottom: 10 }}>
             Elige tu plan

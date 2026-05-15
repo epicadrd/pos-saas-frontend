@@ -24,6 +24,7 @@ import { api } from "../api/axios";
 export default function SaaSLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [billingOpen, setBillingOpen] = useState(false);
   const settingsRef = useRef(null);
   const billingRef = useRef(null);
@@ -145,82 +146,99 @@ useEffect(() => {
           </div>
         </div>
 
-       <nav className="sidebar-nav">
-          {links
-            .filter((item) => item.roles.includes(user?.role))
-            .map((item) => {
-              const Icon = item.icon;
+          <nav className="sidebar-nav">
 
-              return (
-                <NavLink
-                  key={item.to}
-                  to={item.to}
-                  end={item.end}
-                  onClick={() => setSidebarOpen(false)}
-                  className={({ isActive }) =>
-                    isActive ? "sidebar-link active" : "sidebar-link"
-                  }
-                >
-                  <Icon size={20} />
-                  <span>{item.label}</span>
-                </NavLink>
-              );
-            })}
-
-          <div className="sidebar-group" ref={billingRef}>
-            <button
-              type="button"
-              className="sidebar-group-btn"
-              onClick={() => setBillingOpen(!billingOpen)}
+            <NavLink
+              to="/dashboard"
+              end
+              onClick={() => setSidebarOpen(false)}
+              className={({ isActive }) =>
+                isActive ? "sidebar-link active" : "sidebar-link"
+              }
             >
-              <span className="sidebar-group-left">
-                <FileText size={20} />
-                <span>Facturación</span>
-              </span>
+              <BarChart3 size={20} />
+              <span>Dashboard</span>
+            </NavLink>
 
-              <ChevronDown
-                size={16}
-                className={billingOpen ? "rotate-180" : ""}
-              />
-            </button>
+            <div className="sidebar-group" ref={billingRef}>
+              <button
+                type="button"
+                className="sidebar-group-btn"
+                onClick={() => setBillingOpen(!billingOpen)}
+              >
+                <span className="sidebar-group-left">
+                  <FileText size={20} />
+                  <span>Facturación</span>
+                </span>
 
-            {billingOpen && (
-              <div className="sidebar-submenu">
-                <NavLink
-                  to="/dashboard/facturacion"
-                  onClick={() => setSidebarOpen(false)}
-                  className={({ isActive }) =>
-                    isActive ? "sidebar-sublink active" : "sidebar-sublink"
-                  }
-                >
-                  Facturas
-                </NavLink>
+                <ChevronDown
+                  size={16}
+                  className={billingOpen ? "rotate-180" : ""}
+                />
+              </button>
 
-                <NavLink
-                  to="/dashboard/cotizaciones"
-                  onClick={() => setSidebarOpen(false)}
-                  className={({ isActive }) =>
-                    isActive ? "sidebar-sublink active" : "sidebar-sublink"
-                  }
-                >
-                  Cotizaciones
-                </NavLink>
-
-                {(user?.role === "master" || user?.role === "admin") && (
+              {billingOpen && (
+                <div className="sidebar-submenu">
                   <NavLink
-                    to="/dashboard/recibos"
+                    to="/dashboard/facturacion"
                     onClick={() => setSidebarOpen(false)}
                     className={({ isActive }) =>
                       isActive ? "sidebar-sublink active" : "sidebar-sublink"
                     }
                   >
-                    Recibos
+                    Facturas
                   </NavLink>
-                )}
-              </div>
-            )}
-          </div>
-        </nav>
+
+                  <NavLink
+                    to="/dashboard/cotizaciones"
+                    onClick={() => setSidebarOpen(false)}
+                    className={({ isActive }) =>
+                      isActive ? "sidebar-sublink active" : "sidebar-sublink"
+                    }
+                  >
+                    Cotizaciones
+                  </NavLink>
+
+                  {(user?.role === "master" || user?.role === "admin") && (
+                    <NavLink
+                      to="/dashboard/recibos"
+                      onClick={() => setSidebarOpen(false)}
+                      className={({ isActive }) =>
+                        isActive ? "sidebar-sublink active" : "sidebar-sublink"
+                      }
+                    >
+                      Recibos
+                    </NavLink>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {links
+              .filter(
+                (item) =>
+                  item.roles.includes(user?.role) &&
+                  item.to !== "/dashboard"
+              )
+              .map((item) => {
+                const Icon = item.icon;
+
+                return (
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    end={item.end}
+                    onClick={() => setSidebarOpen(false)}
+                    className={({ isActive }) =>
+                      isActive ? "sidebar-link active" : "sidebar-link"
+                    }
+                  >
+                    <Icon size={20} />
+                    <span>{item.label}</span>
+                  </NavLink>
+                );
+              })}
+          </nav>
 
         <div className="sidebar-footer">
           <div className="user-mini">

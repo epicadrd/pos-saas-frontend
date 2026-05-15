@@ -496,55 +496,45 @@ export default function SaaSLayout() {
               )}
             </div>
 
-            <div
-              className="settings-wrapper"
-              ref={settingsRef}
-            >
-              <button
-                className="icon-btn settings-btn"
-                onClick={() =>
-                  setSettingsOpen(!settingsOpen)
-                }
-                title="Configuración"
+            {user?.role === "master" && (
+              <div
+                className="settings-wrapper"
+                ref={settingsRef}
               >
-                <Settings size={20} />
-              </button>
+                <button
+                  className="icon-btn settings-btn"
+                  onClick={() =>
+                    setSettingsOpen(!settingsOpen)
+                  }
+                  title="Configuración"
+                >
+                  <Settings size={20} />
+                </button>
 
-              {settingsOpen && (
-                <div className="settings-dropdown">
-                  <div className="settings-header">
-                    <strong>Configuración</strong>
-                    <span>{user?.role || "Usuario"}</span>
-                  </div>
+                {settingsOpen && (
+                  <div className="settings-dropdown">
+                    <div className="settings-header">
+                      <strong>Configuración</strong>
+                      <span>{user?.role || "Usuario"}</span>
+                    </div>
 
-                  {(user?.role === "master" ||
-                    user?.role === "admin") && (
                     <button
                       className="settings-item"
                       onClick={() => {
                         setSettingsOpen(false);
-                        navigate(
-                          "/dashboard/facturacion/billing"
-                        );
+                        navigate("/dashboard/facturacion/billing");
                       }}
                     >
                       <CreditCard size={18} />
 
                       <div>
-                        <strong>
-                          Plan y suscripción
-                        </strong>
-
-                        <span>
-                          Gestionar pagos y plan actual
-                        </span>
+                        <strong>Plan y suscripción</strong>
+                        <span>Gestionar pagos y plan actual</span>
                       </div>
 
                       <ChevronDown size={16} />
                     </button>
-                  )}
 
-                  {user?.role === "master" && (
                     <button
                       className="settings-item"
                       onClick={() => {
@@ -556,18 +546,15 @@ export default function SaaSLayout() {
 
                       <div>
                         <strong>Usuarios</strong>
-
-                        <span>
-                          Administrar accesos del equipo
-                        </span>
+                        <span>Administrar accesos del equipo</span>
                       </div>
 
                       <ChevronDown size={16} />
                     </button>
-                  )}
-                </div>
-              )}
-            </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </header>
 

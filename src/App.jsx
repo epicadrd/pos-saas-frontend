@@ -71,9 +71,24 @@ function App() {
         <Route path="facturacion/personalizacion" element={<InvoiceCustomization />}/>
         <Route path="facturacion/preferencias" element={<InvoicePreferences />}/>
         <Route path="facturacion/numeracion" element={<InvoiceNumbering />} />
-        <Route path="usuarios" element={<UsersManagement />} />
-        <Route path="activity-log" element={<ActivityLog />} />
-        <Route path="facturacion/billing" element={<Billing />} />
+        <Route path="activity-log" element={<ActivityLog />} />        
+        <Route
+          path="usuarios"
+          element={
+            <RoleRoute allowedRoles={["master"]}>
+              <UsersManagement />
+            </RoleRoute>
+          }
+        />
+
+        <Route
+          path="facturacion/billing"
+          element={
+            <RoleRoute allowedRoles={["master"]}>
+              <Billing />
+            </RoleRoute>
+          }
+        />
         
         <Route
             path="inventario"

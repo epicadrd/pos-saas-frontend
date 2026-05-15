@@ -1363,3 +1363,28 @@
 .sidebar-submenu {
   animation: sidebarFade 0.18s ease;
 }
+
+/* COLLAPSED DROPDOWNS */
+
+.saas-shell.collapsed .sidebar-group-btn {
+  width: 58px;
+  height: 58px;
+  justify-content: center;
+  padding: 0;
+}
+
+.saas-shell.collapsed .sidebar-group-left {
+  justify-content: center;
+}
+
+.saas-shell.collapsed .sidebar-group-left span,
+.saas-shell.collapsed .sidebar-group-btn svg:last-child,
+.saas-shell.collapsed .sidebar-submenu {
+  display: none;
+}
+
+.saas-shell.collapsed .sidebar-group {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}

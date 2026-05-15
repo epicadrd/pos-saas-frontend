@@ -12,15 +12,19 @@ import {
   Search,
   Bell,
   AlertTriangle,
+  Settings,
+  ChevronDown,
+  Users 
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { api } from "../api/axios";
-import { Users } from "lucide-react";
+
 
 export default function SaaSLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
 
   const { user, tenant, logout } = useAuth();
@@ -39,12 +43,6 @@ const links = [
     label: "Facturación",
     icon: FileText,
     roles: ["master", "admin", "employee"],
-  },
-  {
-    to: "/dashboard/facturacion/billing",
-    label: "Plan y suscripción",
-    icon: CreditCard,
-    roles: ["master", "admin"],
   },
   {
     to: "/dashboard/inventario",
@@ -81,13 +79,7 @@ const links = [
     label: "Proveedores",
     icon: Users,
     roles: ["master", "admin"],
-  },
-  {
-    to: "/dashboard/usuarios",
-    label: "Usuarios",
-    icon: Users,
-    roles: ["master"],
-  },
+  }
 ];
 
   const loadNotifications = async () => {
@@ -256,6 +248,59 @@ const links = [
                 </div>
               )}
             </div>
+
+            <div className="settings-wrapper">
+  <button
+    className="icon-btn settings-btn"
+    onClick={() => setSettingsOpen(!settingsOpen)}
+    title="Configuración"
+  >
+    <Settings size={20} />
+  </button>
+
+  {settingsOpen && (
+    <div className="settings-dropdown">
+      <div className="settings-header">
+        <strong>Configuración</strong>
+        <span>{user?.role || "Usuario"}</span>
+      </div>
+
+      {(user?.role === "master" || user?.role === "admin") && (
+        <button
+          className="settings-item"
+          onClick={() => {
+            setSettingsOpen(false);
+            navigate("/dashboard/facturacion/billing");
+          }}
+        >
+          <CreditCard size={18} />
+          <div>
+            <strong>Plan y suscripción</strong>
+            <span>Gestionar pagos y plan actual</span>
+          </div>
+          <ChevronDown size={16} />
+        </button>
+      )}
+
+      {user?.role === "master" && (
+        <button
+          className="settings-item"
+          onClick={() => {
+            setSettingsOpen(false);
+            navigate("/dashboard/usuarios");
+          }}
+        >
+          <Users size={18} />
+          <div>
+            <strong>Usuarios</strong>
+            <span>Administrar accesos del equipo</span>
+          </div>
+          <ChevronDown size={16} />
+        </button>
+      )}
+    </div>
+  )}
+</div>
           </div>
         </header>
 

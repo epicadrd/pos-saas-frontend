@@ -16,7 +16,7 @@ import {
   ChevronDown,
   Users 
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useAuth } from "../context/AuthContext";
 import { api } from "../api/axios";
 
@@ -24,7 +24,9 @@ import { api } from "../api/axios";
 export default function SaaSLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
-  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [billingOpen, setBillingOpen] = useState(false);
+  const settingsRef = useRef(null);
+  const billingRef = useRef(null);
   const [notifications, setNotifications] = useState([]);
 
   const { user, tenant, logout } = useAuth();
@@ -39,33 +41,15 @@ const links = [
     roles: ["master", "admin", "employee"],
   },
   {
-    to: "/dashboard/facturacion",
-    label: "Facturación",
-    icon: FileText,
-    roles: ["master", "admin", "employee"],
-  },
-  {
     to: "/dashboard/inventario",
     label: "Inventario",
     icon: Package,
     roles: ["master", "admin"],
   },
   {
-    to: "/dashboard/cotizaciones",
-    label: "Cotizaciones",
-    icon: ClipboardList,
-    roles: ["master", "admin", "employee"],
-  },
-  {
     to: "/dashboard/conduces",
     label: "Conduces",
     icon: Truck,
-    roles: ["master", "admin"],
-  },
-  {
-    to: "/dashboard/recibos",
-    label: "Recibos",
-    icon: ReceiptText,
     roles: ["master", "admin"],
   },
   {
@@ -115,6 +99,24 @@ const links = [
   };
 }, []);
 
+useEffect(() => {
+  const handleClickOutside = (event) => {
+    if (settingsRef.current && !settingsRef.current.contains(event.target)) {
+      setSettingsOpen(false);
+    }
+
+    if (billingRef.current && !billingRef.current.contains(event.target)) {
+      setBillingOpen(false);
+    }
+  };
+
+  document.addEventListener("mousedown", handleClickOutside);
+
+  return () => {
+    document.removeEventListener("mousedown", handleClickOutside);
+  };
+}, []);
+
   const handleLogout = async () => {
     await logout();
     navigate("/login");
@@ -143,7 +145,7 @@ const links = [
           </div>
         </div>
 
-        <nav className="sidebar-nav">
+       <nav className="sidebar-nav">
           {links
             .filter((item) => item.roles.includes(user?.role))
             .map((item) => {
@@ -164,6 +166,60 @@ const links = [
                 </NavLink>
               );
             })}
+
+          <div className="sidebar-group" ref={billingRef}>
+            <button
+              type="button"
+              className="sidebar-group-btn"
+              onClick={() => setBillingOpen(!billingOpen)}
+            >
+              <span className="sidebar-group-left">
+                <FileText size={20} />
+                <span>Facturación</span>
+              </span>
+
+              <ChevronDown
+                size={16}
+                className={billingOpen ? "rotate-180" : ""}
+              />
+            </button>
+
+            {billingOpen && (
+              <div className="sidebar-submenu">
+                <NavLink
+                  to="/dashboard/facturacion"
+                  onClick={() => setSidebarOpen(false)}
+                  className={({ isActive }) =>
+                    isActive ? "sidebar-sublink active" : "sidebar-sublink"
+                  }
+                >
+                  Facturas
+                </NavLink>
+
+                <NavLink
+                  to="/dashboard/cotizaciones"
+                  onClick={() => setSidebarOpen(false)}
+                  className={({ isActive }) =>
+                    isActive ? "sidebar-sublink active" : "sidebar-sublink"
+                  }
+                >
+                  Cotizaciones
+                </NavLink>
+
+                {(user?.role === "master" || user?.role === "admin") && (
+                  <NavLink
+                    to="/dashboard/recibos"
+                    onClick={() => setSidebarOpen(false)}
+                    className={({ isActive }) =>
+                      isActive ? "sidebar-sublink active" : "sidebar-sublink"
+                    }
+                  >
+                    Recibos
+                  </NavLink>
+                )}
+              </div>
+            )}
+          </div>
         </nav>
 
         <div className="sidebar-footer">
@@ -249,58 +305,58 @@ const links = [
               )}
             </div>
 
-            <div className="settings-wrapper">
-  <button
-    className="icon-btn settings-btn"
-    onClick={() => setSettingsOpen(!settingsOpen)}
-    title="Configuración"
-  >
-    <Settings size={20} />
-  </button>
+          <div className="settings-wrapper" ref={settingsRef}>
+              <button
+                className="icon-btn settings-btn"
+                onClick={() => setSettingsOpen(!settingsOpen)}
+                title="Configuración"
+              >
+                <Settings size={20} />
+              </button>
 
-  {settingsOpen && (
-    <div className="settings-dropdown">
-      <div className="settings-header">
-        <strong>Configuración</strong>
-        <span>{user?.role || "Usuario"}</span>
-      </div>
+              {settingsOpen && (
+                <div className="settings-dropdown">
+                  <div className="settings-header">
+                    <strong>Configuración</strong>
+                    <span>{user?.role || "Usuario"}</span>
+                  </div>
 
-      {(user?.role === "master" || user?.role === "admin") && (
-        <button
-          className="settings-item"
-          onClick={() => {
-            setSettingsOpen(false);
-            navigate("/dashboard/facturacion/billing");
-          }}
-        >
-          <CreditCard size={18} />
-          <div>
-            <strong>Plan y suscripción</strong>
-            <span>Gestionar pagos y plan actual</span>
-          </div>
-          <ChevronDown size={16} />
-        </button>
-      )}
+                  {(user?.role === "master" || user?.role === "admin") && (
+                    <button
+                      className="settings-item"
+                      onClick={() => {
+                        setSettingsOpen(false);
+                        navigate("/dashboard/facturacion/billing");
+                      }}
+                    >
+                      <CreditCard size={18} />
+                      <div>
+                        <strong>Plan y suscripción</strong>
+                        <span>Gestionar pagos y plan actual</span>
+                      </div>
+                      <ChevronDown size={16} />
+                    </button>
+                  )}
 
-      {user?.role === "master" && (
-        <button
-          className="settings-item"
-          onClick={() => {
-            setSettingsOpen(false);
-            navigate("/dashboard/usuarios");
-          }}
-        >
-          <Users size={18} />
-          <div>
-            <strong>Usuarios</strong>
-            <span>Administrar accesos del equipo</span>
-          </div>
-          <ChevronDown size={16} />
-        </button>
-      )}
-    </div>
-  )}
-</div>
+                  {user?.role === "master" && (
+                    <button
+                      className="settings-item"
+                      onClick={() => {
+                        setSettingsOpen(false);
+                        navigate("/dashboard/usuarios");
+                      }}
+                    >
+                      <Users size={18} />
+                      <div>
+                        <strong>Usuarios</strong>
+                        <span>Administrar accesos del equipo</span>
+                      </div>
+                      <ChevronDown size={16} />
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </header>
 

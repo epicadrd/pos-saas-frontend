@@ -227,3 +227,14 @@
     transform: rotate(360deg);
   }
 }
+
+.auth-bg {
+  position: absolute;
+  width: 650px;
+  height: 650px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.35), rgba(59, 130, 246, 0.15));
+  filter: blur(20px);
+  z-index: 0;
+  pointer-events: none;
+}

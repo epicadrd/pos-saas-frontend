@@ -144,7 +144,7 @@ export default function SelectPlan() {
                 <button
                 onClick={() => handleCheckout(plan.id)}
                 disabled={!!loadingPlan}
-                className="auth-button"
+                className="plan-button"
                 >
                 {loadingPlan === plan.id ? (
                     <>

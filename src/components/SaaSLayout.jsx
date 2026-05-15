@@ -47,12 +47,6 @@ const links = [
     icon: Package,
     roles: ["master", "admin"],
   },
-  {
-    to: "/dashboard/proveedores",
-    label: "Proveedores",
-    icon: Users,
-    roles: ["master", "admin"],
-  }
 ];
 
   const loadNotifications = async () => {
@@ -159,7 +153,10 @@ useEffect(() => {
               <button
                 type="button"
                 className="sidebar-group-btn"
-                onClick={() => setBillingOpen(!billingOpen)}
+                onClick={() => {
+                  setBillingOpen((prev) => !prev);
+                  setOperationsOpen(false);
+                }}
               >
                 <span className="sidebar-group-left">
                   <FileText size={20} />
@@ -213,7 +210,10 @@ useEffect(() => {
         <button
           type="button"
           className="sidebar-group-btn"
-          onClick={() => setOperationsOpen(!operationsOpen)}
+          onClick={() => {
+            setOperationsOpen((prev) => !prev);
+            setBillingOpen(false);
+          }}
         >
           <span className="sidebar-group-left">
             <Truck size={20} />
@@ -246,6 +246,17 @@ useEffect(() => {
               }
             >
               Órdenes de compra
+            </NavLink>
+
+
+            <NavLink
+              to="/dashboard/proveedores"
+              onClick={() => setSidebarOpen(false)}
+              className={({ isActive }) =>
+                isActive ? "sidebar-sublink active" : "sidebar-sublink"
+              }
+            >
+              Proveedores
             </NavLink>
           </div>
         )}

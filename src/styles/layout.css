@@ -1359,3 +1359,7 @@
     transform: translateY(0);
   }
 }
+
+.sidebar-submenu {
+  animation: sidebarFade 0.18s ease;
+}

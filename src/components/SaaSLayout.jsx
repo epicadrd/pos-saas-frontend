@@ -3,9 +3,7 @@ import {
   BarChart3,
   FileText,
   Package,
-  ClipboardList,
   Truck,
-  ReceiptText,
   CreditCard,
   LogOut,
   Menu,
@@ -26,8 +24,10 @@ export default function SaaSLayout() {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [billingOpen, setBillingOpen] = useState(false);
+  const [operationsOpen, setOperationsOpen] = useState(false);
   const settingsRef = useRef(null);
   const billingRef = useRef(null);
+  const operationsRef = useRef(null);
   const [notifications, setNotifications] = useState([]);
 
   const { user, tenant, logout } = useAuth();
@@ -45,18 +45,6 @@ const links = [
     to: "/dashboard/inventario",
     label: "Inventario",
     icon: Package,
-    roles: ["master", "admin"],
-  },
-  {
-    to: "/dashboard/conduces",
-    label: "Conduces",
-    icon: Truck,
-    roles: ["master", "admin"],
-  },
-  {
-    to: "/dashboard/ordenes-compra",
-    label: "Orden de compra",
-    icon: CreditCard,
     roles: ["master", "admin"],
   },
   {
@@ -108,6 +96,13 @@ useEffect(() => {
 
     if (billingRef.current && !billingRef.current.contains(event.target)) {
       setBillingOpen(false);
+    }
+
+    if (
+      operationsRef.current &&
+      !operationsRef.current.contains(event.target)
+    ) {
+      setOperationsOpen(false);
     }
   };
 
@@ -213,6 +208,48 @@ useEffect(() => {
                 </div>
               )}
             </div>
+
+      <div className="sidebar-group" ref={operationsRef}>
+        <button
+          type="button"
+          className="sidebar-group-btn"
+          onClick={() => setOperationsOpen(!operationsOpen)}
+        >
+          <span className="sidebar-group-left">
+            <Truck size={20} />
+            <span>Operaciones</span>
+          </span>
+
+          <ChevronDown
+            size={16}
+            className={operationsOpen ? "rotate-180" : ""}
+          />
+        </button>
+
+        {operationsOpen && (
+          <div className="sidebar-submenu">
+            <NavLink
+              to="/dashboard/conduces"
+              onClick={() => setSidebarOpen(false)}
+              className={({ isActive }) =>
+                isActive ? "sidebar-sublink active" : "sidebar-sublink"
+              }
+            >
+              Conduces
+            </NavLink>
+
+            <NavLink
+              to="/dashboard/ordenes-compra"
+              onClick={() => setSidebarOpen(false)}
+              className={({ isActive }) =>
+                isActive ? "sidebar-sublink active" : "sidebar-sublink"
+              }
+            >
+              Órdenes de compra
+            </NavLink>
+          </div>
+        )}
+      </div>
 
             {links
               .filter(

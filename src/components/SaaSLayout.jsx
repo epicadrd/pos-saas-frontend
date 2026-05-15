@@ -13,8 +13,6 @@ import {
   Settings,
   ChevronDown,
   Users,
-  PanelLeftClose,
-  PanelLeftOpen,
 } from "lucide-react";
 
 import { useEffect, useState, useRef } from "react";
@@ -436,11 +434,7 @@ export default function SaaSLayout() {
                 : "Ocultar menú"
             }
           >
-            {sidebarCollapsed ? (
-                <PanelLeftOpen size={18} />
-              ) : (
-                <PanelLeftClose size={18} />
-              )}
+            {sidebarCollapsed ? "❯" : "❮"}
           </button>
 
           <div>

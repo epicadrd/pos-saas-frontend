@@ -1,0 +1,292 @@
+.accounting-page {
+  display: grid;
+  gap: 24px;
+}
+
+.accounting-loading {
+  min-height: 420px;
+  display: grid;
+  place-items: center;
+  gap: 12px;
+  color: #0f172a;
+}
+
+.accounting-hero {
+  background: linear-gradient(135deg, #0fb9ad, #09b6a9);
+  border-radius: 34px;
+  padding: 42px 48px;
+  color: #fff;
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  align-items: flex-start;
+  box-shadow: 0 22px 60px rgba(15, 185, 173, 0.22);
+}
+
+.accounting-hero span {
+  display: block;
+  text-transform: uppercase;
+  letter-spacing: 0.34em;
+  font-size: 13px;
+  font-weight: 950;
+  margin-bottom: 14px;
+}
+
+.accounting-hero h2 {
+  font-size: 42px;
+  line-height: 1;
+  margin: 0 0 14px;
+  font-weight: 950;
+}
+
+.accounting-hero p {
+  margin: 0;
+  max-width: 720px;
+  font-size: 17px;
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.accounting-hero button {
+  border: none;
+  min-width: 150px;
+  height: 52px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+  font-weight: 900;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.accounting-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 22px;
+}
+
+.accounting-card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 28px;
+  padding: 28px;
+  min-height: 190px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  box-shadow: 0 20px 55px rgba(15, 23, 42, 0.06);
+}
+
+.accounting-card svg {
+  width: 42px;
+  height: 42px;
+  padding: 10px;
+  border-radius: 14px;
+  background: #eef2ff;
+  color: #0fb9ad;
+  margin-bottom: 18px;
+}
+
+.accounting-card span {
+  color: #64748b;
+  font-weight: 900;
+  margin-bottom: 8px;
+}
+
+.accounting-card strong {
+  color: #0f172a;
+  font-size: 28px;
+  font-weight: 950;
+  margin-bottom: 8px;
+}
+
+.accounting-card small {
+  color: #94a3b8;
+  font-weight: 800;
+}
+
+.accounting-card.main {
+  border-color: #b6fff6;
+}
+
+.accounting-card.success svg {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.accounting-card.danger {
+  border-color: #fecaca;
+}
+
+.accounting-card.danger svg {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.accounting-grid {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 22px;
+}
+
+.accounting-panel {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 28px;
+  padding: 26px;
+  box-shadow: 0 20px 55px rgba(15, 23, 42, 0.06);
+}
+
+.accounting-panel-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 22px;
+}
+
+.accounting-panel-header h3 {
+  margin: 0 0 6px;
+  font-size: 20px;
+  font-weight: 950;
+  color: #0f172a;
+}
+
+.accounting-panel-header p {
+  margin: 0;
+  color: #64748b;
+  font-weight: 700;
+}
+
+.accounting-chart {
+  height: 260px;
+  display: flex;
+  align-items: flex-end;
+  gap: 14px;
+  padding-top: 20px;
+}
+
+.accounting-bar-item {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.accounting-bar-track {
+  flex: 1;
+  width: 100%;
+  max-width: 48px;
+  background: #f1f5f9;
+  border-radius: 18px;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+}
+
+.accounting-bar-fill {
+  width: 100%;
+  background: linear-gradient(180deg, #14b8a6, #0891b2);
+  border-radius: 18px;
+}
+
+.accounting-bar-item span {
+  margin-top: 10px;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.accounting-kpi-list {
+  display: grid;
+  gap: 14px;
+}
+
+.accounting-kpi-list div {
+  min-height: 58px;
+  border: 1px solid #e5e7eb;
+  border-radius: 18px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.accounting-kpi-list span {
+  color: #64748b;
+  font-weight: 850;
+}
+
+.accounting-kpi-list strong {
+  color: #0f172a;
+  font-weight: 950;
+}
+
+.accounting-table-list {
+  display: grid;
+  gap: 12px;
+}
+
+.accounting-row {
+  border: 1px solid #e5e7eb;
+  border-radius: 18px;
+  padding: 16px 18px;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.accounting-row strong {
+  display: block;
+  color: #0f172a;
+  font-weight: 950;
+}
+
+.accounting-row span,
+.accounting-row small {
+  display: block;
+  color: #64748b;
+  margin-top: 4px;
+  font-weight: 700;
+}
+
+.accounting-row > div:last-child {
+  text-align: right;
+}
+
+.accounting-empty {
+  border: 1px dashed #cbd5e1;
+  border-radius: 18px;
+  padding: 24px;
+  color: #64748b;
+  font-weight: 800;
+  text-align: center;
+}
+
+@media (max-width: 1200px) {
+  .accounting-stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .accounting-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .accounting-hero {
+    padding: 32px 26px;
+    flex-direction: column;
+  }
+
+  .accounting-hero h2 {
+    font-size: 32px;
+  }
+
+  .accounting-stats-grid {
+    grid-template-columns: 1fr;
+  }
+}

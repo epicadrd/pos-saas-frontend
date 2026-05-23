@@ -1,12 +1,29 @@
 import { createContext, useContext, useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { api, setAccessToken } from "../api/axios";
 
 const AuthContext = createContext(null);
+
+const publicRoutes = [
+  "/login",
+  "/registro",
+  "/forgot-password",
+  "/reset-password",
+];
+
+const isPublicRoute = (pathname) => {
+  return (
+    publicRoutes.includes(pathname) ||
+    pathname.startsWith("/verificar-correo")
+  );
+};
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [tenant, setTenant] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  const location = useLocation();
 
   const clearSession = () => {
     setAccessToken(null);
@@ -38,10 +55,10 @@ export function AuthProvider({ children }) {
     return data;
   };
 
-const register = async (form) => {
-  const { data } = await api.post("/auth/register", form);
-  return data;
-};
+  const register = async (form) => {
+    const { data } = await api.post("/auth/register", form);
+    return data;
+  };
 
   const logout = async () => {
     try {
@@ -52,6 +69,11 @@ const register = async (form) => {
   };
 
   useEffect(() => {
+    if (isPublicRoute(location.pathname)) {
+      setLoading(false);
+      return;
+    }
+
     loadSession();
 
     const handleForcedLogout = () => {
@@ -63,17 +85,17 @@ const register = async (form) => {
     return () => {
       window.removeEventListener("auth:logout", handleForcedLogout);
     };
-  }, []);
+  }, [location.pathname]);
 
   const refreshSession = async () => {
-  const { data } = await api.get("/auth/me");
+    const { data } = await api.get("/auth/me");
 
-  setAccessToken(data.accessToken);
-  setUser(data.user);
-  setTenant(data.tenant);
+    setAccessToken(data.accessToken);
+    setUser(data.user);
+    setTenant(data.tenant);
 
-  return data;
-};
+    return data;
+  };
 
   return (
     <AuthContext.Provider

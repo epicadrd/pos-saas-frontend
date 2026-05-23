@@ -58,15 +58,16 @@ export default function SaaSLayout() {
     }
   };
 
-  useEffect(() => {
-    loadNotifications();
+  const API_URL =
+  import.meta.env.VITE_API_URL ||
+  "https://pos-saas-backend-production-1b84.up.railway.app/api";
 
-    const eventSource = new EventSource(
-      `${import.meta.env.VITE_API_URL}/notifications/stream`,
-      {
-        withCredentials: true,
-      }
-    );
+ /*  useEffect(() => {
+    loadNotifications();
+    
+    const eventSource = new EventSource(`${API_URL}/notifications/stream`, {
+      withCredentials: true,
+    });
 
     eventSource.onmessage = (event) => {
       const data = JSON.parse(event.data);
@@ -80,7 +81,11 @@ export default function SaaSLayout() {
     return () => {
       eventSource.close();
     };
-  }, []);
+  }, []); */
+
+  useEffect(() => {
+  loadNotifications();
+}, []);
 
   useEffect(() => {
     const handleClickOutside = (event) => {

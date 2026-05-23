@@ -10,7 +10,9 @@ export const setAccessToken = (token) => {
 
 export const getAccessToken = () => accessToken;
 
-const API_URL = import.meta.env.VITE_API_URL || "https://pos-saas-backend-production-1b84.up.railway.app/api";
+const API_URL =
+  import.meta.env.VITE_API_URL ||
+  "https://pos-saas-backend-production-1b84.up.railway.app/api";
 
 export const api = axios.create({
   baseURL: API_URL,
@@ -40,6 +42,17 @@ const processQueue = (error, token = null) => {
   refreshQueue = [];
 };
 
+const isPublicPage = () => {
+  const path = window.location.pathname;
+
+  return (
+    path === "/login" ||
+    path === "/register" ||
+    path === "/forgot-password" ||
+    path === "/reset-password"
+  );
+};
+
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -52,6 +65,10 @@ api.interceptors.response.use(
       originalRequest?.url?.includes("/auth/register") ||
       originalRequest?.url?.includes("/auth/refresh")
     ) {
+      return Promise.reject(error);
+    }
+
+    if (isPublicPage() && !accessToken) {
       return Promise.reject(error);
     }
 
@@ -80,7 +97,9 @@ api.interceptors.response.use(
       setAccessToken(null);
       processQueue(refreshError, null);
 
-      window.dispatchEvent(new Event("auth:logout"));
+      if (!isPublicPage()) {
+        window.dispatchEvent(new Event("auth:logout"));
+      }
 
       return Promise.reject(refreshError);
     } finally {

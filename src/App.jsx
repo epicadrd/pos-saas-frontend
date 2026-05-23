@@ -27,6 +27,7 @@ import Billing from "./pages/modules/Billing";
 import SubscriptionRequired from "./pages/SubscriptionRequired";
 import AccountingSummary from "./pages/modules/AccountingSummary";
 import Expenses from "./pages/modules/Expenses";
+import Reports from "./pages/modules/Reports";
 
 function App() {
   return (
@@ -58,6 +59,7 @@ function App() {
         <Route path="proveedores" element={<RoleRoute allowedRoles={["master", "admin"]}><Suppliers /></RoleRoute>}/>
         <Route path="contabilidad" element={<RoleRoute allowedRoles={["master", "admin"]}><AccountingSummary /></RoleRoute>}/>
         <Route path="contabilidad/gastos" element={<RoleRoute allowedRoles={["master", "admin"]}> <Expenses /> </RoleRoute>}/>
+        <Route path="contabilidad/reportes" element={<RoleRoute allowedRoles={["master", "admin"]}><Reports /></RoleRoute>}/>
       
       </Route>
 

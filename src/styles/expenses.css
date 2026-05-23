@@ -102,7 +102,7 @@
 
 .expenses-filters {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr 1fr auto;
+  grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr auto;
   gap: 10px;
   margin-bottom: 16px;
 }

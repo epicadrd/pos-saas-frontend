@@ -13,6 +13,7 @@ import { api } from "../../api/axios";
 const initialForm = {
   category: "Operativo",
   description: "",
+  supplierId: "",
   supplierName: "",
   supplierRnc: "",
   expenseDate: new Date().toISOString().slice(0, 10),
@@ -59,6 +60,8 @@ const formatMoney = (value) =>
 
 export default function Expenses() {
   const [expenses, setExpenses] = useState([]);
+  const [suppliers, setSuppliers] = useState([]);
+
   const [stats, setStats] = useState({
     monthTotal: 0,
     pendingTotal: 0,
@@ -67,15 +70,14 @@ export default function Expenses() {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
-
   const [form, setForm] = useState(initialForm);
 
   const [filters, setFilters] = useState({
     search: "",
     category: "",
+    supplierId: "",
     status: "",
     from: "",
     to: "",
@@ -84,6 +86,11 @@ export default function Expenses() {
   const totalFiltered = useMemo(() => {
     return expenses.reduce((sum, item) => sum + Number(item.total || 0), 0);
   }, [expenses]);
+
+  const loadSuppliers = async () => {
+    const { data } = await api.get("/suppliers");
+    setSuppliers(Array.isArray(data) ? data : []);
+  };
 
   const loadExpenses = async () => {
     try {
@@ -114,6 +121,7 @@ export default function Expenses() {
   };
 
   useEffect(() => {
+    loadSuppliers();
     loadExpenses();
   }, []);
 
@@ -129,8 +137,9 @@ export default function Expenses() {
     setForm({
       category: expense.category || "Operativo",
       description: expense.description || "",
-      supplierName: expense.supplierName || "",
-      supplierRnc: expense.supplierRnc || "",
+      supplierId: expense.supplierId ? String(expense.supplierId) : "",
+      supplierName: expense.supplier?.name || expense.supplierName || "",
+      supplierRnc: expense.supplier?.rnc || expense.supplierRnc || "",
       expenseDate: expense.expenseDate || new Date().toISOString().slice(0, 10),
       paymentMethod: expense.paymentMethod || "cash",
       subtotal: expense.subtotal || "",
@@ -152,6 +161,13 @@ export default function Expenses() {
         [name]: value,
       };
 
+      if (name === "supplierId") {
+        const supplier = suppliers.find((item) => String(item.id) === String(value));
+
+        next.supplierName = supplier?.name || "";
+        next.supplierRnc = supplier?.rnc || "";
+      }
+
       if (name === "subtotal" || name === "tax") {
         next.total = (
           Number(next.subtotal || 0) + Number(next.tax || 0)
@@ -168,10 +184,15 @@ export default function Expenses() {
     try {
       setSaving(true);
 
+      const payload = {
+        ...form,
+        supplierId: form.supplierId || null,
+      };
+
       if (editing) {
-        await api.put(`/expenses/${editing.id}`, form);
+        await api.put(`/expenses/${editing.id}`, payload);
       } else {
-        await api.post("/expenses", form);
+        await api.post("/expenses", payload);
       }
 
       setModalOpen(false);
@@ -271,6 +292,23 @@ export default function Expenses() {
           </select>
 
           <select
+            value={filters.supplierId}
+            onChange={(e) =>
+              setFilters({
+                ...filters,
+                supplierId: e.target.value,
+              })
+            }
+          >
+            <option value="">Todos los proveedores</option>
+            {suppliers.map((supplier) => (
+              <option key={supplier.id} value={supplier.id}>
+                {supplier.name}
+              </option>
+            ))}
+          </select>
+
+          <select
             value={filters.status}
             onChange={(e) =>
               setFilters({
@@ -347,7 +385,7 @@ export default function Expenses() {
                       <span className="expense-chip">{expense.category}</span>
                     </td>
                     <td>{expense.description}</td>
-                    <td>{expense.supplierName || "—"}</td>
+                    <td>{expense.supplier?.name || expense.supplierName || "—"}</td>
                     <td>
                       <span className={`expense-status ${expense.status}`}>
                         {statuses[expense.status]}
@@ -423,12 +461,18 @@ export default function Expenses() {
 
               <label>
                 Proveedor
-                <input
-                  name="supplierName"
-                  value={form.supplierName}
+                <select
+                  name="supplierId"
+                  value={form.supplierId}
                   onChange={handleChange}
-                  placeholder="Opcional"
-                />
+                >
+                  <option value="">Sin proveedor</option>
+                  {suppliers.map((supplier) => (
+                    <option key={supplier.id} value={supplier.id}>
+                      {supplier.name}
+                    </option>
+                  ))}
+                </select>
               </label>
 
               <label>

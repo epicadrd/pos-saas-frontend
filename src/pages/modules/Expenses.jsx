@@ -156,12 +156,17 @@ export default function Expenses() {
         [name]: value,
       };
 
-      if (name === "supplierId") {
+        if (name === "supplierId") {
         const supplier = suppliers.find((item) => String(item.id) === String(value));
 
         next.supplierName = supplier?.name || "";
         next.supplierRnc = supplier?.rnc || "";
-      }
+        }
+
+        if (name === "supplierName" && prev.supplierId) {
+        next.supplierId = "";
+        next.supplierRnc = "";
+        }
 
       if (name === "subtotal" || name === "tax") {
         next.total = (
@@ -512,22 +517,29 @@ export default function Expenses() {
               <label>
                 Proveedor
                 <select
-                  name="supplierId"
-                  value={form.supplierId}
-                  onChange={handleChange}
+                    name="supplierId"
+                    value={form.supplierId}
+                    onChange={handleChange}
                 >
-                  <option value="">Sin proveedor</option>
+                    <option value="">Sin proveedor fijo</option>
 
-                  {suppliers.map((supplier) => (
-                    <option
-                      key={supplier.id}
-                      value={supplier.id}
-                    >
-                      {supplier.name}
+                    {suppliers.map((supplier) => (
+                    <option key={supplier.id} value={supplier.id}>
+                        {supplier.name}
                     </option>
-                  ))}
+                    ))}
                 </select>
-              </label>
+                </label>
+
+                <label>
+                Nombre del proveedor / comercio
+                <input
+                    name="supplierName"
+                    value={form.supplierName}
+                    onChange={handleChange}
+                    placeholder="Ej: Comida en la calle, colmado, parqueo..."
+                />
+                </label>
 
               <label>
                 RNC proveedor

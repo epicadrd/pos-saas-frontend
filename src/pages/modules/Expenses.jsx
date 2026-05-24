@@ -514,30 +514,13 @@ export default function Expenses() {
                 />
               </label>
 
-              <label>
-                Proveedor
-                <select
-                    name="supplierId"
-                    value={form.supplierId}
-                    onChange={handleChange}
-                >
-                    <option value="">Sin proveedor fijo</option>
-
-                    {suppliers.map((supplier) => (
-                    <option key={supplier.id} value={supplier.id}>
-                        {supplier.name}
-                    </option>
-                    ))}
-                </select>
-                </label>
-
                 <label>
-                Nombre del proveedor / comercio
+                Proveedor
                 <input
                     name="supplierName"
                     value={form.supplierName}
                     onChange={handleChange}
-                    placeholder="Ej: Comida en la calle, colmado, parqueo..."
+                    placeholder="Ej: Comida en la calle, colmado..."
                 />
                 </label>
 

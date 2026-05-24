@@ -126,6 +126,12 @@ export default function SaaSLayout() {
     path: "/dashboard/usuarios",
     roles: ["master"],
   },
+  {
+    label: "Cuenta y configuración",
+    group: "Configuración",
+    path: "/dashboard/configuracion/cuenta",
+    roles: ["master"],
+  },
 ];
 
   const filteredModules = moduleSearchItems
@@ -681,6 +687,23 @@ export default function SaaSLayout() {
                       <strong>Configuración</strong>
                       <span>{user?.role || "Usuario"}</span>
                     </div>
+
+                    <button
+                        className="settings-item"
+                        onClick={() => {
+                          setSettingsOpen(false);
+                          navigate("/dashboard/configuracion/cuenta");
+                        }}
+                      >
+                        <Settings size={18} />
+
+                        <div>
+                          <strong>Cuenta y configuración</strong>
+                          <span>Datos legales y fiscales de la empresa</span>
+                        </div>
+
+                        <ChevronDown size={16} />
+                    </button>
 
                     <button
                       className="settings-item"

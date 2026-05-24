@@ -1,0 +1,203 @@
+.account-settings-page {
+  max-width: 1080px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+}
+
+.account-settings-loading {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 22px;
+  padding: 28px;
+  color: #64748b;
+  font-weight: 800;
+}
+
+.account-settings-hero {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.account-settings-logo {
+  width: 62px;
+  height: 62px;
+  border-radius: 22px;
+  background: linear-gradient(135deg, #00bfae, #0f766e);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 18px 45px rgba(0, 191, 174, 0.22);
+}
+
+.account-settings-hero span {
+  color: #00bfae;
+  font-weight: 900;
+  font-size: 13px;
+  text-transform: uppercase;
+}
+
+.account-settings-hero h2 {
+  margin: 3px 0;
+  font-size: 32px;
+  color: #111827;
+}
+
+.account-settings-hero p {
+  margin: 0;
+  color: #64748b;
+}
+
+.account-settings-card {
+  background: #fff;
+  border: 1px solid #d1d5db;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.account-settings-card-head {
+  padding: 28px 54px;
+  border-bottom: 1px solid #d1d5db;
+}
+
+.account-settings-card-head h3 {
+  margin: 0 0 10px;
+  font-size: 24px;
+  color: #303136;
+  font-weight: 900;
+}
+
+.account-settings-card-head p {
+  margin: 0;
+  color: #6b7280;
+}
+
+.account-settings-row {
+  display: grid;
+  grid-template-columns: 280px 1fr 120px;
+  gap: 22px;
+  padding: 24px 54px;
+  border-bottom: 1px solid #d1d5db;
+  align-items: start;
+}
+
+.account-settings-row:last-child {
+  border-bottom: none;
+}
+
+.account-settings-row.editing {
+  grid-template-columns: 280px 1fr;
+  border: 2px solid #16a34a;
+  margin: -1px;
+  padding: 26px 54px;
+}
+
+.account-settings-label strong {
+  display: block;
+  color: #303136;
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.account-settings-label span {
+  display: block;
+  margin-top: 6px;
+  max-width: 190px;
+  color: #6b7280;
+  line-height: 1.45;
+}
+
+.account-settings-value span {
+  white-space: pre-line;
+  color: #303136;
+}
+
+.account-settings-value input,
+.account-settings-value textarea {
+  width: 100%;
+  border: 1px solid #9ca3af;
+  border-radius: 6px;
+  padding: 11px 12px;
+  font-size: 15px;
+  outline: none;
+  background: #fff;
+}
+
+.account-settings-value input:focus,
+.account-settings-value textarea:focus {
+  border-color: #16a34a;
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.12);
+}
+
+.account-settings-action {
+  text-align: right;
+}
+
+.account-settings-action > button {
+  border: none;
+  background: transparent;
+  color: #0067b1;
+  font-size: 16px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.account-settings-edit-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  gap: 18px;
+  padding-top: 22px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.account-settings-cancel,
+.account-settings-save {
+  border: none;
+  cursor: pointer;
+  font-weight: 900;
+  border-radius: 6px;
+  padding: 12px 22px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.account-settings-cancel {
+  background: transparent;
+  color: #008a22;
+}
+
+.account-settings-save {
+  background: #008a22;
+  color: #fff;
+}
+
+.account-settings-save:disabled,
+.account-settings-cancel:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 900px) {
+  .account-settings-row,
+  .account-settings-row.editing {
+    grid-template-columns: 1fr;
+    padding: 22px;
+  }
+
+  .account-settings-card-head {
+    padding: 24px 22px;
+  }
+
+  .account-settings-action {
+    text-align: left;
+  }
+
+  .account-settings-edit-actions {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+}

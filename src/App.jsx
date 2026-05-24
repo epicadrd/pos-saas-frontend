@@ -30,6 +30,7 @@ import Expenses from "./pages/modules/Expenses";
 import Reports from "./pages/modules/Reports";
 import AccountsReceivable from "./pages/modules/AccountsReceivable";
 import AccountsPayable from "./pages/modules/AccountsPayable";
+import AccountSettings from "./pages/modules/AccountSettings";
 
 function App() {
   return (
@@ -64,6 +65,7 @@ function App() {
         <Route path="contabilidad/reportes" element={<RoleRoute allowedRoles={["master", "admin"]}><Reports /></RoleRoute>}/>
         <Route path="contabilidad/cuentas-por-cobrar" element={<RoleRoute allowedRoles={["master", "admin"]}><AccountsReceivable /></RoleRoute>}/>
         <Route path="contabilidad/cuentas-por-pagar" element={<RoleRoute allowedRoles={["master", "admin"]}><AccountsPayable /></RoleRoute>}/>
+        <Route path="configuracion/cuenta" element={<RoleRoute allowedRoles={["master"]}><AccountSettings /></RoleRoute>}/>
       
       </Route>
 

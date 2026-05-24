@@ -55,7 +55,6 @@ const formatMoney = (value) =>
 
 export default function Expenses() {
   const [expenses, setExpenses] = useState([]);
-  const [suppliers, setSuppliers] = useState([]);
   const [detailExpense, setDetailExpense] = useState(null);
 
   const [stats, setStats] = useState({
@@ -81,11 +80,6 @@ export default function Expenses() {
   const totalFiltered = useMemo(() => {
     return expenses.reduce((sum, item) => sum + Number(item.total || 0), 0);
   }, [expenses]);
-
-  const loadSuppliers = async () => {
-    const { data } = await api.get("/suppliers");
-    setSuppliers(Array.isArray(data) ? data : []);
-  };
 
   const loadExpenses = async () => {
     try {
@@ -116,7 +110,6 @@ export default function Expenses() {
   };
 
   useEffect(() => {
-    loadSuppliers();
     loadExpenses();
   }, []);
 

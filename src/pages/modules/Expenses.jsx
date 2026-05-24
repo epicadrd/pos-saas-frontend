@@ -7,6 +7,7 @@ import {
   Trash2,
   X,
   WalletCards,
+  Eye,
 } from "lucide-react";
 import { api } from "../../api/axios";
 
@@ -21,8 +22,8 @@ const initialForm = {
   subtotal: "",
   tax: "0",
   total: "",
-  status: "paid",
   notes: "",
+  ncf: "",
 };
 
 const categories = [
@@ -46,12 +47,6 @@ const paymentMethods = {
   other: "Otro",
 };
 
-const statuses = {
-  paid: "Pagado",
-  pending: "Pendiente",
-  cancelled: "Cancelado",
-};
-
 const formatMoney = (value) =>
   new Intl.NumberFormat("es-DO", {
     style: "currency",
@@ -61,6 +56,7 @@ const formatMoney = (value) =>
 export default function Expenses() {
   const [expenses, setExpenses] = useState([]);
   const [suppliers, setSuppliers] = useState([]);
+  const [detailExpense, setDetailExpense] = useState(null);
 
   const [stats, setStats] = useState({
     monthTotal: 0,
@@ -78,7 +74,6 @@ export default function Expenses() {
     search: "",
     category: "",
     supplierId: "",
-    status: "",
     from: "",
     to: "",
   });
@@ -145,8 +140,8 @@ export default function Expenses() {
       subtotal: expense.subtotal || "",
       tax: expense.tax || "0",
       total: expense.total || "",
-      status: expense.status || "paid",
       notes: expense.notes || "",
+      ncf: expense.ncf || "",
     });
 
     setModalOpen(true);
@@ -221,10 +216,6 @@ export default function Expenses() {
         <div>
           <span>Contabilidad</span>
           <h2>Gastos</h2>
-          <p>
-            Registra egresos operativos para calcular utilidad real y alimentar
-            el resumen contable.
-          </p>
         </div>
 
         <div className="expenses-actions">
@@ -263,7 +254,7 @@ export default function Expenses() {
           <div className="expense-search">
             <Search size={17} />
             <input
-              placeholder="Buscar gasto, proveedor o categoría"
+              placeholder="Buscar gasto, proveedor, NCF o categoría"
               value={filters.search}
               onChange={(e) =>
                 setFilters({
@@ -273,79 +264,6 @@ export default function Expenses() {
               }
             />
           </div>
-
-          <select
-            value={filters.category}
-            onChange={(e) =>
-              setFilters({
-                ...filters,
-                category: e.target.value,
-              })
-            }
-          >
-            <option value="">Todas las categorías</option>
-            {categories.map((category) => (
-              <option key={category} value={category}>
-                {category}
-              </option>
-            ))}
-          </select>
-
-          <select
-            value={filters.supplierId}
-            onChange={(e) =>
-              setFilters({
-                ...filters,
-                supplierId: e.target.value,
-              })
-            }
-          >
-            <option value="">Todos los proveedores</option>
-            {suppliers.map((supplier) => (
-              <option key={supplier.id} value={supplier.id}>
-                {supplier.name}
-              </option>
-            ))}
-          </select>
-
-          <select
-            value={filters.status}
-            onChange={(e) =>
-              setFilters({
-                ...filters,
-                status: e.target.value,
-              })
-            }
-          >
-            <option value="">Todos los estados</option>
-            {Object.entries(statuses).map(([key, value]) => (
-              <option key={key} value={key}>
-                {value}
-              </option>
-            ))}
-          </select>
-
-          <input
-            type="date"
-            value={filters.from}
-            onChange={(e) =>
-              setFilters({
-                ...filters,
-                from: e.target.value,
-              })
-            }
-          />
-
-          <input
-            type="date"
-            value={filters.to}
-            onChange={(e) =>
-              setFilters({
-                ...filters,
-                to: e.target.value,
-              })
-            }
-          />
 
           <button className="secondary" onClick={loadExpenses}>
             Filtrar
@@ -363,10 +281,10 @@ export default function Expenses() {
                 <tr>
                   <th>No.</th>
                   <th>Fecha</th>
+                  <th>NCF</th>
                   <th>Categoría</th>
                   <th>Descripción</th>
                   <th>Proveedor</th>
-                  <th>Estado</th>
                   <th>Total</th>
                   <th></th>
                 </tr>
@@ -376,25 +294,40 @@ export default function Expenses() {
                 {expenses.map((expense) => (
                   <tr key={expense.id}>
                     <td>{expense.expenseNumber}</td>
+
                     <td>
                       {new Date(
                         `${expense.expenseDate}T00:00:00`
                       ).toLocaleDateString("es-DO")}
                     </td>
+
+                    <td>{expense.ncf || "—"}</td>
+
                     <td>
-                      <span className="expense-chip">{expense.category}</span>
-                    </td>
-                    <td>{expense.description}</td>
-                    <td>{expense.supplier?.name || expense.supplierName || "—"}</td>
-                    <td>
-                      <span className={`expense-status ${expense.status}`}>
-                        {statuses[expense.status]}
+                      <span className="expense-chip">
+                        {expense.category}
                       </span>
                     </td>
+
+                    <td>{expense.description}</td>
+
+                    <td>
+                      {expense.supplier?.name ||
+                        expense.supplierName ||
+                        "—"}
+                    </td>
+
                     <td>
                       <strong>{formatMoney(expense.total)}</strong>
                     </td>
+
                     <td className="expense-row-actions">
+                      <button
+                        onClick={() => setDetailExpense(expense)}
+                      >
+                        <Eye size={16} />
+                      </button>
+
                       <button onClick={() => openEdit(expense)}>
                         <Pencil size={16} />
                       </button>
@@ -414,13 +347,117 @@ export default function Expenses() {
         )}
       </section>
 
+      {detailExpense && (
+        <div className="expense-modal-backdrop">
+          <div className="expense-modal expense-detail-modal">
+            <div className="expense-modal-header">
+              <div>
+                <span className="expense-detail-kicker">
+                  Detalle del gasto
+                </span>
+
+                <h3>{detailExpense.expenseNumber}</h3>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setDetailExpense(null)}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="expense-detail-summary">
+              <div>
+                <span>Total</span>
+                <strong>{formatMoney(detailExpense.total)}</strong>
+              </div>
+
+              <div>
+                <span>Fecha</span>
+                <strong>
+                  {new Date(
+                    `${detailExpense.expenseDate}T00:00:00`
+                  ).toLocaleDateString("es-DO")}
+                </strong>
+              </div>
+
+              <div>
+                <span>Categoría</span>
+                <strong>{detailExpense.category}</strong>
+              </div>
+            </div>
+
+            <div className="expense-detail-grid">
+              <div>
+                <span>Descripción</span>
+                <strong>{detailExpense.description || "—"}</strong>
+              </div>
+
+              <div>
+                <span>NCF</span>
+                <strong>{detailExpense.ncf || "—"}</strong>
+              </div>
+
+              <div>
+                <span>Proveedor</span>
+                <strong>
+                  {detailExpense.supplier?.name ||
+                    detailExpense.supplierName ||
+                    "—"}
+                </strong>
+              </div>
+
+              <div>
+                <span>RNC proveedor</span>
+                <strong>
+                  {detailExpense.supplier?.rnc ||
+                    detailExpense.supplierRnc ||
+                    "—"}
+                </strong>
+              </div>
+
+              <div>
+                <span>Subtotal</span>
+                <strong>
+                  {formatMoney(detailExpense.subtotal)}
+                </strong>
+              </div>
+
+              <div>
+                <span>ITBIS</span>
+                <strong>{formatMoney(detailExpense.tax)}</strong>
+              </div>
+
+              <div>
+                <span>Notas</span>
+                <strong>{detailExpense.notes || "—"}</strong>
+              </div>
+            </div>
+
+            <div className="expense-modal-actions">
+              <button
+                type="button"
+                className="secondary"
+                onClick={() => setDetailExpense(null)}
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {modalOpen && (
         <div className="expense-modal-backdrop">
           <form className="expense-modal" onSubmit={saveExpense}>
             <div className="expense-modal-header">
               <h3>{editing ? "Editar gasto" : "Nuevo gasto"}</h3>
 
-              <button type="button" onClick={() => setModalOpen(false)}>
+              <button
+                type="button"
+                onClick={() => setModalOpen(false)}
+              >
                 <X size={18} />
               </button>
             </div>
@@ -428,7 +465,11 @@ export default function Expenses() {
             <div className="expense-form-grid">
               <label>
                 Categoría
-                <select name="category" value={form.category} onChange={handleChange}>
+                <select
+                  name="category"
+                  value={form.category}
+                  onChange={handleChange}
+                >
                   {categories.map((category) => (
                     <option key={category} value={category}>
                       {category}
@@ -455,7 +496,16 @@ export default function Expenses() {
                   value={form.description}
                   onChange={handleChange}
                   required
-                  placeholder="Ej: Pago de internet"
+                />
+              </label>
+
+              <label>
+                NCF de la factura
+                <input
+                  name="NCF"
+                  value={form.ncf}
+                  onChange={handleChange}
+                  placeholder="B0100000001"
                 />
               </label>
 
@@ -467,8 +517,12 @@ export default function Expenses() {
                   onChange={handleChange}
                 >
                   <option value="">Sin proveedor</option>
+
                   {suppliers.map((supplier) => (
-                    <option key={supplier.id} value={supplier.id}>
+                    <option
+                      key={supplier.id}
+                      value={supplier.id}
+                    >
                       {supplier.name}
                     </option>
                   ))}
@@ -481,7 +535,6 @@ export default function Expenses() {
                   name="supplierRnc"
                   value={form.supplierRnc}
                   onChange={handleChange}
-                  placeholder="Opcional"
                 />
               </label>
 
@@ -492,11 +545,13 @@ export default function Expenses() {
                   value={form.paymentMethod}
                   onChange={handleChange}
                 >
-                  {Object.entries(paymentMethods).map(([key, value]) => (
-                    <option key={key} value={key}>
-                      {value}
-                    </option>
-                  ))}
+                  {Object.entries(paymentMethods).map(
+                    ([key, value]) => (
+                      <option key={key} value={key}>
+                        {value}
+                      </option>
+                    )
+                  )}
                 </select>
               </label>
 
@@ -533,17 +588,6 @@ export default function Expenses() {
                   onChange={handleChange}
                   required
                 />
-              </label>
-
-              <label>
-                Estado
-                <select name="status" value={form.status} onChange={handleChange}>
-                  {Object.entries(statuses).map(([key, value]) => (
-                    <option key={key} value={key}>
-                      {value}
-                    </option>
-                  ))}
-                </select>
               </label>
 
               <label className="full">

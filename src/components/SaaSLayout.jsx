@@ -24,6 +24,8 @@ export default function SaaSLayout() {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [openMenu, setOpenMenu] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [searchOpen, setSearchOpen] = useState(false);
 
   const settingsRef = useRef(null);
   const sidebarMenusRef = useRef(null);
@@ -32,6 +34,120 @@ export default function SaaSLayout() {
 
   const { user, tenant, logout } = useAuth();
   const navigate = useNavigate();
+
+  const moduleSearchItems = [
+  {
+    label: "Dashboard",
+    group: "Inicio",
+    path: "/dashboard",
+    roles: ["master", "admin", "employee"],
+  },
+  {
+    label: "Facturas",
+    group: "Facturación",
+    path: "/dashboard/facturacion",
+    roles: ["master", "admin", "employee"],
+  },
+  {
+    label: "Cotizaciones",
+    group: "Facturación",
+    path: "/dashboard/cotizaciones",
+    roles: ["master", "admin", "employee"],
+  },
+  {
+    label: "Recibos",
+    group: "Facturación",
+    path: "/dashboard/recibos",
+    roles: ["master", "admin"],
+  },
+  {
+    label: "Inventario",
+    group: "Inventario",
+    path: "/dashboard/inventario",
+    roles: ["master", "admin"],
+  },
+  {
+    label: "Conduces",
+    group: "Operaciones",
+    path: "/dashboard/conduces",
+    roles: ["master", "admin"],
+  },
+  {
+    label: "Órdenes de compra",
+    group: "Operaciones",
+    path: "/dashboard/ordenes-compra",
+    roles: ["master", "admin"],
+  },
+  {
+    label: "Proveedores",
+    group: "Operaciones",
+    path: "/dashboard/proveedores",
+    roles: ["master", "admin"],
+  },
+  {
+    label: "Resumen contable",
+    group: "Contabilidad",
+    path: "/dashboard/contabilidad",
+    roles: ["master", "admin"],
+  },
+  {
+    label: "Cuentas por cobrar",
+    group: "Contabilidad",
+    path: "/dashboard/contabilidad/cuentas-por-cobrar",
+    roles: ["master", "admin"],
+  },
+  {
+    label: "Cuentas por pagar",
+    group: "Contabilidad",
+    path: "/dashboard/contabilidad/cuentas-por-pagar",
+    roles: ["master", "admin"],
+  },
+  {
+    label: "Gastos",
+    group: "Contabilidad",
+    path: "/dashboard/contabilidad/gastos",
+    roles: ["master", "admin"],
+  },
+  {
+    label: "Reportes",
+    group: "Contabilidad",
+    path: "/dashboard/contabilidad/reportes",
+    roles: ["master", "admin"],
+  },
+  {
+    label: "Plan y suscripción",
+    group: "Configuración",
+    path: "/dashboard/facturacion/billing",
+    roles: ["master"],
+  },
+  {
+    label: "Usuarios",
+    group: "Configuración",
+    path: "/dashboard/usuarios",
+    roles: ["master"],
+  },
+];
+
+  const filteredModules = moduleSearchItems
+    .filter((item) => item.roles.includes(user?.role))
+    .filter((item) => {
+      const term = searchTerm.trim().toLowerCase();
+
+      if (!term) return false;
+
+      return (
+        item.label.toLowerCase().includes(term) ||
+        item.group.toLowerCase().includes(term)
+      );
+    })
+    .slice(0, 8);
+
+  const goToModule = (path) => {
+    setSearchTerm("");
+    setSearchOpen(false);
+    setSidebarOpen(false);
+    navigate(path);
+  };
 
   const links = [
     {
@@ -448,9 +564,52 @@ export default function SaaSLayout() {
           </div>
 
           <div className="topbar-actions">
-            <div className="search-box">
-              <Search size={18} />
-              <input placeholder="Buscar..." />
+            <div className="search-wrapper">
+              <div className="search-box">
+                <Search size={18} />
+                <input
+                  placeholder="Buscar módulo..."
+                  value={searchTerm}
+                  onFocus={() => setSearchOpen(true)}
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                    setSearchOpen(true);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && filteredModules.length > 0) {
+                      goToModule(filteredModules[0].path);
+                    }
+
+                    if (e.key === "Escape") {
+                      setSearchOpen(false);
+                    }
+                  }}
+                />
+              </div>
+
+              {searchOpen && searchTerm.trim() && (
+                <div className="search-suggestions">
+                  {filteredModules.length === 0 ? (
+                    <div className="search-empty">
+                      No encontramos ese módulo.
+                    </div>
+                  ) : (
+                    filteredModules.map((item) => (
+                      <button
+                        key={item.path}
+                        type="button"
+                        className="search-suggestion-item"
+                        onMouseDown={() => goToModule(item.path)}
+                      >
+                        <div>
+                          <strong>{item.label}</strong>
+                          <span>{item.group}</span>
+                        </div>
+                      </button>
+                    ))
+                  )}
+                </div>
+              )}
             </div>
 
             <div className="notification-wrapper">

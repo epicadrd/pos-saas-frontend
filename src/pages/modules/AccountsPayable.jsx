@@ -8,6 +8,7 @@ import {
   CalendarClock,
   Eye,
   PackageCheck,
+  X,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../../api/axios";
@@ -23,6 +24,7 @@ const statusLabels = {
   sent: "Enviada",
   received: "Recibida",
   cancelled: "Cancelada",
+  paid: "Pagada",
 };
 
 export default function AccountsPayable() {
@@ -48,6 +50,7 @@ export default function AccountsPayable() {
   const summary = data.summary || {};
   const purchaseOrders = data.purchaseOrders || [];
   const suppliers = data.suppliers || [];
+  const [selectedPayment, setSelectedPayment] = useState(null);
 
   const maxBalance = useMemo(() => {
     return Math.max(
@@ -78,6 +81,18 @@ export default function AccountsPayable() {
       setLoading(false);
     }
   };
+
+ const markAsPaid = async (order) => {
+  if (!confirm(`¿Marcar como pagada la orden ${order.orderNumber}?`)) return;
+
+  try {
+    await api.patch(`/accounts-payable/${order.id}/mark-paid`);
+    setSelectedPayment(null);
+    await loadAccountsPayable();
+  } catch (error) {
+    alert(error.response?.data?.message || "No se pudo marcar como pagada");
+  }
+};
 
   useEffect(() => {
     loadAccountsPayable();
@@ -295,10 +310,17 @@ export default function AccountsPayable() {
 
                     <td className="ap-actions">
                       <button
-                        title="Ver orden"
-                        onClick={() => navigate("/dashboard/ordenes-compra")}
-                      >
+                        title="Ver detalle"
+                        onClick={() => setSelectedPayment(order)}
+                        >
                         <Eye size={16} />
+                      </button>
+
+                      <button
+                        title="Marcar como pagada"
+                        onClick={() => markAsPaid(order)}
+                        >
+                        <PackageCheck size={16} />
                       </button>
 
                       <button
@@ -364,6 +386,87 @@ export default function AccountsPayable() {
           </div>
         </div>
       </section>
+
+      {selectedPayment && (
+  <div className="ap-modal-backdrop">
+    <div className="ap-modal">
+      <div className="ap-modal-header">
+        <div>
+          <span>Detalle de cuenta por pagar</span>
+          <h3>{selectedPayment.orderNumber}</h3>
+        </div>
+
+        <button type="button" onClick={() => setSelectedPayment(null)}>
+          <X size={18} />
+        </button>
+      </div>
+
+      <div className="ap-detail-grid">
+        <div>
+          <span>Proveedor</span>
+          <strong>
+            {selectedPayment.supplier?.name || selectedPayment.supplierName || "—"}
+          </strong>
+        </div>
+
+        <div>
+          <span>RNC</span>
+          <strong>
+            {selectedPayment.supplier?.rnc || selectedPayment.supplierRnc || "—"}
+          </strong>
+        </div>
+
+        <div>
+          <span>Fecha</span>
+          <strong>{selectedPayment.orderDate || "—"}</strong>
+        </div>
+
+        <div>
+          <span>Vence</span>
+          <strong>{selectedPayment.dueDate || "—"}</strong>
+        </div>
+
+        <div>
+          <span>Total</span>
+          <strong>{formatMoney(selectedPayment.total)}</strong>
+        </div>
+
+        <div>
+          <span>Balance</span>
+          <strong>{formatMoney(selectedPayment.payableBalance)}</strong>
+        </div>
+
+        <div>
+          <span>Estado</span>
+          <strong>{statusLabels[selectedPayment.status] || selectedPayment.status}</strong>
+        </div>
+
+        <div>
+          <span>Referencia</span>
+          <strong>{selectedPayment.reference || "—"}</strong>
+        </div>
+      </div>
+
+      <div className="ap-modal-actions">
+        <button
+          type="button"
+          onClick={() => markAsPaid(selectedPayment)}
+        >
+          <PackageCheck size={16} />
+          Marcar como pagada
+        </button>
+
+        <button
+          type="button"
+          className="secondary"
+          onClick={() => setSelectedPayment(null)}
+        >
+          Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+)}
     </div>
   );
 }

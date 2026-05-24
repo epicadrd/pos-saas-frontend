@@ -502,10 +502,10 @@ export default function Expenses() {
               <label>
                 NCF de la factura
                 <input
-                  name="NCF"
+                  name="ncf"
                   value={form.ncf}
                   onChange={handleChange}
-                  placeholder="B0100000001"
+                  placeholder=""
                 />
               </label>
 

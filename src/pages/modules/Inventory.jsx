@@ -15,7 +15,8 @@ import {
   Search,
   Trash2,
   X,
-  Download
+  Download,
+  Upload,
 } from "lucide-react";
 import { api } from "../../api/axios";
 import { useAuth } from "../../context/AuthContext";
@@ -44,6 +45,138 @@ const emptyMovementForm = {
   referenceNumber: "",
 };
 
+const normalizeHeader = (value) =>
+  String(value || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]/g, "");
+
+const findValue = (row, aliases) => {
+  const entries = Object.entries(row);
+
+  for (const alias of aliases) {
+    const normalizedAlias = normalizeHeader(alias);
+
+    const found = entries.find(([key]) => normalizeHeader(key) === normalizedAlias);
+
+    if (found) return found[1];
+  }
+
+  return "";
+};
+
+const parseImportNumber = (value) => {
+  if (value === undefined || value === null || value === "") return 0;
+
+  const cleaned = String(value)
+    .replace("RD$", "")
+    .replace("$", "")
+    .replace(/,/g, "")
+    .trim();
+
+  const number = Number(cleaned);
+
+  return Number.isFinite(number) ? number : 0;
+};
+
+const parseImportInteger = (value) => {
+  const number = parseInt(parseImportNumber(value), 10);
+  return Number.isFinite(number) ? number : 0;
+};
+
+const mapImportRow = (row) => {
+  const name = findValue(row, [
+    "nombre",
+    "producto",
+    "descripcion producto",
+    "articulo",
+    "artículo",
+    "item",
+    "product",
+    "name",
+  ]);
+
+  const sku = findValue(row, ["sku", "codigo", "código", "referencia", "ref"]);
+
+  const barcode = findValue(row, [
+    "codigo barras",
+    "código barras",
+    "codigo de barras",
+    "código de barras",
+    "barcode",
+    "ean",
+  ]);
+
+  const category = findValue(row, [
+    "categoria",
+    "categoría",
+    "familia",
+    "departamento",
+    "category",
+  ]);
+
+  const description = findValue(row, [
+    "descripcion",
+    "descripción",
+    "detalle",
+    "observacion",
+    "observación",
+  ]);
+
+  const unit = findValue(row, ["unidad", "unidad medida", "unit"]) || "unidad";
+
+  const costPrice = findValue(row, [
+    "costo",
+    "precio costo",
+    "precio compra",
+    "cost",
+    "costprice",
+  ]);
+
+  const salePrice = findValue(row, [
+    "precio",
+    "precio venta",
+    "venta",
+    "precio publico",
+    "precio público",
+    "saleprice",
+  ]);
+
+  const stock = findValue(row, [
+    "stock",
+    "existencia",
+    "existencias",
+    "cantidad",
+    "qty",
+    "quantity",
+  ]);
+
+  const minStock = findValue(row, [
+    "stock minimo",
+    "stock mínimo",
+    "minimo",
+    "mínimo",
+    "minstock",
+  ]);
+
+  return {
+    name: String(name || "").trim(),
+    sku: String(sku || "").trim(),
+    barcode: String(barcode || "").trim(),
+    category: String(category || "").trim(),
+    description: String(description || "").trim(),
+    unit: String(unit || "unidad").trim(),
+    productType: "product",
+    trackStock: true,
+    costPrice: parseImportNumber(costPrice),
+    salePrice: parseImportNumber(salePrice),
+    stock: parseImportInteger(stock),
+    minStock: parseImportInteger(minStock),
+  };
+};
+
+
 const movementLabels = {
   entry: "Entrada",
   exit: "Salida",
@@ -64,6 +197,11 @@ export default function Inventory() {
   const { user } = useAuth();
    
   const [products, setProducts] = useState([]);
+  const [importModalOpen, setImportModalOpen] = useState(false);
+  const [importRows, setImportRows] = useState([]);
+  const [importErrors, setImportErrors] = useState([]);
+  const [importing, setImporting] = useState(false);
+  const [updateExisting, setUpdateExisting] = useState(true);
 
   
   const [pagination, setPagination] = useState({
@@ -158,7 +296,7 @@ const loadProducts = async (pageToLoad = pagination.page) => {
   }
 };
 
-  const exportInventoryToExcel = () => {
+ const exportInventoryToExcel = () => {
   if (!products.length) {
     alert("No hay productos para exportar.");
     return;
@@ -193,6 +331,85 @@ const loadProducts = async (pageToLoad = pagination.page) => {
   const today = new Date().toISOString().slice(0, 10);
   XLSX.writeFile(workbook, `inventario-${today}.xlsx`);
 };
+
+const confirmImportInventory = async () => {
+  const validRows = importRows.filter((row) => row.name);
+
+  if (!validRows.length) {
+    alert("No hay productos válidos para importar.");
+    return;
+  }
+
+  try {
+    setImporting(true);
+
+    const { data } = await api.post("/products/import", {
+      products: validRows,
+      updateExisting,
+    });
+
+    alert(
+      `Importación completada.\nCreados: ${data.created}\nActualizados: ${data.updated}\nOmitidos: ${data.skipped}`
+    );
+
+    setImportModalOpen(false);
+    setImportRows([]);
+    setImportErrors([]);
+    await loadProducts(1);
+  } catch (error) {
+    console.log(error);
+    alert(error.response?.data?.message || "No se pudo importar el inventario");
+  } finally {
+    setImporting(false);
+  }
+};
+
+const handleImportFile = async (event) => {
+  const file = event.target.files?.[0];
+
+  event.target.value = "";
+
+  if (!file) return;
+
+  try {
+    const buffer = await file.arrayBuffer();
+    const workbook = XLSX.read(buffer, { type: "array" });
+    const firstSheetName = workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[firstSheetName];
+
+    const jsonRows = XLSX.utils.sheet_to_json(worksheet, {
+      defval: "",
+    });
+
+    const mappedRows = jsonRows
+      .map(mapImportRow)
+      .filter((row) =>
+        Object.values(row).some((value) => String(value || "").trim() !== "")
+      );
+
+    const errors = mappedRows
+      .map((row, index) => {
+        if (!row.name) {
+          return {
+            row: index + 2,
+            message: "Falta el nombre del producto",
+          };
+        }
+
+        return null;
+      })
+      .filter(Boolean);
+
+    setImportRows(mappedRows);
+    setImportErrors(errors);
+    setImportModalOpen(true);
+  } catch (error) {
+    console.log(error);
+    alert("No se pudo leer el archivo. Verifica que sea Excel o CSV válido.");
+  }
+};
+
+
 
   useEffect(() => {
   const timer = setTimeout(() => {
@@ -438,6 +655,17 @@ const loadProducts = async (pageToLoad = pagination.page) => {
         </div>
 
         <div className="inventory-header-actions inventory-header-actions-fixed">
+
+          <label className="secondary-btn import-inventory-btn">
+            <Upload size={18} />
+            Importar Excel
+            <input
+              type="file"
+              accept=".xlsx,.xls,.csv"
+              onChange={handleImportFile}
+              hidden
+            />
+          </label>
           <button
             type="button"
             className="secondary-btn"
@@ -896,7 +1124,114 @@ const loadProducts = async (pageToLoad = pagination.page) => {
           </div>
         </div>
       )}
-       
+
+{importModalOpen && (
+  <div className="modal-overlay">
+    <div className="import-inventory-modal">
+      <div className="modal-header">
+        <div>
+          <span>Importar inventario</span>
+          <h3>Revisión previa</h3>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setImportModalOpen(false)}
+          className="modal-close"
+        >
+          <X size={20} />
+        </button>
+      </div>
+
+      <div className="import-summary-grid">
+        <div>
+          <span>Filas detectadas</span>
+          <strong>{importRows.length}</strong>
+        </div>
+
+        <div>
+          <span>Productos válidos</span>
+          <strong>{importRows.filter((row) => row.name).length}</strong>
+        </div>
+
+        <div>
+          <span>Con errores</span>
+          <strong>{importErrors.length}</strong>
+        </div>
+      </div>
+
+      <label className="import-update-option">
+        <input
+          type="checkbox"
+          checked={updateExisting}
+          onChange={(e) => setUpdateExisting(e.target.checked)}
+        />
+        Actualizar productos existentes si coinciden por SKU o código de barras
+      </label>
+
+      {importErrors.length > 0 && (
+        <div className="import-errors">
+          <strong>Errores detectados</strong>
+
+          {importErrors.slice(0, 8).map((error) => (
+            <p key={`${error.row}-${error.message}`}>
+              Fila {error.row}: {error.message}
+            </p>
+          ))}
+        </div>
+      )}
+
+      <div className="import-preview-table">
+        <table>
+          <thead>
+            <tr>
+              <th>Producto</th>
+              <th>SKU</th>
+              <th>Código barras</th>
+              <th>Categoría</th>
+              <th>Stock</th>
+              <th>Costo</th>
+              <th>Precio</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {importRows.slice(0, 10).map((row, index) => (
+              <tr key={`${row.name}-${index}`}>
+                <td>{row.name || "—"}</td>
+                <td>{row.sku || "—"}</td>
+                <td>{row.barcode || "—"}</td>
+                <td>{row.category || "—"}</td>
+                <td>{row.stock}</td>
+                <td>{money.format(Number(row.costPrice || 0))}</td>
+                <td>{money.format(Number(row.salePrice || 0))}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="modal-actions">
+        <button
+          type="button"
+          onClick={() => setImportModalOpen(false)}
+          className="cancel-btn"
+        >
+          Cancelar
+        </button>
+
+        <button
+          type="button"
+          className="primary-btn"
+          disabled={importing || importRows.filter((row) => row.name).length === 0}
+          onClick={confirmImportInventory}
+        >
+          {importing ? "Importando..." : "Confirmar importación"}
+        </button>
+      </div>
+    </div>
+  </div>
+)}       
 
     </div>
   );

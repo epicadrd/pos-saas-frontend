@@ -11,8 +11,7 @@ export const setAccessToken = (token) => {
 export const getAccessToken = () => accessToken;
 
 const API_URL =
-  import.meta.env.VITE_API_URL ||
-  "https://pos-saas-backend-production-1b84.up.railway.app/api";
+  import.meta.env.VITE_API_URL || "https://api.corexrd.com/api";
 
 export const api = axios.create({
   baseURL: API_URL,

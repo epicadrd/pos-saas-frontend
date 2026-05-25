@@ -180,9 +180,7 @@ export default function SaaSLayout() {
     }
   };
 
-  const API_URL =
-  import.meta.env.VITE_API_URL ||
-  "https://pos-saas-backend-production-1b84.up.railway.app/api";
+  const API_URL = import.meta.env.VITE_API_URL || "https://api.corexrd.com/api";
 
  /*  useEffect(() => {
     loadNotifications();

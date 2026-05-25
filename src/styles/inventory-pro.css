@@ -218,3 +218,18 @@
     grid-template-columns: 1fr;
   }
 }
+
+.import-inventory-btn,
+.inventory-header-actions .secondary-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  line-height: 1;
+}
+
+.import-inventory-btn svg,
+.inventory-header-actions .secondary-btn svg {
+  flex-shrink: 0;
+  display: block;
+}

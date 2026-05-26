@@ -261,7 +261,14 @@ export default function Receipts() {
             </div>
             <div>
               <strong>Fecha:</strong><br/>
-              ${new Date(receipt.receiptDate || receipt.createdAt).toLocaleDateString("es-DO")}
+              ${new Date(receipt.receiptDate || receipt.createdAt).toLocaleDateString(
+                "es-DO",
+                {
+                  day: "2-digit",
+                  month: "2-digit",
+                  year: "numeric",
+                }
+              )}
             </div>
           </div>
 

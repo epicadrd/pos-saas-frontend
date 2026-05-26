@@ -9,6 +9,8 @@ import {
   X,
 } from "lucide-react";
 import { api } from "../../api/axios";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 const emptyReceipt = {
   invoiceId: "",
@@ -18,7 +20,7 @@ const emptyReceipt = {
   paymentMethod: "cash",
   reference: "",
   notes: "",
-  receiptDate: new Date().toISOString().split("T")[0],
+  receiptDate: new Date(),
 };
 
 export default function Receipts() {
@@ -159,8 +161,11 @@ export default function Receipts() {
     try {
       setSaving(true);
 
-      await api.post("/receipts", {
+     await api.post("/receipts", {
         ...form,
+        receiptDate: form.receiptDate
+          ? form.receiptDate.toISOString().split("T")[0]
+          : null,
         invoiceId: form.invoiceId || null,
         amount: Number(form.amount),
         status: "paid",
@@ -519,11 +524,16 @@ export default function Receipts() {
 
                 <div className="form-row">
                   <label>Fecha</label>
-                  <input
-                    name="receiptDate"
-                    type="date"
-                    value={form.receiptDate}
-                    onChange={handleChange}
+                  <DatePicker
+                    selected={form.receiptDate}
+                    onChange={(date) =>
+                      setForm({
+                        ...form,
+                        receiptDate: date,
+                      })
+                    }
+                    dateFormat="dd/MM/yyyy"
+                    className="date-picker-input"
                   />
                 </div>
 

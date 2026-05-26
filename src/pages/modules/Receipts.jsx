@@ -35,6 +35,17 @@ export default function Receipts() {
     currency: "DOP",
   });
 
+  const formatReceiptDate = (value) => {
+  if (!value) return "-";
+
+  const dateOnly = String(value).split("T")[0];
+  const [year, month, day] = dateOnly.split("-");
+
+  if (!year || !month || !day) return "-";
+
+  return `${day}/${month}/${year}`;
+  };
+
   const filteredReceipts = receipts.filter((receipt) => {
     const text = `${receipt.receiptNumber} ${receipt.customerName} ${receipt.reference || ""}`.toLowerCase();
     return text.includes(search.toLowerCase());
@@ -261,14 +272,7 @@ export default function Receipts() {
             </div>
             <div>
               <strong>Fecha:</strong><br/>
-              ${new Date(receipt.receiptDate || receipt.createdAt).toLocaleDateString(
-                "es-DO",
-                {
-                  day: "2-digit",
-                  month: "2-digit",
-                  year: "numeric",
-                }
-              )}
+             ${formatReceiptDate(receipt.receiptDate || receipt.createdAt)}
             </div>
           </div>
 
@@ -431,14 +435,7 @@ export default function Receipts() {
                     </td>
 
                     <td>
-                      {new Date(receipt.receiptDate || receipt.createdAt).toLocaleDateString(
-                            "es-DO",
-                            {
-                              day: "2-digit",
-                              month: "2-digit",
-                              year: "numeric",
-                            }
-                          )}
+                      {formatReceiptDate(receipt.receiptDate || receipt.createdAt)}
                     </td>
 
                     <td>{receipt.creator?.name || "Sistema"}</td>

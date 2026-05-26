@@ -424,7 +424,14 @@ export default function Receipts() {
                     </td>
 
                     <td>
-                      {new Date(receipt.receiptDate || receipt.createdAt).toLocaleDateString("es-DO")}
+                      {new Date(receipt.receiptDate || receipt.createdAt).toLocaleDateString(
+                            "es-DO",
+                            {
+                              day: "2-digit",
+                              month: "2-digit",
+                              year: "numeric",
+                            }
+                          )}
                     </td>
 
                     <td>{receipt.creator?.name || "Sistema"}</td>

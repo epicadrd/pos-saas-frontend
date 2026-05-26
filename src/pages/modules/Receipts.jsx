@@ -18,6 +18,7 @@ const emptyReceipt = {
   paymentMethod: "cash",
   reference: "",
   notes: "",
+  receiptDate: new Date().toISOString().split("T")[0],
 };
 
 export default function Receipts() {
@@ -189,6 +190,7 @@ export default function Receipts() {
       card: "Tarjeta",
       check: "Cheque",
       other: "Otro",
+      deposit: "Depósito",
     };
 
     return methods[method] || method;
@@ -259,7 +261,7 @@ export default function Receipts() {
             </div>
             <div>
               <strong>Fecha:</strong><br/>
-              ${new Date(receipt.createdAt).toLocaleDateString("es-DO")}
+              ${new Date(receipt.receiptDate || receipt.createdAt).toLocaleDateString("es-DO")}
             </div>
           </div>
 
@@ -422,7 +424,7 @@ export default function Receipts() {
                     </td>
 
                     <td>
-                      {new Date(receipt.createdAt).toLocaleDateString("es-DO")}
+                      {new Date(receipt.receiptDate || receipt.createdAt).toLocaleDateString("es-DO")}
                     </td>
 
                     <td>{receipt.creator?.name || "Sistema"}</td>
@@ -505,6 +507,16 @@ export default function Receipts() {
                 </div>
 
                 <div className="form-row">
+                  <label>Fecha</label>
+                  <input
+                    name="receiptDate"
+                    type="date"
+                    value={form.receiptDate}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                <div className="form-row">
                   <label>Método de pago</label>
                   <select
                     name="paymentMethod"
@@ -515,6 +527,7 @@ export default function Receipts() {
                     <option value="transfer">Transferencia</option>
                     <option value="card">Tarjeta</option>
                     <option value="check">Cheque</option>
+                    <option value="deposit">Depósito</option>
                     <option value="other">Otro</option>
                   </select>
                 </div>

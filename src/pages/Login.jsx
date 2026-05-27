@@ -54,12 +54,11 @@ navigate("/dashboard");
       const backendMessage = error.response?.data?.message;
 
       if (status === 429) {
-        const blockedMinutesLeft =
-          error.response?.data?.blockedMinutesLeft;
+       const retryAfter = error.response?.data?.retryAfter;
 
         setError(
-          blockedMinutesLeft
-            ? `Por seguridad, el acceso fue bloqueado temporalmente. Podrás intentar nuevamente en ${blockedMinutesLeft} minuto(s).`
+          retryAfter
+            ? `Por seguridad, el acceso fue bloqueado temporalmente. Intenta nuevamente en ${retryAfter}.`
             : "Por seguridad, el acceso fue bloqueado temporalmente. Intenta nuevamente en unos minutos."
         );
 

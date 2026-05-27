@@ -65,18 +65,19 @@ navigate("/dashboard");
 
         return;
       }
-      if (status === 401) {
-        const remainingAttempts =
-          error.response?.data?.remainingAttempts;
+     if (status === 401) {
+        const remainingAttempts = error.response?.data?.remainingAttempts;
 
-        if (remainingAttempts > 0) {
+        if (typeof remainingAttempts === "number" && remainingAttempts > 0) {
           setError(
             `Correo o contraseña incorrectos. Te quedan ${remainingAttempts} intento(s) antes del bloqueo temporal.`
           );
-        } else {
+        } else if (remainingAttempts === 0) {
           setError(
             "Demasiados intentos fallidos. El acceso fue bloqueado temporalmente."
           );
+        } else {
+          setError("Correo o contraseña incorrectos.");
         }
 
         return;

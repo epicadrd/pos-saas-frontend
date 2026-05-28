@@ -91,7 +91,7 @@ export default function InvoiceCustomization() {
           <h3>Logo de la empresa</h3>
 
           <label className="qb-logo-upload">
-            <input type="file" accept="image/*" onChange={handleLogoChange} />
+            <input type="file" accept="image/png,image/jpeg,image/jpg,image/webp" onChange={handleLogoChange}/>
             <ImagePlus size={22} />
             <span>Subir logo</span>
           </label>

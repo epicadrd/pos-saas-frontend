@@ -371,6 +371,13 @@ const handleImportFile = async (event) => {
 
   if (!file) return;
 
+  const maxImportSize = 3 * 1024 * 1024;
+
+  if (file.size > maxImportSize) {
+    alert("El archivo no puede pesar más de 3MB.");
+    return;
+  }
+
   try {
     const buffer = await file.arrayBuffer();
     const workbook = XLSX.read(buffer, { type: "array" });

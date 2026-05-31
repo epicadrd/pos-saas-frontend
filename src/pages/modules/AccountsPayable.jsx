@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../../api/axios";
+import { useConfirm } from "../../components/ConfirmProvider";
 
 const formatMoney = (value) =>
   new Intl.NumberFormat("es-DO", {
@@ -29,7 +30,7 @@ const statusLabels = {
 
 export default function AccountsPayable() {
   const navigate = useNavigate();
-
+  const { confirm } = useConfirm();
   const [loading, setLoading] = useState(true);
 
   const [data, setData] = useState({
@@ -83,7 +84,14 @@ export default function AccountsPayable() {
   };
 
  const markAsPaid = async (order) => {
-  if (!confirm(`¿Marcar como pagada la orden ${order.orderNumber}?`)) return;
+  const ok = await confirm({
+  title: "Marcar orden como pagada",
+  message: `¿Marcar como pagada la orden ${order.orderNumber}?`,
+  confirmText: "Marcar como pagada",
+  variant: "success",
+});
+
+if (!ok) return;
 
   try {
     await api.patch(`/accounts-payable/${order.id}/mark-paid`);

@@ -13,6 +13,7 @@ import {
   Ban, // 🔥 agrégalo aquí
 } from "lucide-react";
 import { api } from "../../api/axios";
+import { useConfirm } from "../../components/ConfirmProvider";
 
 
 const emptyForm = {
@@ -25,6 +26,7 @@ const emptyForm = {
 };
 
 export default function Suppliers() {
+  const { confirm } = useConfirm();
   const [suppliers, setSuppliers] = useState([]);
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState(null);
@@ -128,7 +130,14 @@ export default function Suppliers() {
   };
 
   const deactivateSupplier = async (supplier) => {
-    if (!confirm(`¿Desactivar proveedor "${supplier.name}"?`)) return;
+    const ok = await confirm({
+      title: "Desactivar proveedor",
+      message: `¿Desactivar proveedor "${supplier.name}"?`,
+      confirmText: "Desactivar",
+      variant: "danger",
+    });
+
+    if (!ok) return;
 
     try {
       await api.delete(`/suppliers/${supplier.id}`);
@@ -156,7 +165,14 @@ export default function Suppliers() {
 };
 
     const deleteSupplier = async (supplier) => {
-    if (!confirm("Esto eliminará el proveedor permanentemente. ¿Continuar?")) return;
+    const ok = await confirm({
+      title: "Eliminar proveedor",
+      message: "Esto eliminará el proveedor permanentemente. Esta acción no se puede deshacer.",
+      confirmText: "Eliminar",
+      variant: "danger",
+    });
+
+    if (!ok) return;
 
     await api.delete(`/suppliers/${supplier.id}`);
     loadSuppliers();

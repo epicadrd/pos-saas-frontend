@@ -18,6 +18,7 @@ import {
 import { api } from "../../api/axios";
 import { useAuth } from "../../context/AuthContext";
 import { useSearchParams } from "react-router-dom";
+import { useConfirm } from "../../components/ConfirmProvider";
 
 
 
@@ -35,7 +36,8 @@ const emptyForm = {
 };
 
 export default function Invoices() {
-
+  
+  const { confirm } = useConfirm();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { tenant, setTenant } = useAuth();
@@ -421,9 +423,14 @@ export default function Invoices() {
   };
 
   const cancelInvoice = async (invoice) => {
-    if (!confirm(`¿Anular ${invoice.invoiceNumber}? Esto devolverá el inventario.`)) {
-      return;
-    }
+    const ok = await confirm({
+      title: "Anular factura",
+      message: `¿Anular ${invoice.invoiceNumber}? Esto devolverá el inventario.`,
+      confirmText: "Anular",
+      variant: "danger",
+    });
+
+    if (!ok) return;
 
     try {
       await api.patch(`/invoices/${invoice.id}/cancel`);
@@ -467,7 +474,14 @@ export default function Invoices() {
   };
 
   const deleteDraft = async (invoice) => {
-    if (!confirm("¿Eliminar este borrador?")) return;
+    const ok = await confirm({
+      title: "Eliminar borrador",
+      message: "¿Eliminar este borrador? Esta acción no se puede deshacer.",
+      confirmText: "Eliminar",
+      variant: "danger",
+    });
+
+    if (!ok) return;
 
     try {
       await api.delete(`/invoices/${invoice.id}`);
@@ -482,7 +496,14 @@ export default function Invoices() {
   };
 
   const issueDraft = async (invoice) => {
-    if (!confirm(`¿Emitir el borrador ${invoice.invoiceNumber}?`)) return;
+    const ok = await confirm({
+      title: "Emitir factura",
+      message: `¿Emitir el borrador ${invoice.invoiceNumber}?`,
+      confirmText: "Emitir",
+      variant: "success",
+    });
+
+    if (!ok) return;
 
     try {
       await api.patch(`/invoices/${invoice.id}/issue`, {
@@ -778,7 +799,14 @@ export default function Invoices() {
   };
 
   const markAsPaid = async (invoice) => {
-    if (!confirm(`¿Marcar ${invoice.invoiceNumber} como pagada?`)) return;
+    const ok = await confirm({
+      title: "Marcar factura como pagada",
+      message: `¿Marcar ${invoice.invoiceNumber} como pagada?`,
+      confirmText: "Marcar como pagada",
+      variant: "success",
+    });
+
+    if (!ok) return;
 
     try {
       await api.patch(`/invoices/${invoice.id}/mark-paid`);

@@ -11,6 +11,7 @@ import {
 import { api } from "../../api/axios";
 import { useAuth } from "../../context/AuthContext";
 import "../../styles/UsersManagement.css";
+import { useConfirm } from "../../components/ConfirmProvider";
 
 const emptyForm = {
   name: "",
@@ -21,7 +22,7 @@ const emptyForm = {
 
 export default function UsersManagement() {
   const { user } = useAuth();
-
+  const { confirm } = useConfirm();
   const [users, setUsers] = useState([]);
   const [form, setForm] = useState(emptyForm);
   const [modalOpen, setModalOpen] = useState(false);
@@ -87,7 +88,12 @@ export default function UsersManagement() {
       return;
     }
 
-    const ok = confirm(`¿Seguro que deseas desactivar a ${selectedUser.name}?`);
+    const ok = await confirm({
+      title: "Desactivar usuario",
+      message: `¿Seguro que deseas desactivar a ${selectedUser.name}?`,
+      confirmText: "Desactivar",
+      variant: "danger",
+    });
 
     if (!ok) return;
 

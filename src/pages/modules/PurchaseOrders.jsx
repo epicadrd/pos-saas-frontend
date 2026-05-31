@@ -9,6 +9,7 @@ import {
   X,
 } from "lucide-react";
 import { api } from "../../api/axios";
+import { useConfirm } from "../../components/ConfirmProvider";
 
 const emptyOrder = {
   supplierName: "",
@@ -21,6 +22,7 @@ const emptyOrder = {
 };
 
 export default function PurchaseOrders() {
+  const { confirm } = useConfirm();
   const [orders, setOrders] = useState([]);
   const [products, setProducts] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
@@ -290,9 +292,12 @@ const getLastProductPurchase = (productId) => {
 
     const handleStatusChange = async (order, newStatus) => {
       if (newStatus === "received") {
-        const ok = confirm(
-          `¿Seguro que quieres recibir la orden ${order.orderNumber}? Esto aumentará el inventario.`
-        );
+        const ok = await confirm({
+          title: "Recibir orden",
+          message: `¿Seguro que quieres recibir la orden ${order.orderNumber}? Esto aumentará el inventario.`,
+          confirmText: "Recibir orden",
+          variant: "success",
+        });
 
         if (!ok) return;
       }
@@ -311,11 +316,14 @@ const getLastProductPurchase = (productId) => {
     };
 
   const handleDelete = async (order) => {
-    const confirmDelete = confirm(
-      `¿Seguro que quieres eliminar la orden ${order.orderNumber}?`
-    );
+    const ok = await confirm({
+      title: "Eliminar orden",
+      message: `¿Seguro que quieres eliminar la orden ${order.orderNumber}? Esta acción no se puede deshacer.`,
+      confirmText: "Eliminar",
+      variant: "danger",
+    });
 
-    if (!confirmDelete) return;
+    if (!ok) return;
 
     try {
       await api.delete(`/purchase-orders/${order.id}`);

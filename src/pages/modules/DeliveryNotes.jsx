@@ -14,6 +14,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { api } from "../../api/axios";
 import { useAuth } from "../../context/AuthContext";
+import { useConfirm } from "../../components/ConfirmProvider";
 
 const emptyForm = {
   customerName: "",
@@ -49,6 +50,7 @@ const statusClass = {
 export default function DeliveryNotes() {
   const navigate = useNavigate();
   const { tenant } = useAuth();
+  const { confirm } = useConfirm();
 
   const [deliveryNotes, setDeliveryNotes] = useState([]);
   const [products, setProducts] = useState([]);
@@ -294,9 +296,14 @@ export default function DeliveryNotes() {
   };
 
   const issueNote = async (note) => {
-    if (!confirm(`¿Emitir ${note.deliveryNoteNumber}? Esto descontará inventario.`)) {
-      return;
-    }
+    const ok = await confirm({
+      title: "Emitir conduce",
+      message: `¿Emitir ${note.deliveryNoteNumber}? Esto descontará inventario.`,
+      confirmText: "Emitir",
+      variant: "danger",
+    });
+
+    if (!ok) return;
 
     try {
       await api.patch(`/delivery-notes/${note.id}/issue`);
@@ -325,7 +332,14 @@ export default function DeliveryNotes() {
   };
 
   const cancelNote = async (note) => {
-    if (!confirm(`¿Anular ${note.deliveryNoteNumber}?`)) return;
+    const ok = await confirm({
+      title: "Anular conduce",
+      message: `¿Anular ${note.deliveryNoteNumber}?`,
+      confirmText: "Anular",
+      variant: "danger",
+    });
+
+    if (!ok) return;
 
     try {
       await api.patch(`/delivery-notes/${note.id}/cancel`);
@@ -336,7 +350,14 @@ export default function DeliveryNotes() {
   };
 
   const convertToInvoice = async (note) => {
-    if (!confirm(`¿Convertir ${note.deliveryNoteNumber} a factura?`)) return;
+    const ok = await confirm({
+      title: "Convertir a factura",
+      message: `¿Convertir ${note.deliveryNoteNumber} a factura?`,
+      confirmText: "Convertir",
+      variant: "success",
+    });
+
+    if (!ok) return;
 
     try {
       await api.post(`/delivery-notes/${note.id}/convert-to-invoice`);

@@ -17,6 +17,7 @@ import { useNavigate } from "react-router-dom";
 import { api } from "../../api/axios";
 import { Pencil } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
+import { useConfirm } from "../../components/ConfirmProvider";
 
 const emptyQuote = {
   customerName: "",
@@ -47,8 +48,8 @@ const statusClass = {
 };
 
 export default function Quotes() {
+  const { confirm } = useConfirm();
   const navigate = useNavigate();
-
   const [quotes, setQuotes] = useState([]);
   const [products, setProducts] = useState([]);
   const [customers, setCustomers] = useState([]);
@@ -296,11 +297,15 @@ export default function Quotes() {
   };
 
   const handleDeleteQuote = async (quote) => {
-    const confirmDelete = confirm(
-      `¿Seguro que quieres eliminar la cotización ${quote.quoteNumber}?`
-    );
 
-    if (!confirmDelete) return;
+    const ok = await confirm({
+        title: "Eliminar cotización",
+        message: `¿Seguro que quieres eliminar la cotización ${quote.quoteNumber}? Esta acción no se puede deshacer.`,
+        confirmText: "Eliminar",
+        variant: "danger",
+      });
+
+      if (!ok) return;
 
     try {
       await api.delete(`/quotes/${quote.id}`);
@@ -322,9 +327,12 @@ export default function Quotes() {
   };
 
   const handleConvertToInvoice = async (quote) => {
-    const ok = confirm(
-      `¿Convertir la cotización ${quote.quoteNumber} a factura en borrador?`
-    );
+  const ok = await confirm({
+      title: "Convertir a factura",
+      message: `¿Convertir la cotización ${quote.quoteNumber} a factura en borrador?`,
+      confirmText: "Convertir",
+      variant: "success",
+    });
 
     if (!ok) return;
 

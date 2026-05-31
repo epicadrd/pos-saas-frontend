@@ -11,6 +11,7 @@ import {
 import { api } from "../../api/axios";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import { useConfirm } from "../../components/ConfirmProvider";
 
 const emptyReceipt = {
   invoiceId: "",
@@ -24,6 +25,7 @@ const emptyReceipt = {
 };
 
 export default function Receipts() {
+  const { confirm } = useConfirm();
   const [receipts, setReceipts] = useState([]);
   const [invoices, setInvoices] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
@@ -183,11 +185,14 @@ export default function Receipts() {
   };
 
   const handleDelete = async (receipt) => {
-    const confirmDelete = confirm(
-      `¿Seguro que quieres eliminar el recibo ${receipt.receiptNumber}?`
-    );
+    const ok = await confirm({
+    title: "Eliminar recibo",
+    message: `¿Seguro que quieres eliminar el recibo ${receipt.receiptNumber}? Esta acción no se puede deshacer.`,
+    confirmText: "Eliminar",
+    variant: "danger",
+  });
 
-    if (!confirmDelete) return;
+  if (!ok) return;
 
     try {
       await api.delete(`/receipts/${receipt.id}`);

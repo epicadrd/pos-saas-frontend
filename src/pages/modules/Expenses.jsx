@@ -10,6 +10,7 @@ import {
   Eye,
 } from "lucide-react";
 import { api } from "../../api/axios";
+import { useConfirm } from "../../components/ConfirmProvider";
 
 const initialForm = {
   category: "Operativo",
@@ -54,6 +55,7 @@ const formatMoney = (value) =>
   }).format(Number(value || 0));
 
 export default function Expenses() {
+  const { confirm } = useConfirm();
   const [expenses, setExpenses] = useState([]);
   const [detailExpense, setDetailExpense] = useState(null);
 
@@ -198,7 +200,14 @@ export default function Expenses() {
   };
 
   const deleteExpense = async (expense) => {
-    if (!confirm(`¿Eliminar el gasto ${expense.expenseNumber}?`)) return;
+    const ok = await confirm({
+      title: "Eliminar gasto",
+      message: `¿Eliminar el gasto ${expense.expenseNumber}? Esta acción no se puede deshacer.`,
+      confirmText: "Eliminar",
+      variant: "danger",
+    });
+
+    if (!ok) return;
 
     try {
       await api.delete(`/expenses/${expense.id}`);

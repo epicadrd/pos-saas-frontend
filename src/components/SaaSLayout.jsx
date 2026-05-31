@@ -35,6 +35,93 @@ export default function SaaSLayout() {
   const { user, tenant, logout } = useAuth();
   const navigate = useNavigate();
 
+  const canAccess = (roles = []) => {
+  return roles.includes(user?.role);
+  };
+
+  const hasVisibleItems = (items = []) => {
+    return items.some((item) => canAccess(item.roles));
+  };
+
+  const sidebarGroups = [
+  {
+    key: "billing",
+    label: "Facturación",
+    icon: FileText,
+    items: [
+      {
+        to: "/dashboard/facturacion",
+        label: "Facturas",
+        roles: ["master", "admin", "employee"],
+      },
+      {
+        to: "/dashboard/cotizaciones",
+        label: "Cotizaciones",
+        roles: ["master", "admin", "employee"],
+      },
+      {
+        to: "/dashboard/recibos",
+        label: "Recibos",
+        roles: ["master", "admin"],
+      },
+    ],
+  },
+  {
+    key: "operations",
+    label: "Operaciones",
+    icon: Truck,
+    items: [
+      {
+        to: "/dashboard/conduces",
+        label: "Conduces",
+        roles: ["master", "admin"],
+      },
+      {
+        to: "/dashboard/ordenes-compra",
+        label: "Órdenes de compra",
+        roles: ["master", "admin"],
+      },
+      {
+        to: "/dashboard/proveedores",
+        label: "Proveedores",
+        roles: ["master", "admin"],
+      },
+    ],
+  },
+  {
+    key: "accounting",
+    label: "Contabilidad",
+    icon: CreditCard,
+    items: [
+      {
+        to: "/dashboard/contabilidad",
+        label: "Resumen contable",
+        roles: ["master", "admin"],
+      },
+      {
+        to: "/dashboard/contabilidad/cuentas-por-cobrar",
+        label: "Cuentas por cobrar",
+        roles: ["master", "admin"],
+      },
+      {
+        to: "/dashboard/contabilidad/cuentas-por-pagar",
+        label: "Cuentas por pagar",
+        roles: ["master", "admin"],
+      },
+      {
+        to: "/dashboard/contabilidad/gastos",
+        label: "Gastos",
+        roles: ["master", "admin"],
+      },
+      {
+        to: "/dashboard/contabilidad/reportes",
+        label: "Reportes",
+        roles: ["master", "admin"],
+      },
+    ],
+  },
+];
+
   const moduleSearchItems = [
   {
     label: "Dashboard",
@@ -274,225 +361,59 @@ export default function SaaSLayout() {
           </NavLink>
 
           <div ref={sidebarMenusRef}>
-            {/* FACTURACIÓN */}
+            {sidebarGroups
+              .filter((group) => hasVisibleItems(group.items))
+              .map((group) => {
+                const Icon = group.icon;
 
-            <div className="sidebar-group">
-              <button
-                type="button"
-                className="sidebar-group-btn"
-                onClick={() =>
-                  setOpenMenu((prev) =>
-                    prev === "billing" ? null : "billing"
-                  )
-                }
-              >
-                <span className="sidebar-group-left">
-                  <FileText size={20} />
-                  <span>Facturación</span>
-                </span>
-
-                <ChevronDown
-                  size={16}
-                  className={openMenu === "billing" ? "rotate-180" : ""}
-                />
-              </button>
-
-              {openMenu === "billing" && (
-                <div className="sidebar-submenu">
-                  <NavLink
-                    to="/dashboard/facturacion"
-                    onClick={() => setSidebarOpen(false)}
-                    className={({ isActive }) =>
-                      isActive
-                        ? "sidebar-sublink active"
-                        : "sidebar-sublink"
-                    }
-                  >
-                    Facturas
-                  </NavLink>
-
-                  <NavLink
-                    to="/dashboard/cotizaciones"
-                    onClick={() => setSidebarOpen(false)}
-                    className={({ isActive }) =>
-                      isActive
-                        ? "sidebar-sublink active"
-                        : "sidebar-sublink"
-                    }
-                  >
-                    Cotizaciones
-                  </NavLink>
-
-                  {(user?.role === "master" ||
-                    user?.role === "admin") && (
-                    <NavLink
-                      to="/dashboard/recibos"
-                      onClick={() => setSidebarOpen(false)}
-                      className={({ isActive }) =>
-                        isActive
-                          ? "sidebar-sublink active"
-                          : "sidebar-sublink"
+                return (
+                  <div className="sidebar-group" key={group.key}>
+                    <button
+                      type="button"
+                      className="sidebar-group-btn"
+                      onClick={() =>
+                        setOpenMenu((prev) =>
+                          prev === group.key ? null : group.key
+                        )
                       }
                     >
-                      Recibos
-                    </NavLink>
-                  )}
-                </div>
-              )}
+                      <span className="sidebar-group-left">
+                        <Icon size={20} />
+                        <span>{group.label}</span>
+                      </span>
+
+                      <ChevronDown
+                        size={16}
+                        className={openMenu === group.key ? "rotate-180" : ""}
+                      />
+                    </button>
+
+                    {openMenu === group.key && (
+                      <div className="sidebar-submenu">
+                        {group.items
+                          .filter((item) => canAccess(item.roles))
+                          .map((item) => (
+                            <NavLink
+                              key={item.to}
+                              to={item.to}
+                              onClick={() => setSidebarOpen(false)}
+                              className={({ isActive }) =>
+                                isActive
+                                  ? "sidebar-sublink active"
+                                  : "sidebar-sublink"
+                              }
+                            >
+                              {item.label}
+                            </NavLink>
+                          ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
 
-            {/* OPERACIONES */}
-
-            <div className="sidebar-group">
-              <button
-                type="button"
-                className="sidebar-group-btn"
-                onClick={() =>
-                  setOpenMenu((prev) =>
-                    prev === "operations" ? null : "operations"
-                  )
-                }
-              >
-                <span className="sidebar-group-left">
-                  <Truck size={20} />
-                  <span>Operaciones</span>
-                </span>
-
-                <ChevronDown
-                  size={16}
-                  className={openMenu === "operations" ? "rotate-180" : ""}
-                />
-              </button>
-
-              {openMenu === "operations" && (
-                <div className="sidebar-submenu">
-                  <NavLink
-                    to="/dashboard/conduces"
-                    onClick={() => setSidebarOpen(false)}
-                    className={({ isActive }) =>
-                      isActive
-                        ? "sidebar-sublink active"
-                        : "sidebar-sublink"
-                    }
-                  >
-                    Conduces
-                  </NavLink>
-
-                  <NavLink
-                    to="/dashboard/ordenes-compra"
-                    onClick={() => setSidebarOpen(false)}
-                    className={({ isActive }) =>
-                      isActive
-                        ? "sidebar-sublink active"
-                        : "sidebar-sublink"
-                    }
-                  >
-                    Órdenes de compra
-                  </NavLink>
-
-                  <NavLink
-                    to="/dashboard/proveedores"
-                    onClick={() => setSidebarOpen(false)}
-                    className={({ isActive }) =>
-                      isActive
-                        ? "sidebar-sublink active"
-                        : "sidebar-sublink"
-                    }
-                  >
-                    Proveedores
-                  </NavLink>
-                </div>
-              )}
-            </div>
-
-            {/* CONTABILIDAD */}
-
-            <div className="sidebar-group">
-              <button
-                type="button"
-                className="sidebar-group-btn"
-                onClick={() =>
-                  setOpenMenu((prev) =>
-                    prev === "accounting" ? null : "accounting"
-                  )
-                }
-              >
-                <span className="sidebar-group-left">
-                  <CreditCard size={20} />
-                  <span>Contabilidad</span>
-                </span>
-
-                <ChevronDown
-                  size={16}
-                  className={openMenu === "accounting" ? "rotate-180" : ""}
-                />
-              </button>
-
-              {openMenu === "accounting" && (
-                <div className="sidebar-submenu">
-                  <NavLink
-                    to="/dashboard/contabilidad"
-                    onClick={() => setSidebarOpen(false)}
-                    className={({ isActive }) =>
-                      isActive
-                        ? "sidebar-sublink active"
-                        : "sidebar-sublink"
-                    }
-                  >
-                    Resumen contable
-                  </NavLink>
-
-                  <NavLink
-                    to="/dashboard/contabilidad/cuentas-por-cobrar"
-                    onClick={() => setSidebarOpen(false)}
-                    className={({ isActive }) =>
-                      isActive
-                        ? "sidebar-sublink active"
-                        : "sidebar-sublink"
-                    }
-                  >
-                    Cuentas por cobrar
-                  </NavLink>
-
-                  <NavLink
-                    to="/dashboard/contabilidad/cuentas-por-pagar"
-                    onClick={() => setSidebarOpen(false)}
-                    className={({ isActive }) =>
-                      isActive
-                        ? "sidebar-sublink active"
-                        : "sidebar-sublink"
-                    }
-                  >
-                    Cuentas por pagar
-                  </NavLink>
-
-                  <NavLink
-                    to="/dashboard/contabilidad/gastos"
-                    onClick={() => setSidebarOpen(false)}
-                    className={({ isActive }) =>
-                      isActive
-                        ? "sidebar-sublink active"
-                        : "sidebar-sublink"
-                    }
-                  >
-                    Gastos
-                  </NavLink>
-
-                  <NavLink
-                    to="/dashboard/contabilidad/reportes"
-                    onClick={() => setSidebarOpen(false)}
-                    className={({ isActive }) =>
-                      isActive
-                        ? "sidebar-sublink active"
-                        : "sidebar-sublink"
-                    }
-                  >
-                    Reportes
-                  </NavLink>
-                </div>
-              )}
-            </div>
-          </div>
+            
 
           {links
             .filter(

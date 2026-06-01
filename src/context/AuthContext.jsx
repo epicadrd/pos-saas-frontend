@@ -14,7 +14,8 @@ const publicRoutes = [
 const isPublicRoute = (pathname) => {
   return (
     publicRoutes.includes(pathname) ||
-    pathname.startsWith("/verificar-correo")
+    pathname.startsWith("/verificar-correo") ||
+    pathname.startsWith("/reset-password")
   );
 };
 

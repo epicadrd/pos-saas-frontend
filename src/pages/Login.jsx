@@ -153,6 +153,10 @@ navigate("/dashboard");
             />
           </div>
 
+          <div className="forgot-password-link">
+            <Link to="/forgot-password">¿Olvidaste tu contraseña?</Link>
+          </div>
+
           <button disabled={loading} className="auth-button">
             {loading ? "Entrando..." : "Iniciar sesión"}
             <ArrowRight size={20} />

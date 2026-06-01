@@ -31,6 +31,8 @@ import Reports from "./pages/modules/Reports";
 import AccountsReceivable from "./pages/modules/AccountsReceivable";
 import AccountsPayable from "./pages/modules/AccountsPayable";
 import AccountSettings from "./pages/modules/AccountSettings";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 
 function App() {
   return (
@@ -39,6 +41,8 @@ function App() {
 
       <Route path="/login" element={<Login />} />
       <Route path="/registro" element={<Register />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password/:token" element={<ResetPassword />} />
       <Route path="/verificar-correo/:token" element={<VerifyEmail />} />
 
       <Route path="/seleccionar-plan" element={ <ProtectedRoute><SelectPlan /></ProtectedRoute>}/>

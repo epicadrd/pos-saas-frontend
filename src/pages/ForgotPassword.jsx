@@ -15,20 +15,22 @@ export default function ForgotPassword() {
     setMessage("");
     setError("");
 
-    try {
-      const { data } = await api.post("/auth/forgot-password", { email });
+  try {
+    const { data } = await api.post("/auth/forgot-password", {
+        email,
+    });
 
-      setMessage(
-        data.message ||
-          "Si el correo existe en Corex, enviaremos un enlace de recuperación."
-      );
+    setError("");
+    setMessage(data.message);
     } catch (error) {
-      setError(
+    setMessage("");
+
+    setError(
         error.response?.data?.message ||
-          "No pudimos procesar la solicitud. Intenta nuevamente."
-      );
+        "No pudimos procesar la solicitud. Intenta nuevamente."
+    );
     } finally {
-      setLoading(false);
+    setLoading(false);
     }
   };
 

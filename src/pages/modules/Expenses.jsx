@@ -533,7 +533,7 @@ export default function Expenses() {
                     name="supplierName"
                     value={form.supplierName}
                     onChange={handleChange}
-                    placeholder="Ej: Comida en la calle, colmado..."
+                    placeholder="Nombre del proveedor"
                 />
                 </label>
 

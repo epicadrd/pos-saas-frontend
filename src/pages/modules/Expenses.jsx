@@ -57,6 +57,16 @@ const formatMoney = (value) =>
     currency: "DOP",
   }).format(Number(value || 0));
 
+  const formatDateForDB = (date) => {
+  if (!date) return "";
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+};
+
 export default function Expenses() {
   const { confirm } = useConfirm();
   const [expenses, setExpenses] = useState([]);
@@ -492,18 +502,21 @@ export default function Expenses() {
                 Fecha
 
                 <DatePicker
-                  selected={form.expenseDate ? new Date(form.expenseDate) : null}
+                  selected={
+                    form.expenseDate
+                      ? new Date(`${form.expenseDate}T00:00:00`)
+                      : null
+                  }
                   onChange={(date) => {
                     setForm((prev) => ({
                       ...prev,
-                      expenseDate: date
-                        ? date.toISOString().split("T")[0]
-                        : "",
+                      expenseDate: formatDateForDB(date),
                     }));
                   }}
-                  dateFormat="dd/MM/yyyy"
+                  dateFormat="d/M/yyyy"
                   locale={es}
                   className="expense-datepicker"
+                  required
                 />
               </label>
 

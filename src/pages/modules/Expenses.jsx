@@ -11,6 +11,9 @@ import {
 } from "lucide-react";
 import { api } from "../../api/axios";
 import { useConfirm } from "../../components/ConfirmProvider";
+import DatePicker from "react-datepicker";
+import { es } from "date-fns/locale";
+import "react-datepicker/dist/react-datepicker.css";
 
 const initialForm = {
   category: "Operativo",
@@ -487,12 +490,20 @@ export default function Expenses() {
 
               <label>
                 Fecha
-                <input
-                  type="date"
-                  name="expenseDate"
-                  value={form.expenseDate}
-                  onChange={handleChange}
-                  required
+
+                <DatePicker
+                  selected={form.expenseDate ? new Date(form.expenseDate) : null}
+                  onChange={(date) => {
+                    setForm((prev) => ({
+                      ...prev,
+                      expenseDate: date
+                        ? date.toISOString().split("T")[0]
+                        : "",
+                    }));
+                  }}
+                  dateFormat="dd/MM/yyyy"
+                  locale={es}
+                  className="expense-datepicker"
                 />
               </label>
 

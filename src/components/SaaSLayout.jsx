@@ -303,12 +303,8 @@ export default function SaaSLayout() {
         setSettingsOpen(false);
       }
 
-      if (
-        sidebarMenusRef.current &&
-        !sidebarMenusRef.current.contains(event.target)
-      ) {
-        setOpenMenu(null);
-      }
+      // No cerramos los menús del sidebar con clicks fuera,
+      // porque al usar el scroll del navegador se cerraban solos.
     };
 
     document.addEventListener("mousedown", handleClickOutside);
@@ -317,7 +313,7 @@ export default function SaaSLayout() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
-
+  
   const handleLogout = async () => {
     await logout();
     navigate("/login");

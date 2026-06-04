@@ -194,17 +194,6 @@ const openCreate = () => {
         [name]: value,
       };
 
-        if (name === "supplierId") {
-        const supplier = suppliers.find((item) => String(item.id) === String(value));
-
-        next.supplierName = supplier?.name || "";
-        next.supplierRnc = supplier?.rnc || "";
-        }
-
-        if (name === "supplierName" && prev.supplierId) {
-        next.supplierId = "";
-        next.supplierRnc = "";
-        }
 
       if (name === "subtotal" || name === "tax") {
         next.total = (
@@ -304,7 +293,7 @@ const openCreate = () => {
           <div className="expense-search">
             <Search size={17} />
             <input
-              placeholder="Buscar gasto, proveedor, NCF o categoría"
+              placeholder="Buscar gasto, emisor, e-NCF o categoría"
               value={filters.search}
               onChange={(e) =>
                 setFilters({
@@ -331,10 +320,10 @@ const openCreate = () => {
                 <tr>
                   <th>No.</th>
                   <th>Fecha</th>
-                  <th>NCF</th>
+                  <th>e-NCF</th>
                   <th>Categoría</th>
                   <th>Descripción</th>
-                  <th>Proveedor</th>
+                  <th>Razón social emisor</th>
                   <th>Total</th>
                   <th></th>
                 </tr>
@@ -445,12 +434,12 @@ const openCreate = () => {
               </div>
 
               <div>
-                <span>NCF</span>
+                <span>e-NCF</span>
                 <strong>{detailExpense.ncf || "—"}</strong>
               </div>
 
               <div>
-                <span>Proveedor</span>
+                <span>Razón social emisor</span>
                 <strong>
                   {detailExpense.supplier?.name ||
                     detailExpense.supplierName ||
@@ -459,7 +448,7 @@ const openCreate = () => {
               </div>
 
               <div>
-                <span>RNC proveedor</span>
+                <span>RNC emisor</span>
                 <strong>
                   {detailExpense.supplier?.rnc ||
                     detailExpense.supplierRnc ||
@@ -475,7 +464,7 @@ const openCreate = () => {
               </div>
 
               <div>
-                <span>ITBIS</span>
+                <span>Total de ITBIS</span>
                 <strong>{formatMoney(detailExpense.tax)}</strong>
               </div>
 
@@ -529,7 +518,7 @@ const openCreate = () => {
               </label>
 
               <label>
-                Fecha
+                Fecha de emisión
 
                 <DatePicker
                   selected={
@@ -551,7 +540,7 @@ const openCreate = () => {
               </label>
 
               <label>
-                Descripción
+                Descripción / Concepto
                 <input
                   name="description"
                   value={form.description}
@@ -561,7 +550,7 @@ const openCreate = () => {
               </label>
 
               <label>
-                NCF de la factura
+                e-NCF
                 <input
                   name="ncf"
                   value={form.ncf}
@@ -571,17 +560,17 @@ const openCreate = () => {
               </label>
 
                 <label>
-                Proveedor
+                Razón social emisor
                 <input
                     name="supplierName"
                     value={form.supplierName}
                     onChange={handleChange}
-                    placeholder="Nombre del proveedor"
+                    placeholder="Razón social del emisor"
                 />
                 </label>
 
               <label>
-                RNC proveedor
+                RNC emisor
                 <input
                   name="supplierRnc"
                   value={form.supplierRnc}
@@ -619,7 +608,7 @@ const openCreate = () => {
               </label>
 
               <label>
-                ITBIS
+                Total de ITBIS
                 <input
                   type="number"
                   step="0.01"
@@ -630,7 +619,7 @@ const openCreate = () => {
               </label>
 
               <label>
-                Total
+                Monto total
                 <input
                   type="number"
                   step="0.01"

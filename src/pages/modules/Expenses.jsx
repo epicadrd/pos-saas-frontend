@@ -71,6 +71,8 @@ export default function Expenses() {
   const { confirm } = useConfirm();
   const [expenses, setExpenses] = useState([]);
   const [detailExpense, setDetailExpense] = useState(null);
+  const [dgiiUrl, setDgiiUrl] = useState("");
+  const [importingDgii, setImportingDgii] = useState(false);
 
   const [stats, setStats] = useState({
     monthTotal: 0,
@@ -124,15 +126,43 @@ export default function Expenses() {
     }
   };
 
+  const importFromDgii = async () => {
+  if (!dgiiUrl.trim()) {
+    alert("Pega el enlace de verificación de la DGII");
+    return;
+  }
+
+  try {
+    setImportingDgii(true);
+
+    const { data } = await api.post("/expenses/import-dgii", {
+      url: dgiiUrl.trim(),
+    });
+
+    setForm((prev) => ({
+      ...prev,
+      ...data,
+    }));
+  } catch (error) {
+    alert(
+      error.response?.data?.message ||
+        "No se pudo importar la factura desde DGII"
+    );
+  } finally {
+    setImportingDgii(false);
+  }
+};
+
   useEffect(() => {
     loadExpenses();
   }, []);
-
-  const openCreate = () => {
-    setEditing(null);
-    setForm(initialForm);
-    setModalOpen(true);
-  };
+  
+const openCreate = () => {
+  setEditing(null);
+  setForm(initialForm);
+  setDgiiUrl("");
+  setModalOpen(true);
+};
 
   const openEdit = (expense) => {
     setEditing(expense);
@@ -621,6 +651,35 @@ export default function Expenses() {
                 />
               </label>
             </div>
+
+            {!editing && (
+  <div className="expense-dgii-import">
+    <label>
+      Importar desde e-CF DGII
+      <div className="expense-dgii-row">
+        <input
+          type="url"
+          value={dgiiUrl}
+          onChange={(e) => setDgiiUrl(e.target.value)}
+          placeholder="Pega aquí el enlace del QR de la factura"
+        />
+
+        <button
+          type="button"
+          className="secondary"
+          onClick={importFromDgii}
+          disabled={importingDgii}
+        >
+          {importingDgii ? "Importando..." : "Importar"}
+        </button>
+      </div>
+    </label>
+
+    <small>
+      Los datos importados deben ser revisados antes de guardar el gasto.
+    </small>
+  </div>
+)}
 
             <div className="expense-modal-actions">
               <button

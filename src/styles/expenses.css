@@ -353,3 +353,40 @@
   border-radius: 10px;
   font-size: 0.95rem;
 }
+
+.expense-dgii-import {
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 14px;
+  margin-bottom: 18px;
+}
+
+.expense-dgii-import label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.expense-dgii-row {
+  display: flex;
+  gap: 10px;
+}
+
+.expense-dgii-row input {
+  flex: 1;
+}
+
+.expense-dgii-import small {
+  display: block;
+  margin-top: 8px;
+  color: #6b7280;
+}
+
+@media (max-width: 640px) {
+  .expense-dgii-row {
+    flex-direction: column;
+  }
+}

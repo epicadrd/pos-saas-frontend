@@ -1446,3 +1446,11 @@
     display: none;
   }
 }
+
+.sidebar-group-btn svg:last-child {
+  transition: transform 0.2s ease;
+}
+
+.rotate-180 {
+  transform: rotate(180deg);
+}

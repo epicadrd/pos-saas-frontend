@@ -22,8 +22,7 @@ const initialForm = {
   supplierName: "",
   supplierRnc: "",
   expenseDate: new Date().toISOString().slice(0, 10),
-  paymentMethod: "cash",
-  subtotal: "",
+  paymentMethod: "cash", 
   tax: "0",
   total: "",
   notes: "",
@@ -175,7 +174,6 @@ const openCreate = () => {
       supplierRnc: expense.supplier?.rnc || expense.supplierRnc || "",
       expenseDate: expense.expenseDate || new Date().toISOString().slice(0, 10),
       paymentMethod: expense.paymentMethod || "cash",
-      subtotal: expense.subtotal || "",
       tax: expense.tax || "0",
       total: expense.total || "",
       notes: expense.notes || "",
@@ -193,13 +191,6 @@ const openCreate = () => {
         ...prev,
         [name]: value,
       };
-
-
-      if (name === "subtotal" || name === "tax") {
-        next.total = (
-          Number(next.subtotal || 0) + Number(next.tax || 0)
-        ).toFixed(2);
-      }
 
       return next;
     });
@@ -457,13 +448,6 @@ const openCreate = () => {
               </div>
 
               <div>
-                <span>Subtotal</span>
-                <strong>
-                  {formatMoney(detailExpense.subtotal)}
-                </strong>
-              </div>
-
-              <div>
                 <span>Total de ITBIS</span>
                 <strong>{formatMoney(detailExpense.tax)}</strong>
               </div>
@@ -595,17 +579,6 @@ const openCreate = () => {
                 </select>
               </label>
 
-              <label>
-                Subtotal
-                <input
-                  type="number"
-                  step="0.01"
-                  name="subtotal"
-                  value={form.subtotal}
-                  onChange={handleChange}
-                  required
-                />
-              </label>
 
               <label>
                 Total de ITBIS

@@ -141,6 +141,7 @@ export default function Expenses() {
     setForm((prev) => ({
       ...prev,
       ...data,
+      description: "",
     }));
   } catch (error) {
     alert(

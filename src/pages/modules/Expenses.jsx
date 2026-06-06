@@ -8,6 +8,7 @@ import {
   X,
   WalletCards,
   Eye,
+  FileSearch,
 } from "lucide-react";
 import { api } from "../../api/axios";
 import { useConfirm } from "../../components/ConfirmProvider";
@@ -615,34 +616,62 @@ const openCreate = () => {
               </label>
             </div>
 
-            {!editing && (
-  <div className="expense-dgii-import">
-    <label>
-      Importar desde e-CF DGII
-      <div className="expense-dgii-row">
-        <input
-          type="url"
-          value={dgiiUrl}
-          onChange={(e) => setDgiiUrl(e.target.value)}
-          placeholder="Pega aquí el enlace del QR de la factura"
-        />
+          {!editing && (
+            <div className="expense-dgii-import">
+              <div className="expense-dgii-header">
+                <div className="expense-dgii-icon">
+                  <FileSearch size={22} />
+                </div>
 
-        <button
-          type="button"
-          className="secondary"
-          onClick={importFromDgii}
-          disabled={importingDgii}
-        >
-          {importingDgii ? "Importando..." : "Importar"}
-        </button>
-      </div>
-    </label>
+                <div>
+                  <h3>Importar factura desde QR DGII</h3>
+                  <p>
+                    Escanea el código QR de la factura electrónica y pega aquí el enlace
+                    de validación de la DGII.
+                  </p>
+                </div>
+              </div>
 
-    <small>
-      Los datos importados deben ser revisados antes de guardar el gasto.
-    </small>
-  </div>
-)}
+              <div className="expense-dgii-field">
+                <label htmlFor="dgii-url">Enlace de validación DGII</label>
+
+                <div className="expense-dgii-row">
+                  <input
+                    id="dgii-url"
+                    type="url"
+                    value={dgiiUrl}
+                    onChange={(e) => setDgiiUrl(e.target.value)}
+                    placeholder="https://ecf.dgii.gov.do/ecf/consultatimbre?..."
+                  />
+
+                  <button
+                    type="button"
+                    className="secondary expense-dgii-button"
+                    onClick={importFromDgii}
+                    disabled={importingDgii || !dgiiUrl.trim()}
+                  >
+                    {importingDgii ? "Importando..." : "Importar datos"}
+                  </button>
+                </div>
+              </div>
+
+              <div className="expense-dgii-info">
+                <strong>Datos que se completan automáticamente:</strong>
+
+                <div className="expense-dgii-tags">
+                  <span>RNC emisor</span>
+                  <span>e-NCF</span>
+                  <span>Fecha</span>
+                  <span>ITBIS</span>
+                  <span>Total</span>
+                </div>
+              </div>
+
+              <small>
+                Verifica la información importada antes de guardar el gasto.
+              </small>
+            </div>
+          )}
 
             <div className="expense-modal-actions">
               <button

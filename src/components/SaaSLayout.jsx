@@ -67,6 +67,23 @@ export default function SaaSLayout() {
     ],
   },
   {
+  key: "inventory",
+  label: "Gestión de inventario",
+  icon: Package,
+  items: [
+    {
+      to: "/dashboard/inventario",
+      label: "Inventario",
+      roles: ["master", "admin"],
+    },
+    {
+      to: "/dashboard/conteo-inventario",
+      label: "Conteo de inventario",
+      roles: ["master", "admin"],
+    },
+  ],
+},
+  {
     key: "operations",
     label: "Operaciones",
     icon: Truck,
@@ -151,6 +168,12 @@ export default function SaaSLayout() {
     label: "Inventario",
     group: "Inventario",
     path: "/dashboard/inventario",
+    roles: ["master", "admin"],
+  },
+  {
+    label: "Conteo de inventario",
+    group: "Gestión de inventario",
+    path: "/dashboard/conteo-inventario",
     roles: ["master", "admin"],
   },
   {
@@ -249,12 +272,6 @@ export default function SaaSLayout() {
       icon: BarChart3,
       end: true,
       roles: ["master", "admin", "employee"],
-    },
-    {
-      to: "/dashboard/inventario",
-      label: "Inventario",
-      icon: Package,
-      roles: ["master", "admin"],
     },
   ];
 

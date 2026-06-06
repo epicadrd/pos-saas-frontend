@@ -1,0 +1,619 @@
+.inventory-count-page {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.inventory-count-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 28px;
+  padding: 26px;
+  background:
+    radial-gradient(circle at top right, rgba(0, 184, 169, 0.14), transparent 32%),
+    linear-gradient(135deg, #ffffff, #f8fafc);
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.06);
+}
+
+.inventory-count-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #00a79a;
+  font-weight: 900;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.inventory-count-header h1 {
+  margin: 8px 0 6px;
+  color: #0f172a;
+  font-size: clamp(28px, 3vw, 42px);
+  font-weight: 950;
+}
+
+.inventory-count-header p {
+  margin: 0;
+  max-width: 680px;
+  color: #64748b;
+  line-height: 1.6;
+}
+
+.inventory-count-actions,
+.inventory-count-footer-actions,
+.inventory-count-modal-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.inventory-count-btn {
+  border: 0;
+  border-radius: 16px;
+  padding: 12px 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-weight: 900;
+  cursor: pointer;
+  transition: 0.18s ease;
+}
+
+.inventory-count-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.inventory-count-btn.primary {
+  background: #00b8a9;
+  color: white;
+  box-shadow: 0 14px 28px rgba(0, 184, 169, 0.22);
+}
+
+.inventory-count-btn.primary:hover {
+  background: #00a79a;
+}
+
+.inventory-count-btn.secondary {
+  background: white;
+  color: #0f172a;
+  border: 1px solid #e2e8f0;
+}
+
+.inventory-count-btn.secondary:hover {
+  background: #f8fafc;
+}
+
+.inventory-count-btn.warning {
+  background: #f59e0b;
+  color: white;
+}
+
+.inventory-count-btn.danger {
+  background: #dc2626;
+  color: white;
+}
+
+.inventory-count-layout {
+  display: grid;
+  grid-template-columns: 340px minmax(0, 1fr);
+  gap: 18px;
+}
+
+.inventory-count-sidebar,
+.inventory-count-main {
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 26px;
+  background: white;
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.05);
+}
+
+.inventory-count-sidebar {
+  padding: 18px;
+  min-height: 500px;
+}
+
+.inventory-count-main {
+  padding: 20px;
+  min-height: 500px;
+  overflow: hidden;
+}
+
+.inventory-count-panel-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #0f172a;
+  font-weight: 950;
+  margin-bottom: 14px;
+}
+
+.inventory-count-empty {
+  color: #64748b;
+  padding: 20px;
+  border-radius: 18px;
+  background: #f8fafc;
+  text-align: center;
+  font-weight: 700;
+}
+
+.inventory-count-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.inventory-count-card {
+  position: relative;
+  width: 100%;
+  text-align: left;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  border-radius: 20px;
+  padding: 14px;
+  cursor: pointer;
+  transition: 0.18s ease;
+}
+
+.inventory-count-card:hover,
+.inventory-count-card.active {
+  border-color: #00b8a9;
+  box-shadow: 0 12px 26px rgba(0, 184, 169, 0.12);
+}
+
+.inventory-count-card strong {
+  display: block;
+  color: #0f172a;
+  font-weight: 950;
+  padding-right: 34px;
+}
+
+.inventory-count-card span {
+  color: #64748b;
+  font-size: 13px;
+}
+
+.inventory-count-card-meta {
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.inventory-count-delete {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #ef4444 !important;
+  background: #fef2f2;
+}
+
+.inventory-count-status {
+  display: inline-flex;
+  margin-top: 10px;
+  border-radius: 999px;
+  padding: 5px 10px;
+  font-size: 12px !important;
+  font-weight: 950;
+}
+
+.inventory-count-status.draft {
+  color: #92400e;
+  background: #fef3c7;
+}
+
+.inventory-count-status.completed {
+  color: #075985;
+  background: #e0f2fe;
+}
+
+.inventory-count-status.applied {
+  color: #047857;
+  background: #d1fae5;
+}
+
+.inventory-count-hero {
+  min-height: 460px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  text-align: center;
+}
+
+.inventory-count-hero-icon {
+  width: 92px;
+  height: 92px;
+  border-radius: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 184, 169, 0.1);
+  color: #00a79a;
+}
+
+.inventory-count-hero h2,
+.inventory-count-detail-header h2,
+.inventory-count-modal h2 {
+  margin: 0;
+  color: #0f172a;
+  font-weight: 950;
+}
+
+.inventory-count-hero p,
+.inventory-count-detail-header p,
+.inventory-count-modal p {
+  margin: 0;
+  color: #64748b;
+  line-height: 1.6;
+}
+
+.inventory-count-detail-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: flex-start;
+  margin-bottom: 14px;
+}
+
+.inventory-count-note {
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: #f8fafc;
+  color: #475569;
+  margin-bottom: 14px;
+}
+
+.inventory-count-stats {
+  display: grid;
+  grid-template-columns: 1.4fr repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.inventory-count-stat {
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  padding: 14px;
+  background: #ffffff;
+}
+
+.inventory-count-stat span {
+  display: block;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.inventory-count-stat strong {
+  display: block;
+  margin-top: 6px;
+  color: #0f172a;
+  font-size: 24px;
+  font-weight: 950;
+}
+
+.inventory-count-progress {
+  height: 8px;
+  background: #e2e8f0;
+  border-radius: 999px;
+  overflow: hidden;
+  margin-top: 12px;
+}
+
+.inventory-count-progress div {
+  height: 100%;
+  background: #00b8a9;
+  border-radius: 999px;
+}
+
+.ok-text {
+  color: #059669 !important;
+}
+
+.danger-text {
+  color: #dc2626 !important;
+}
+
+.inventory-count-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.inventory-count-search {
+  flex: 1;
+  min-width: 260px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 0 12px;
+}
+
+.inventory-count-search input {
+  width: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  padding: 13px 0;
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.inventory-count-chip {
+  border: 1px solid #e2e8f0;
+  background: white;
+  color: #475569;
+  border-radius: 999px;
+  padding: 11px 14px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.inventory-count-chip.active {
+  background: #00b8a9;
+  color: white;
+  border-color: #00b8a9;
+}
+
+.inventory-count-table-wrap {
+  overflow-x: auto;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+}
+
+.inventory-count-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 900px;
+}
+
+.inventory-count-table th {
+  text-align: left;
+  background: #f8fafc;
+  color: #475569;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 14px;
+}
+
+.inventory-count-table td {
+  padding: 13px 14px;
+  border-top: 1px solid #f1f5f9;
+  color: #334155;
+  font-weight: 700;
+}
+
+.inventory-count-product strong {
+  display: block;
+  color: #0f172a;
+  font-weight: 950;
+}
+
+.inventory-count-product span,
+.muted {
+  color: #64748b;
+  font-size: 13px;
+}
+
+.inventory-count-input,
+.inventory-count-note-input {
+  width: 100%;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 10px 12px;
+  outline: 0;
+  font-weight: 800;
+}
+
+.inventory-count-input {
+  max-width: 110px;
+}
+
+.inventory-count-input:focus,
+.inventory-count-note-input:focus {
+  border-color: #00b8a9;
+  box-shadow: 0 0 0 4px rgba(0, 184, 169, 0.12);
+}
+
+.inventory-count-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 950;
+}
+
+.inventory-count-pill.pending {
+  color: #92400e;
+  background: #fef3c7;
+}
+
+.inventory-count-pill.ok {
+  color: #047857;
+  background: #d1fae5;
+}
+
+.inventory-count-pill.positive {
+  color: #075985;
+  background: #e0f2fe;
+}
+
+.inventory-count-pill.negative {
+  color: #b91c1c;
+  background: #fee2e2;
+}
+
+.inventory-count-table-empty {
+  text-align: center;
+  color: #64748b !important;
+  padding: 26px !important;
+}
+
+.inventory-count-footer-actions {
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
+.inventory-count-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(8px);
+}
+
+.inventory-count-modal {
+  width: min(720px, 100%);
+  max-height: 92vh;
+  overflow-y: auto;
+  border-radius: 28px;
+  background: white;
+  padding: 24px;
+  box-shadow: 0 30px 80px rgba(15, 23, 42, 0.25);
+}
+
+.inventory-count-modal-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.inventory-count-icon-btn {
+  border: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.inventory-count-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.inventory-count-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  color: #334155;
+  font-weight: 950;
+}
+
+.inventory-count-form input,
+.inventory-count-form textarea {
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 12px 14px;
+  outline: 0;
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.inventory-count-form textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.inventory-count-form input:focus,
+.inventory-count-form textarea:focus {
+  border-color: #00b8a9;
+  box-shadow: 0 0 0 4px rgba(0, 184, 169, 0.12);
+}
+
+.inventory-count-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.inventory-count-modal-info {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  border-radius: 18px;
+  background: #f0fdfa;
+  color: #0f766e;
+  padding: 14px;
+  font-weight: 800;
+  line-height: 1.5;
+}
+
+.inventory-count-modal-actions {
+  justify-content: flex-end;
+  padding-top: 8px;
+}
+
+@media (max-width: 1100px) {
+  .inventory-count-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .inventory-count-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 720px) {
+  .inventory-count-header,
+  .inventory-count-detail-header,
+  .inventory-count-modal-header {
+    flex-direction: column;
+  }
+
+  .inventory-count-actions,
+  .inventory-count-footer-actions,
+  .inventory-count-modal-actions {
+    width: 100%;
+  }
+
+  .inventory-count-btn {
+    width: 100%;
+  }
+
+  .inventory-count-stats,
+  .inventory-count-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .inventory-count-main,
+  .inventory-count-sidebar,
+  .inventory-count-header {
+    padding: 16px;
+    border-radius: 22px;
+  }
+}

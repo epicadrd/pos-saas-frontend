@@ -33,6 +33,7 @@ import AccountsPayable from "./pages/modules/AccountsPayable";
 import AccountSettings from "./pages/modules/AccountSettings";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import InventoryCount from "./pages/modules/InventoryCount";
 
 function App() {
   return (
@@ -70,8 +71,7 @@ function App() {
         <Route path="contabilidad/cuentas-por-cobrar" element={<RoleRoute allowedRoles={["master", "admin"]}><AccountsReceivable /></RoleRoute>}/>
         <Route path="contabilidad/cuentas-por-pagar" element={<RoleRoute allowedRoles={["master", "admin"]}><AccountsPayable /></RoleRoute>}/>
         <Route path="configuracion/cuenta" element={<RoleRoute allowedRoles={["master"]}><AccountSettings /></RoleRoute>}/>
-        <Route path="conteo-inventario" element={<RoleRoute allowedRoles={["master", "admin"]}><div>Conteo de inventario</div></RoleRoute>}/>
-      
+        <Route path="conteo-inventario"element={<RoleRoute allowedRoles={["master", "admin"]}> <InventoryCount /> </RoleRoute>}/>
       </Route>
 
       <Route path="/success" element={<Success />} />

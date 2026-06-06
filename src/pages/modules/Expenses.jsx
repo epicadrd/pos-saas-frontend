@@ -218,6 +218,20 @@ const openCreate = () => {
       setModalOpen(false);
       await loadExpenses();
     } catch (error) {
+      if (error.response?.status === 409) {
+        await confirm({
+          title: "e-NCF duplicado",
+          message:
+            error.response?.data?.message ||
+            "Este e-NCF ya existe registrado en gastos.",
+          confirmText: "Entendido",
+          cancelText: "Cerrar",
+          variant: "danger",
+        });
+
+        return;
+      }
+
       alert(error.response?.data?.message || "No se pudo guardar el gasto");
     } finally {
       setSaving(false);

@@ -21,7 +21,7 @@ export default function ProductCatalog() {
 
       const [settingsRes, productsRes] = await Promise.all([
         api.get("/catalog/settings"),
-        api.get("/products?status=active&type=all"),
+        api.get("/products?status=active&type=product"),
       ]);
 
       setSettings(settingsRes.data);

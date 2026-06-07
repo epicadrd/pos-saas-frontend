@@ -1,0 +1,287 @@
+.pos-page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.pos-header,
+.pos-panel,
+.pos-products-panel,
+.pos-ticket {
+  background: #fff;
+  border: 1px solid #edf0f5;
+  border-radius: 24px;
+  padding: 22px;
+  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.06);
+}
+
+.pos-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+}
+
+.pos-header span {
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.pos-header h2 {
+  margin: 6px 0;
+}
+
+.pos-header p {
+  margin: 0;
+  color: #64748b;
+}
+
+.pos-form,
+.open-cash-form {
+  display: flex;
+  gap: 12px;
+  align-items: end;
+  flex-wrap: wrap;
+}
+
+.pos-form input,
+.open-cash-form input,
+.open-cash-form select,
+.pos-search input,
+.pos-ticket input,
+.pos-ticket select,
+.close-cash-box input {
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 12px;
+  background: #fff;
+  min-height: 46px;
+}
+
+.open-cash-form {
+  flex-direction: column;
+  align-items: stretch;
+  max-width: 480px;
+}
+
+.cash-register-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 14px;
+}
+
+.cash-register-card {
+  border: 1px solid #edf0f5;
+  border-radius: 18px;
+  padding: 18px;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+
+.cash-register-card span {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.cash-register-card h3 {
+  margin: 5px 0;
+}
+
+.cash-register-card p {
+  margin: 0;
+  color: #64748b;
+}
+
+.primary-btn,
+.danger-btn {
+  border: 0;
+  border-radius: 14px;
+  padding: 12px 16px;
+  font-weight: 800;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.primary-btn {
+  background: #111827;
+  color: #fff;
+}
+
+.danger-btn {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.close-cash-box {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.pos-sale-layout {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 18px;
+}
+
+.pos-search {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.pos-search input {
+  width: 100%;
+}
+
+.pos-products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 14px;
+}
+
+.pos-product-card {
+  border: 1px solid #edf0f5;
+  border-radius: 18px;
+  overflow: hidden;
+  background: #fff;
+  text-align: left;
+  cursor: pointer;
+  padding: 0;
+}
+
+.pos-product-image {
+  height: 120px;
+  background: #f8fafc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+}
+
+.pos-product-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.pos-product-card strong,
+.pos-product-card span {
+  display: block;
+  padding: 0 12px;
+}
+
+.pos-product-card strong {
+  margin-top: 10px;
+}
+
+.pos-product-card span {
+  color: #111827;
+  font-weight: 800;
+  padding-bottom: 12px;
+}
+
+.pos-ticket {
+  position: sticky;
+  top: 16px;
+  align-self: start;
+}
+
+.pos-ticket h3 {
+  margin-top: 0;
+}
+
+.empty-ticket {
+  color: #64748b;
+}
+
+.ticket-items {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ticket-item {
+  border-bottom: 1px solid #edf0f5;
+  padding-bottom: 10px;
+}
+
+.ticket-item strong,
+.ticket-item span {
+  display: block;
+}
+
+.ticket-item span {
+  color: #64748b;
+}
+
+.ticket-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.ticket-actions button {
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  border-radius: 10px;
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+}
+
+.ticket-total {
+  border-top: 1px solid #edf0f5;
+  margin-top: 16px;
+  padding-top: 16px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 20px;
+}
+
+.pos-ticket label {
+  display: block;
+  margin-top: 14px;
+  margin-bottom: 6px;
+  font-weight: 800;
+}
+
+.pos-ticket input,
+.pos-ticket select {
+  width: 100%;
+}
+
+.ticket-change {
+  margin-top: 10px;
+  color: #475569;
+}
+
+.charge-btn {
+  width: 100%;
+  margin-top: 18px;
+}
+
+@media (max-width: 1000px) {
+  .pos-sale-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .pos-ticket {
+    position: static;
+  }
+
+  .pos-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

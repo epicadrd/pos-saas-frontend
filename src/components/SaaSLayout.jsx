@@ -15,6 +15,7 @@ import {
   Users,
   ChevronLeft,
   ChevronRight,
+  ShoppingCart,
 } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import { useAuth } from "../context/AuthContext";
@@ -86,6 +87,23 @@ export default function SaaSLayout() {
       to: "/dashboard/catalogo",
       label: "Catálogo",
       roles: ["master", "admin"],
+    },
+  ],
+},
+{
+  key: "pos",
+  label: "POS / Caja",
+  icon: ShoppingCart,
+  items: [
+    {
+      to: "/dashboard/pos",
+      label: "Punto de venta",
+      roles: ["master", "admin", "employee"],
+    },
+    {
+      to: "/dashboard/pos/cajas",
+      label: "Cajas",
+      roles: ["master"],
     },
   ],
 },

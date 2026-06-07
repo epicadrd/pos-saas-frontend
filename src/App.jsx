@@ -36,6 +36,8 @@ import ResetPassword from "./pages/ResetPassword";
 import InventoryCount from "./pages/modules/InventoryCount";
 import ProductCatalog from "./pages/modules/ProductCatalog";
 import CatalogPublic from "./pages/CatalogPublic";
+import POS from "./pages/modules/POS";
+import CashRegisters from "./pages/modules/CashRegisters";
 
 function App() {
   return (
@@ -75,6 +77,9 @@ function App() {
         <Route path="configuracion/cuenta" element={<RoleRoute allowedRoles={["master"]}><AccountSettings /></RoleRoute>}/>
         <Route path="conteo-inventario"element={<RoleRoute allowedRoles={["master", "admin"]}> <InventoryCount /> </RoleRoute>}/>
         <Route path="catalogo" element={<RoleRoute allowedRoles={["master", "admin"]}><ProductCatalog /></RoleRoute>}/>
+        <Route path="pos" element={<RoleRoute allowedRoles={["master", "admin", "employee"]}><POS /></RoleRoute>}/>
+        <Route path="pos/cajas" element={<RoleRoute allowedRoles={["master"]}><CashRegisters /></RoleRoute>}/>
+
       </Route>
 
       <Route path="/success" element={<Success />} />

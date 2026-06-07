@@ -34,6 +34,8 @@ import AccountSettings from "./pages/modules/AccountSettings";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import InventoryCount from "./pages/modules/InventoryCount";
+import ProductCatalog from "./pages/modules/ProductCatalog";
+import CatalogPublic from "./pages/CatalogPublic";
 
 function App() {
   return (
@@ -45,9 +47,9 @@ function App() {
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password/:token" element={<ResetPassword />} />
       <Route path="/verificar-correo/:token" element={<VerifyEmail />} />
-
       <Route path="/seleccionar-plan" element={ <ProtectedRoute><SelectPlan /></ProtectedRoute>}/>
       <Route path="/suscripcion-requerida"element={<ProtectedRoute><SubscriptionRequired /></ProtectedRoute>}/>
+      <Route path="/catalogo/:token" element={<CatalogPublic />} />
 
       <Route path="/dashboard"element={<ProtectedRoute><SubscriptionRoute><SaaSLayout /></SubscriptionRoute></ProtectedRoute>}>
         <Route index element={<Dashboard />} />
@@ -72,6 +74,7 @@ function App() {
         <Route path="contabilidad/cuentas-por-pagar" element={<RoleRoute allowedRoles={["master", "admin"]}><AccountsPayable /></RoleRoute>}/>
         <Route path="configuracion/cuenta" element={<RoleRoute allowedRoles={["master"]}><AccountSettings /></RoleRoute>}/>
         <Route path="conteo-inventario"element={<RoleRoute allowedRoles={["master", "admin"]}> <InventoryCount /> </RoleRoute>}/>
+        <Route path="catalogo" element={<RoleRoute allowedRoles={["master", "admin"]}><ProductCatalog /></RoleRoute>}/>
       </Route>
 
       <Route path="/success" element={<Success />} />

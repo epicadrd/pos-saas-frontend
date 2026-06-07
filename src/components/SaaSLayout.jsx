@@ -82,6 +82,11 @@ export default function SaaSLayout() {
       label: "Conteo de inventario",
       roles: ["master", "admin"],
     },
+    {
+      to: "/dashboard/catalogo",
+      label: "Catálogo",
+      roles: ["master", "admin"],
+    },
   ],
 },
   {

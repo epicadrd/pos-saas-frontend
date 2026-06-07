@@ -1,0 +1,254 @@
+.catalog-admin-page,
+.public-catalog-page {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.catalog-admin-hero {
+  display: grid;
+  grid-template-columns: 1fr 430px;
+  gap: 20px;
+  align-items: stretch;
+}
+
+.catalog-admin-hero,
+.catalog-admin-panel,
+.catalog-note,
+.public-catalog-header {
+  background: #fff;
+  border: 1px solid #edf0f5;
+  border-radius: 24px;
+  padding: 24px;
+  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.06);
+}
+
+.catalog-admin-hero span,
+.catalog-admin-toolbar p,
+.catalog-link-card label,
+.catalog-admin-card span,
+.public-catalog-brand span,
+.public-product-info span {
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.catalog-admin-hero h2 {
+  margin: 8px 0;
+  font-size: 30px;
+}
+
+.catalog-admin-hero p {
+  margin: 0;
+  color: #64748b;
+  line-height: 1.55;
+}
+
+.catalog-link-card {
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 18px;
+  padding: 16px;
+}
+
+.catalog-link-box {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.catalog-link-box input,
+.catalog-search input,
+.public-catalog-search input {
+  width: 100%;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 12px;
+  background: #fff;
+  color: #111827;
+}
+
+.catalog-link-box button {
+  border: 0;
+  border-radius: 14px;
+  background: #111827;
+  color: #fff;
+  padding: 0 14px;
+  cursor: pointer;
+}
+
+.catalog-link-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.catalog-admin-toolbar {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.catalog-admin-toolbar h3 {
+  margin: 0;
+}
+
+.catalog-search,
+.public-catalog-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 280px;
+  background: #fff;
+}
+
+.catalog-admin-grid,
+.public-catalog-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 16px;
+}
+
+.catalog-admin-card,
+.public-product-card {
+  border: 1px solid #edf0f5;
+  border-radius: 20px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.catalog-admin-image,
+.public-product-image {
+  height: 160px;
+  background: #f8fafc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+}
+
+.catalog-admin-image img,
+.public-product-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.catalog-admin-card > div:last-child,
+.public-product-info {
+  padding: 14px;
+}
+
+.catalog-admin-card h4,
+.public-product-info h2 {
+  margin: 6px 0;
+  font-size: 17px;
+}
+
+.catalog-admin-card strong,
+.public-product-info strong {
+  font-size: 18px;
+  color: #111827;
+}
+
+.catalog-empty,
+.public-catalog-state {
+  padding: 40px;
+  text-align: center;
+  color: #64748b;
+  background: #fff;
+  border: 1px solid #edf0f5;
+  border-radius: 22px;
+}
+
+.catalog-note {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  color: #475569;
+}
+
+.catalog-note p {
+  margin: 0;
+}
+
+.public-catalog-page {
+  min-height: 100vh;
+  background: #f6f7fb;
+  padding: 28px;
+}
+
+.public-catalog-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  align-items: center;
+}
+
+.public-catalog-brand {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.public-catalog-brand img,
+.public-catalog-brand > div {
+  width: 64px;
+  height: 64px;
+  border-radius: 18px;
+  object-fit: cover;
+  background: var(--catalog-accent);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  font-weight: 900;
+}
+
+.public-catalog-brand h1 {
+  margin: 4px 0;
+  font-size: 30px;
+}
+
+.public-catalog-brand p {
+  margin: 0;
+  color: #64748b;
+}
+
+.public-product-info p {
+  color: #64748b;
+  font-size: 14px;
+  line-height: 1.45;
+  min-height: 38px;
+}
+
+@media (max-width: 900px) {
+  .catalog-admin-hero,
+  .public-catalog-header {
+    grid-template-columns: 1fr;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .catalog-admin-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .catalog-search,
+  .public-catalog-search {
+    min-width: 0;
+  }
+
+  .public-catalog-page {
+    padding: 14px;
+  }
+}

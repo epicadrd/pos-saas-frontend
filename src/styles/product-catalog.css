@@ -252,3 +252,20 @@
     padding: 14px;
   }
 }
+
+body:has(.public-catalog-page) {
+  overflow-y: auto !important;
+  height: auto !important;
+}
+
+body:has(.public-catalog-page) #root {
+  min-height: 100vh !important;
+  height: auto !important;
+  overflow-y: auto !important;
+}
+
+.public-catalog-page {
+  min-height: 100vh;
+  height: auto !important;
+  overflow-y: visible !important;
+}

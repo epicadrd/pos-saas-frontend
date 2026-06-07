@@ -351,19 +351,19 @@ export default function SaaSLayout() {
     <div className={`saas-shell ${sidebarCollapsed ? "collapsed" : ""}`}>
       <aside className={`saas-sidebar ${sidebarOpen ? "open" : ""}`}>
         <button
-          className="sidebar-toggle-tab"
-          onClick={toggleSidebar}
-          title={
-            sidebarCollapsed
-              ? "Abrir barra de navegación lateral"
-              : "Cerrar barra de navegación lateral"
-          }
-        >
-          {sidebarCollapsed ? (
-            <ChevronRight size={18} />
-          ) : (
-            <ChevronLeft size={18} />
-          )}
+            className="sidebar-toggle-tab"
+            onClick={toggleSidebar}
+            title={
+              sidebarCollapsed
+                ? "Abrir barra de navegación lateral"
+                : "Cerrar barra de navegación lateral"
+            }
+          >
+            {sidebarCollapsed ? (
+              <ChevronRight size={18} />
+            ) : (
+              <ChevronLeft size={18} />
+            )}
         </button>
         <div className="sidebar-brand">
           <div className="sidebar-logo">

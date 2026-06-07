@@ -1437,17 +1437,18 @@
 .sidebar-toggle-tab {
   position: absolute;
   top: 50%;
-  right: -16px;
+  right: -10px;
   transform: translateY(-50%);
 
-  width: 32px;
-  height: 72px;
+  width: 22px;
+  height: 90px;
 
   border: none;
-  border-radius: 0 16px 16px 0;
+  border-radius: 999px;
 
-  background: #00bfae;
-  color: white;
+  background: #ffffff;
+
+  color: #00b8a9;
 
   display: flex;
   align-items: center;
@@ -1455,16 +1456,27 @@
 
   cursor: pointer;
 
-  box-shadow: 0 8px 22px rgba(0, 191, 174, 0.25);
+  box-shadow:
+    0 8px 24px rgba(15, 23, 42, 0.12),
+    0 0 0 1px rgba(15, 23, 42, 0.06);
 
   transition: all 0.2s ease;
 
-  z-index: 20;
+  z-index: 999;
 }
 
 .sidebar-toggle-tab:hover {
-  width: 36px;
-  background: #00a89a;
+  width: 26px;
+
+  color: #00a89a;
+
+  box-shadow:
+    0 12px 30px rgba(15, 23, 42, 0.18),
+    0 0 0 1px rgba(0, 184, 169, 0.15);
+}
+
+.saas-shell.collapsed .sidebar-toggle-tab {
+  right: -10px;
 }
 
 .saas-sidebar {

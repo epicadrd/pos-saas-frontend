@@ -13,8 +13,9 @@ import {
   Settings,
   ChevronDown,
   Users,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
-
 import { useEffect, useState, useRef } from "react";
 import { useAuth } from "../context/AuthContext";
 import { api } from "../api/axios";
@@ -349,6 +350,21 @@ export default function SaaSLayout() {
   return (
     <div className={`saas-shell ${sidebarCollapsed ? "collapsed" : ""}`}>
       <aside className={`saas-sidebar ${sidebarOpen ? "open" : ""}`}>
+        <button
+          className="sidebar-toggle-tab"
+          onClick={toggleSidebar}
+          title={
+            sidebarCollapsed
+              ? "Abrir barra de navegación lateral"
+              : "Cerrar barra de navegación lateral"
+          }
+        >
+          {sidebarCollapsed ? (
+            <ChevronRight size={18} />
+          ) : (
+            <ChevronLeft size={18} />
+          )}
+        </button>
         <div className="sidebar-brand">
           <div className="sidebar-logo">
             <BarChart3 size={24} />
@@ -482,18 +498,6 @@ export default function SaaSLayout() {
             onClick={() => setSidebarOpen(true)}
           >
             <Menu size={22} />
-          </button>
-
-          <button
-            className="sidebar-ribbon-btn"
-            onClick={toggleSidebar}
-            title={
-              sidebarCollapsed
-                ? "Mostrar menú"
-                : "Ocultar menú"
-            }
-          >
-            {sidebarCollapsed ? "❯" : "❮"}
           </button>
 
           <div>

@@ -17,6 +17,8 @@ import {
   X,
   Download,
   Upload,
+  Camera,
+  ImagePlus,
 } from "lucide-react";
 import { api } from "../../api/axios";
 import { useAuth } from "../../context/AuthContext";
@@ -35,6 +37,8 @@ const emptyForm = {
   salePrice: "",
   stock: "",
   minStock: "",
+  imageDataUrl: "",
+  showInCatalog: true,
 };
 
 const emptyMovementForm = {
@@ -449,6 +453,8 @@ const handleImportFile = async (event) => {
       salePrice: product.salePrice || "",
       stock: product.stock || "",
       minStock: product.minStock || "",
+      imageDataUrl: product.imageDataUrl || "",
+      showInCatalog: product.showInCatalog !== false,
     });
     setModalOpen(true);
   };
@@ -458,6 +464,8 @@ const handleImportFile = async (event) => {
     setEditingProduct(null);
     setForm(emptyForm);
   };
+
+  
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -480,6 +488,80 @@ const handleImportFile = async (event) => {
       [name]: type === "checkbox" ? checked : value,
     }));
   };
+
+  const resizeImageToDataUrl = (file) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      const img = new Image();
+
+      img.onload = () => {
+        const maxSize = 900;
+        let { width, height } = img;
+
+        if (width > height && width > maxSize) {
+          height = Math.round((height * maxSize) / width);
+          width = maxSize;
+        } else if (height > maxSize) {
+          width = Math.round((width * maxSize) / height);
+          height = maxSize;
+        }
+
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, width, height);
+
+        resolve(canvas.toDataURL("image/jpeg", 0.78));
+      };
+
+      img.onerror = reject;
+      img.src = reader.result;
+    };
+
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+};
+
+const handleProductImageChange = async (event) => {
+  const file = event.target.files?.[0];
+  event.target.value = "";
+
+  if (!file) return;
+
+  if (!file.type.startsWith("image/")) {
+    alert("Selecciona una imagen válida.");
+    return;
+  }
+
+  if (file.size > 5 * 1024 * 1024) {
+    alert("La imagen no puede pesar más de 5MB.");
+    return;
+  }
+
+  try {
+    const imageDataUrl = await resizeImageToDataUrl(file);
+
+    setForm((prev) => ({
+      ...prev,
+      imageDataUrl,
+    }));
+  } catch (error) {
+    console.log(error);
+    alert("No se pudo procesar la imagen.");
+  }
+};
+
+const removeProductImage = () => {
+  setForm((prev) => ({
+    ...prev,
+    imageDataUrl: "",
+  }));
+};
 
   const handleSave = async (e) => {
     e.preventDefault();
@@ -900,6 +982,65 @@ const handleImportFile = async (event) => {
             </div>
 
             <form onSubmit={handleSave} className="product-form">
+
+              <div className="form-row full">
+  <label>Imagen del producto</label>
+
+  <div className="product-image-uploader">
+    <div className="product-image-preview">
+      {form.imageDataUrl ? (
+        <img src={form.imageDataUrl} alt="Producto" />
+      ) : (
+        <ImagePlus size={36} />
+      )}
+    </div>
+
+    <div className="product-image-actions">
+      <label className="secondary-btn">
+        <Upload size={17} />
+        Subir imagen
+        <input
+          type="file"
+          accept="image/*"
+          onChange={handleProductImageChange}
+          hidden
+        />
+      </label>
+
+      <label className="secondary-btn">
+        <Camera size={17} />
+        Tirar foto
+        <input
+          type="file"
+          accept="image/*"
+          capture="environment"
+          onChange={handleProductImageChange}
+          hidden
+        />
+      </label>
+
+      {form.imageDataUrl && (
+        <button type="button" className="cancel-btn" onClick={removeProductImage}>
+          Quitar imagen
+        </button>
+      )}
+    </div>
+  </div>
+</div>
+
+<div className="form-row checkbox-row">
+  <label>Mostrar en catálogo</label>
+  <label className="switch-line">
+    <input
+      type="checkbox"
+      name="showInCatalog"
+      checked={form.showInCatalog}
+      onChange={handleChange}
+      disabled={form.productType === "service"}
+    />
+    <span>{form.showInCatalog ? "Visible" : "Oculto"}</span>
+  </label>
+</div>
               <div className="form-row">
                 <label>Tipo *</label>
                 <select name="productType" value={form.productType} onChange={handleChange}>

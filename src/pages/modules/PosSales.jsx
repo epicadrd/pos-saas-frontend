@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Eye, Filter, Receipt, Search, X } from "lucide-react";
 import { api } from "../../api/axios";
+import PosReceipt from "../../components/PosReceipt";
 import "../../styles/pos.css";
 
 const paymentLabels = {
@@ -16,6 +17,7 @@ export default function PosSales() {
   const [summary, setSummary] = useState(null);
   const [registers, setRegisters] = useState([]);
   const [selectedSale, setSelectedSale] = useState(null);
+  const [receiptSale, setReceiptSale] = useState(null);
   const [loading, setLoading] = useState(true);
   const [detailLoading, setDetailLoading] = useState(false);
 
@@ -259,14 +261,29 @@ export default function PosSales() {
                       <strong>{money.format(Number(sale.total || 0))}</strong>
                     </td>
                     <td>
-                      <button
-                        type="button"
-                        className="table-icon-btn"
-                        onClick={() => openDetail(sale.id)}
-                        disabled={detailLoading}
-                      >
-                        <Eye size={17} />
-                      </button>
+                      <div className="pos-table-actions">
+                        <button
+                          type="button"
+                          className="table-icon-btn"
+                          onClick={() => openDetail(sale.id)}
+                          disabled={detailLoading}
+                          title="Ver detalle"
+                        >
+                          <Eye size={17} />
+                        </button>
+
+                        <button
+                          type="button"
+                          className="table-icon-btn"
+                          onClick={async () => {
+                            const { data } = await api.get(`/pos/sales/${sale.id}`);
+                            setReceiptSale(data);
+                          }}
+                          title="Reimprimir ticket"
+                        >
+                          <Receipt size={17} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -334,9 +351,23 @@ export default function PosSales() {
               <span>Total</span>
               <strong>{money.format(Number(selectedSale.total || 0))}</strong>
             </div>
+          <button
+              type="button"
+              className="primary-btn"
+              onClick={() => setReceiptSale(selectedSale)}
+            >
+              <Receipt size={17} />
+              Imprimir ticket
+            </button>
           </div>
         </div>
       )}
+      {receiptSale && (
+          <PosReceipt
+            sale={receiptSale}
+            onClose={() => setReceiptSale(null)}
+          />
+        )}
     </div>
   );
 }

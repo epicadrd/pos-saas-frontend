@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Minus, Plus, Search, ShoppingCart, Trash2 } from "lucide-react";
 import { api } from "../../api/axios";
+import PosReceipt from "../../components/PosReceipt";
 import "../../styles/pos.css";
 
 export default function POS() {
@@ -16,6 +17,8 @@ export default function POS() {
   const [paymentMethod, setPaymentMethod] = useState("cash");
   const [amountPaid, setAmountPaid] = useState("");
   const [discountTotal, setDiscountTotal] = useState("");
+  const [lastSale, setLastSale] = useState(null);
+
 
   const money = new Intl.NumberFormat("es-DO", {
     style: "currency",
@@ -190,7 +193,7 @@ export default function POS() {
     }
 
     try {
-      await api.post("/pos/sales", {
+      const { data } = await api.post("/pos/sales", {
         cashSessionId: session.id,
         paymentMethod,
         amountPaid: paymentMethod === "cash" ? amountPaid : total,
@@ -202,6 +205,7 @@ export default function POS() {
         })),
       });
 
+      setLastSale(data.sale);
       alert("Venta registrada correctamente");
       setCart([]);
       setAmountPaid("");
@@ -435,6 +439,12 @@ export default function POS() {
           </button>
         </aside>
       </section>
+       {lastSale && (
+          <PosReceipt
+            sale={lastSale}
+            onClose={() => setLastSale(null)}
+          />
+        )}
     </div>
   );
 }

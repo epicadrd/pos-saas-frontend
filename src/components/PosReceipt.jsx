@@ -36,18 +36,7 @@ useEffect(() => {
   const generateQr = async () => {
     if (!sale) return;
 
-    const qrValue = [
-      "COREX POS",
-      `Ticket: ${sale.saleNumber || "-"}`,
-      `Empresa: ${tenant.businessName || "-"}`,
-      `RNC: ${tenant.rnc || "-"}`,
-      `Caja: ${sale.cashRegister?.name || "-"}`,
-      `Cajero: ${sale.user?.name || "-"}`,
-      `Subtotal: ${Number(sale.subtotal || 0).toFixed(2)}`,
-      `ITBIS: ${Number(sale.taxTotal || 0).toFixed(2)}`,
-      `Descuento: ${Number(sale.discountTotal || 0).toFixed(2)}`,
-      `Total: ${Number(sale.total || 0).toFixed(2)}`,
-    ].join("\n");
+    const qrValue = `${window.location.origin}/pos/receipt/${sale.saleNumber}`;
 
     const qr = await QRCode.toDataURL(qrValue, {
       width: 120,

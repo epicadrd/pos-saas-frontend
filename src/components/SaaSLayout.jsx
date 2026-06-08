@@ -34,16 +34,21 @@ export default function SaaSLayout() {
 
   const [notifications, setNotifications] = useState([]);
 
+  const [canUsePos, setCanUsePos] = useState(false);
   const { user, tenant, logout } = useAuth();
   const navigate = useNavigate();
 
-  const canAccess = (roles = []) => {
-  return roles.includes(user?.role);
-  };
+  const canAccess = (item) => {
+  if (!item.roles.includes(user?.role)) return false;
 
-  const hasVisibleItems = (items = []) => {
-    return items.some((item) => canAccess(item.roles));
-  };
+  if (item.requiresCashRegisterAccess && !canUsePos) return false;
+
+  return true;
+};
+
+const hasVisibleItems = (items = []) => {
+  return items.some((item) => canAccess(item));
+};
 
   const sidebarGroups = [
   {
@@ -99,6 +104,7 @@ export default function SaaSLayout() {
       to: "/dashboard/pos",
       label: "Punto de venta",
       roles: ["master", "admin", "employee"],
+      requiresCashRegisterAccess: true,
     },
     {
       to: "/dashboard/pos/cajas",
@@ -169,6 +175,13 @@ export default function SaaSLayout() {
 ];
 
   const moduleSearchItems = [
+    {
+    label: "Punto de venta",
+    group: "POS / Caja",
+    path: "/dashboard/pos",
+    roles: ["master", "admin", "employee"],
+    requiresCashRegisterAccess: true,
+  },
   {
     label: "Dashboard",
     group: "Inicio",
@@ -274,7 +287,7 @@ export default function SaaSLayout() {
 ];
 
   const filteredModules = moduleSearchItems
-    .filter((item) => item.roles.includes(user?.role))
+    .filter((item) => canAccess(item))
     .filter((item) => {
       const term = searchTerm.trim().toLowerCase();
 
@@ -375,6 +388,27 @@ export default function SaaSLayout() {
     localStorage.setItem("sidebarCollapsed", newState);
   };
 
+  useEffect(() => {
+  const loadPosAccess = async () => {
+    if (!user) return;
+
+    if (user.role === "master") {
+      setCanUsePos(true);
+      return;
+    }
+
+    try {
+      const { data } = await api.get("/pos/cash-registers");
+      const activeRegisters = (data || []).filter((item) => item.isActive);
+      setCanUsePos(activeRegisters.length > 0);
+    } catch (error) {
+      setCanUsePos(false);
+    }
+  };
+
+  loadPosAccess();
+}, [user]);
+
   return (
     <div className={`saas-shell ${sidebarCollapsed ? "collapsed" : ""}`}>
       <aside className={`saas-sidebar ${sidebarOpen ? "open" : ""}`}>
@@ -448,7 +482,7 @@ export default function SaaSLayout() {
                     {openMenu === group.key && (
                       <div className="sidebar-submenu">
                         {group.items
-                          .filter((item) => canAccess(item.roles))
+                          .filter((item) => canAccess(item))
                           .map((item) => (
                             <NavLink
                               key={item.to}

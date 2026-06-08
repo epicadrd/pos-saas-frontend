@@ -884,6 +884,8 @@ export default function Invoices() {
               <tr>
                 <th>Factura</th>
                 <th>Cliente</th>
+                <th>Subtotal</th>
+                <th>ITBIS</th>
                 <th>Total</th>
                 <th>Pagado</th>
                 <th>Pendiente</th>
@@ -896,7 +898,7 @@ export default function Invoices() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan="8" className="qb-empty">
+                  <td colSpan="10" className="qb-empty">
                     Cargando facturas...
                   </td>
                 </tr>
@@ -905,6 +907,8 @@ export default function Invoices() {
                   <tr key={invoice.id}>
                     <td>{invoice.invoiceNumber}</td>
                     <td>{invoice.customerName}</td>
+                    <td>{money.format(Number(invoice.subtotal || 0))}</td>
+                    <td>{money.format(Number(invoice.tax || 0))}</td>
                     <td>{money.format(Number(invoice.total || 0))}</td>
                     <td>{money.format(Number(invoice.amountPaid || 0))}</td>
                     <td>{money.format(Number(invoice.balance || 0))}</td>
@@ -952,7 +956,7 @@ export default function Invoices() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="8" className="qb-empty">
+                  <td colSpan="10" className="qb-empty">
                     No hay facturas registradas.
                   </td>
                 </tr>
@@ -1846,6 +1850,7 @@ export default function Invoices() {
               <th>Cant.</th>
               <th>Precio</th>
               <th>Desc.</th>
+              <th>ITBIS</th>
               <th>Total</th>
             </tr>
           </thead>
@@ -1875,6 +1880,7 @@ export default function Invoices() {
                   <td>{item.quantity || 0}</td>
                   <td>{money.format(Number(item.price || 0))}</td>
                   <td>{money.format(Number(item.discount || 0))}</td>
+                  <td>{money.format(lineTax)}</td>
                   <td>{money.format(lineTotal)}</td>
                 </tr>
               );

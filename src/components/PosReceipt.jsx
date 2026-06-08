@@ -29,6 +29,7 @@ export default function PosReceipt({ sale, onClose }) {
   if (!sale) return null;
 
   const tenant = sale.tenant || {};
+  const items = sale.items || [];
   const [qrDataUrl, setQrDataUrl] = useState("");
 
 useEffect(() => {

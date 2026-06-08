@@ -6,6 +6,7 @@ import "../../styles/pos.css";
 export default function POS() {
   const [registers, setRegisters] = useState([]);
   const [session, setSession] = useState(null);
+  const [sessionSummary, setSessionSummary] = useState(null);
   const [products, setProducts] = useState([]);
   const [cashRegisterId, setCashRegisterId] = useState("");
   const [openingAmount, setOpeningAmount] = useState("");
@@ -14,11 +15,23 @@ export default function POS() {
   const [cart, setCart] = useState([]);
   const [paymentMethod, setPaymentMethod] = useState("cash");
   const [amountPaid, setAmountPaid] = useState("");
+  const [discountTotal, setDiscountTotal] = useState("");
 
   const money = new Intl.NumberFormat("es-DO", {
     style: "currency",
     currency: "DOP",
   });
+
+  const loadSessionSummary = async (sessionId) => {
+    if (!sessionId) return;
+
+    try {
+      const { data } = await api.get(`/pos/sessions/${sessionId}/summary`);
+      setSessionSummary(data.summary || null);
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   const loadData = async () => {
     try {
@@ -31,6 +44,12 @@ export default function POS() {
       setRegisters((registerRes.data || []).filter((item) => item.isActive));
       setSession(sessionRes.data || null);
       setProducts(Array.isArray(productRes.data) ? productRes.data : productRes.data?.data || []);
+
+      if (sessionRes.data?.id) {
+        loadSessionSummary(sessionRes.data.id);
+      } else {
+        setSessionSummary(null);
+      }
     } catch (error) {
       alert(error.response?.data?.message || "No se pudo cargar el POS");
     }
@@ -55,10 +74,17 @@ export default function POS() {
     });
   }, [products, search]);
 
-  const total = useMemo(() => {
+  const subtotal = useMemo(() => {
     return cart.reduce((sum, item) => sum + Number(item.salePrice || 0) * item.quantity, 0);
   }, [cart]);
 
+  const lineDiscountTotal = useMemo(() => {
+    return cart.reduce((sum, item) => sum + Number(item.discountAmount || 0), 0);
+  }, [cart]);
+
+  const safeOrderDiscount = Math.min(Number(discountTotal || 0), Math.max(subtotal - lineDiscountTotal, 0));
+  const totalDiscount = lineDiscountTotal + safeOrderDiscount;
+  const total = Math.max(subtotal - totalDiscount, 0);
   const change = Math.max(Number(amountPaid || 0) - total, 0);
 
   const openSession = async (e) => {
@@ -83,11 +109,26 @@ export default function POS() {
     if (!session) return;
 
     try {
-      await api.post(`/pos/sessions/${session.id}/close`, {
+      const { data } = await api.post(`/pos/sessions/${session.id}/close`, {
         closingAmount,
       });
 
+      const summary = data.summary;
+
+      alert(
+        `Caja cerrada correctamente\n\n` +
+        `Monto inicial: ${money.format(Number(summary.openingAmount || 0))}\n` +
+        `Efectivo vendido: ${money.format(Number(summary.cashSales || 0))}\n` +
+        `Tarjeta: ${money.format(Number(summary.cardSales || 0))}\n` +
+        `Transferencia: ${money.format(Number(summary.transferSales || 0))}\n` +
+        `Total vendido: ${money.format(Number(summary.totalSales || 0))}\n` +
+        `Esperado en efectivo: ${money.format(Number(summary.expectedAmount || 0))}\n` +
+        `Contado: ${money.format(Number(summary.closingAmount || 0))}\n` +
+        `Diferencia: ${money.format(Number(summary.difference || 0))}`
+      );
+
       setSession(null);
+      setSessionSummary(null);
       setCart([]);
       setClosingAmount("");
       loadData();
@@ -106,19 +147,30 @@ export default function POS() {
         );
       }
 
-      return [...prev, { ...product, quantity: 1 }];
+      return [...prev, { ...product, quantity: 1, discountAmount: 0 }];
     });
   };
 
   const updateQty = (productId, direction) => {
     setCart((prev) =>
-      prev
-        .map((item) =>
-          item.id === productId
-            ? { ...item, quantity: Math.max(item.quantity + direction, 1) }
-            : item
-        )
-        .filter((item) => item.quantity > 0)
+      prev.map((item) =>
+        item.id === productId
+          ? { ...item, quantity: Math.max(item.quantity + direction, 1) }
+          : item
+      )
+    );
+  };
+
+  const updateItemDiscount = (productId, value) => {
+    setCart((prev) =>
+      prev.map((item) => {
+        if (item.id !== productId) return item;
+
+        const lineSubtotal = Number(item.salePrice || 0) * item.quantity;
+        const discountAmount = Math.min(Number(value || 0), lineSubtotal);
+
+        return { ...item, discountAmount };
+      })
     );
   };
 
@@ -142,15 +194,18 @@ export default function POS() {
         cashSessionId: session.id,
         paymentMethod,
         amountPaid: paymentMethod === "cash" ? amountPaid : total,
+        discountTotal: safeOrderDiscount,
         items: cart.map((item) => ({
           productId: item.id,
           quantity: item.quantity,
+          discountAmount: Number(item.discountAmount || 0),
         })),
       });
 
       alert("Venta registrada correctamente");
       setCart([]);
       setAmountPaid("");
+      setDiscountTotal("");
       loadData();
     } catch (error) {
       alert(error.response?.data?.message || "No se pudo cobrar");
@@ -225,6 +280,30 @@ export default function POS() {
         </div>
       </section>
 
+      {sessionSummary && (
+        <section className="pos-summary-grid">
+          <article className="pos-summary-card">
+            <span>Efectivo vendido</span>
+            <strong>{money.format(Number(sessionSummary.cashSales || 0))}</strong>
+          </article>
+
+          <article className="pos-summary-card">
+            <span>Tarjeta</span>
+            <strong>{money.format(Number(sessionSummary.cardSales || 0))}</strong>
+          </article>
+
+          <article className="pos-summary-card">
+            <span>Transferencia</span>
+            <strong>{money.format(Number(sessionSummary.transferSales || 0))}</strong>
+          </article>
+
+          <article className="pos-summary-card">
+            <span>Esperado en efectivo</span>
+            <strong>{money.format(Number(sessionSummary.expectedAmount || 0))}</strong>
+          </article>
+        </section>
+      )}
+
       <section className="pos-sale-layout">
         <div className="pos-products-panel">
           <div className="pos-search">
@@ -285,10 +364,39 @@ export default function POS() {
                       <Trash2 size={14} />
                     </button>
                   </div>
+
+                  <label className="ticket-discount-label">Descuento producto</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={item.discountAmount || ""}
+                    onChange={(e) => updateItemDiscount(item.id, e.target.value)}
+                    placeholder="0.00"
+                  />
                 </div>
               ))}
             </div>
           )}
+
+          <div className="ticket-total">
+            <span>Subtotal</span>
+            <strong>{money.format(subtotal)}</strong>
+          </div>
+
+          <label>Descuento general</label>
+          <input
+            type="number"
+            min="0"
+            step="0.01"
+            value={discountTotal}
+            onChange={(e) => setDiscountTotal(e.target.value)}
+            placeholder="0.00"
+          />
+
+          <div className="ticket-change">
+            Descuentos: <strong>{money.format(totalDiscount)}</strong>
+          </div>
 
           <div className="ticket-total">
             <span>Total</span>

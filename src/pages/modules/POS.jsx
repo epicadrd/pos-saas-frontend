@@ -2,9 +2,11 @@ import { useEffect, useMemo, useState } from "react";
 import { Minus, Plus, Search, ShoppingCart, Trash2 } from "lucide-react";
 import { api } from "../../api/axios";
 import PosReceipt from "../../components/PosReceipt";
+import { useAuth } from "../../context/AuthContext";
 import "../../styles/pos.css";
 
 export default function POS() {
+  const { tenant } = useAuth();
   const [registers, setRegisters] = useState([]);
   const [session, setSession] = useState(null);
   const [sessionSummary, setSessionSummary] = useState(null);
@@ -85,11 +87,14 @@ export default function POS() {
     return cart.reduce((sum, item) => sum + Number(item.discountAmount || 0), 0);
   }, [cart]);
 
+  const taxEnabled = tenant?.invoiceTaxEnabled !== false;
+  const taxRate = Number(tenant?.invoiceTaxRate || 18);
   const safeOrderDiscount = Math.min(Number(discountTotal || 0), Math.max(subtotal - lineDiscountTotal, 0));
   const totalDiscount = lineDiscountTotal + safeOrderDiscount;
-  const total = Math.max(subtotal - totalDiscount, 0);
+  const taxableSubtotal = Math.max(subtotal - totalDiscount,0);
+  const taxTotal = taxEnabled ? taxableSubtotal * (taxRate / 100) : 0;
+  const total = taxableSubtotal + taxTotal;
   const change = Math.max(Number(amountPaid || 0) - total, 0);
-
   const openSession = async (e) => {
     e.preventDefault();
 
@@ -400,6 +405,10 @@ export default function POS() {
 
           <div className="ticket-change">
             Descuentos: <strong>{money.format(totalDiscount)}</strong>
+          </div>
+
+          <div className="ticket-change">
+            ITBIS ({taxRate}%): <strong>{money.format(taxTotal)}</strong>
           </div>
 
           <div className="ticket-total">

@@ -105,30 +105,35 @@ export default function PosReceipt({ sale, onClose }) {
             <div className="receipt-separator" />
 
             <div className="receipt-totals">
-              <p>
-                <span>Subtotal</span>
-                <strong>{formatMoney(sale.subtotal)}</strong>
-              </p>
+                <p>
+                    <span>Subtotal</span>
+                    <strong>{formatMoney(sale.subtotal)}</strong>
+                </p>
 
-              <p>
-                <span>Descuento</span>
-                <strong>{formatMoney(sale.discountTotal)}</strong>
-              </p>
+                <p>
+                    <span>Descuento</span>
+                    <strong>{formatMoney(sale.discountTotal)}</strong>
+                </p>
 
-              <p className="receipt-total-line">
-                <span>Total</span>
-                <strong>{formatMoney(sale.total)}</strong>
-              </p>
+                <p>
+                    <span>ITBIS</span>
+                    <strong>{formatMoney(sale.taxTotal)}</strong>
+                </p>
 
-              <p>
-                <span>Pagado</span>
-                <strong>{formatMoney(sale.amountPaid)}</strong>
-              </p>
+                <p className="receipt-total-line">
+                    <span>Total</span>
+                    <strong>{formatMoney(sale.total)}</strong>
+                </p>
 
-              <p>
-                <span>Cambio</span>
-                <strong>{formatMoney(sale.changeAmount)}</strong>
-              </p>
+                <p>
+                    <span>Pagado</span>
+                    <strong>{formatMoney(sale.amountPaid)}</strong>
+                </p>
+
+                <p>
+                    <span>Cambio</span>
+                    <strong>{formatMoney(sale.changeAmount)}</strong>
+                </p>
             </div>
 
             <div className="receipt-separator" />

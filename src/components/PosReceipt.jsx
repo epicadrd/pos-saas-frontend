@@ -1,4 +1,6 @@
+import { useEffect, useState } from "react";
 import { Printer, X } from "lucide-react";
+import QRCode from "qrcode";
 
 const paymentLabels = {
   cash: "Efectivo",
@@ -27,7 +29,35 @@ export default function PosReceipt({ sale, onClose }) {
   if (!sale) return null;
 
   const tenant = sale.tenant || {};
-  const items = sale.items || [];
+  const [qrDataUrl, setQrDataUrl] = useState("");
+
+useEffect(() => {
+  const generateQr = async () => {
+    if (!sale) return;
+
+    const qrValue = [
+      "COREX POS",
+      `Ticket: ${sale.saleNumber || "-"}`,
+      `Empresa: ${tenant.businessName || "-"}`,
+      `RNC: ${tenant.rnc || "-"}`,
+      `Caja: ${sale.cashRegister?.name || "-"}`,
+      `Cajero: ${sale.user?.name || "-"}`,
+      `Subtotal: ${Number(sale.subtotal || 0).toFixed(2)}`,
+      `ITBIS: ${Number(sale.taxTotal || 0).toFixed(2)}`,
+      `Descuento: ${Number(sale.discountTotal || 0).toFixed(2)}`,
+      `Total: ${Number(sale.total || 0).toFixed(2)}`,
+    ].join("\n");
+
+    const qr = await QRCode.toDataURL(qrValue, {
+      width: 120,
+      margin: 1,
+    });
+
+    setQrDataUrl(qr);
+  };
+
+  generateQr();
+}, [sale, tenant.businessName, tenant.rnc]);
 
   const handlePrint = () => {
     window.print();
@@ -109,7 +139,7 @@ export default function PosReceipt({ sale, onClose }) {
                     <span>Subtotal</span>
                     <strong>{formatMoney(sale.subtotal)}</strong>
                 </p>
-                
+
                 <p>
                     <span>ITBIS</span>
                     <strong>{formatMoney(sale.taxTotal)}</strong>
@@ -138,7 +168,17 @@ export default function PosReceipt({ sale, onClose }) {
             </div>
 
             <div className="receipt-separator" />
+                <div className="receipt-separator" />
+                {qrDataUrl && (
+                <div className="receipt-qr">
+                    <img src={qrDataUrl} alt="QR del ticket" />
+                    <p>Escanee para consultar su compra</p>
+                </div>
+                )}
 
+                <div className="receipt-separator" />
+
+                <div className="receipt-footer"></div>
             <div className="receipt-footer">
               <p>Gracias por su compra</p>
               <small>Emitido desde Corex</small>

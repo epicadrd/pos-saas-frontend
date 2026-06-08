@@ -109,16 +109,17 @@ export default function PosReceipt({ sale, onClose }) {
                     <span>Subtotal</span>
                     <strong>{formatMoney(sale.subtotal)}</strong>
                 </p>
+                
+                <p>
+                    <span>ITBIS</span>
+                    <strong>{formatMoney(sale.taxTotal)}</strong>
+                </p>
 
                 <p>
                     <span>Descuento</span>
                     <strong>{formatMoney(sale.discountTotal)}</strong>
                 </p>
 
-                <p>
-                    <span>ITBIS</span>
-                    <strong>{formatMoney(sale.taxTotal)}</strong>
-                </p>
 
                 <p className="receipt-total-line">
                     <span>Total</span>

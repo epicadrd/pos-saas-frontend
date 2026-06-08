@@ -19,6 +19,7 @@ import { api } from "../../api/axios";
 import { useAuth } from "../../context/AuthContext";
 import { useSearchParams } from "react-router-dom";
 import { useConfirm } from "../../components/ConfirmProvider";
+import QRCode from "qrcode";
 
 
 
@@ -546,8 +547,48 @@ export default function Invoices() {
     };
   };
 
-  const handlePrintInvoice = (invoice) => {
+  const buildInvoiceQrValue = (invoice) => {
+  const invoiceUrl = `${window.location.origin}/invoice/${invoice.invoiceNumber}`;
+
+  return [
+    `COREX`,
+    `Factura: ${invoice.invoiceNumber || "-"}`,
+    `Empresa: ${tenant?.businessName || "-"}`,
+    `RNC Empresa: ${tenant?.rnc || "-"}`,
+    `Cliente: ${invoice.customerName || "-"}`,
+    `RNC Cliente: ${invoice.customerRnc || "-"}`,
+    `Fecha: ${invoice.invoiceDate || "-"}`,
+    `Subtotal: ${Number(invoice.subtotal || 0).toFixed(2)}`,
+    `ITBIS: ${Number(invoice.tax || 0).toFixed(2)}`,
+    `Total: ${Number(invoice.total || 0).toFixed(2)}`,
+    `URL: ${invoiceUrl}`,
+  ].join("\n");
+};
+
+const buildDraftQrValue = () => {
+  const invoiceUrl = `${window.location.origin}/invoice/${invoiceNumberPreview}`;
+
+  return [
+    `COREX`,
+    `Factura: ${invoiceNumberPreview}`,
+    `Empresa: ${tenant?.businessName || "-"}`,
+    `RNC Empresa: ${tenant?.rnc || "-"}`,
+    `Cliente: ${form.customerName || "-"}`,
+    `RNC Cliente: ${form.customerRnc || "-"}`,
+    `Fecha: ${form.invoiceDate || "-"}`,
+    `Subtotal: ${Number(totals.subtotal || 0).toFixed(2)}`,
+    `ITBIS: ${Number(totals.tax || 0).toFixed(2)}`,
+    `Total: ${Number(totals.total || 0).toFixed(2)}`,
+    `URL: ${invoiceUrl}`,
+  ].join("\n");
+};
+
+  const handlePrintInvoice = async (invoice) => {
     const invoiceItems = invoice.items || [];
+    const qrDataUrl = await QRCode.toDataURL(buildInvoiceQrValue(invoice), {
+      width: 150,
+      margin: 1,
+    });
 
     const html = `
       <html>
@@ -564,6 +605,9 @@ export default function Invoices() {
             .totals { margin-left: auto; width: 320px; margin-top: 25px; }
             .totals div { display: flex; justify-content: space-between; padding: 8px 0; }
             .total { font-size: 20px; font-weight: bold; border-top: 2px solid #111827; margin-top: 10px; padding-top: 12px; }
+            .qr-section { margin-top: 35px; text-align: center; }
+            .qr-section img { width: 130px; height: 130px; }
+            .qr-section p { margin: 8px 0 0; font-size: 12px; color: #374151; }
           </style>
         </head>
 
@@ -614,6 +658,7 @@ export default function Invoices() {
             <tbody>
               ${
                 invoiceItems.length
+                 
                   ? invoiceItems
                       .map((item) => {
                         const values = getInvoiceLineValues(item);
@@ -653,6 +698,11 @@ export default function Invoices() {
             <div><span>Pagado</span><strong>${money.format(Number(invoice.amountPaid || 0))}</strong></div>
             <div><span>Pendiente</span><strong>${money.format(Number(invoice.balance || 0))}</strong></div>
           </div>
+
+          <div class="qr-section">
+            <img src="${qrDataUrl}" alt="Código QR de la factura" />
+            <p>Escanee para consultar esta factura</p>
+          </div>
         </body>
       </html>
     `;
@@ -666,7 +716,11 @@ export default function Invoices() {
     printWindow.print();
   };
 
-  const handlePrintDraft = () => {
+  const handlePrintDraft = async () => {
+  const qrDataUrl = await QRCode.toDataURL(buildDraftQrValue(), {
+        width: 150,
+        margin: 1,
+      });
     const html = `
       <html>
         <head>
@@ -682,6 +736,9 @@ export default function Invoices() {
             .totals { margin-left: auto; width: 320px; margin-top: 25px; }
             .totals div { display: flex; justify-content: space-between; padding: 8px 0; }
             .total { font-size: 20px; font-weight: bold; border-top: 2px solid #111827; margin-top: 10px; padding-top: 12px; }
+            .qr-section { margin-top: 35px; text-align: center; }
+            .qr-section img { width: 130px; height: 130px; }
+            .qr-section p { margin: 8px 0 0; font-size: 12px; color: #374151; }
           </style>
         </head>
 
@@ -774,6 +831,11 @@ export default function Invoices() {
             <div class="total"><span>Total</span><strong>${money.format(totals.total)}</strong></div>
             <div><span>Pagado</span><strong>${money.format(totals.paid)}</strong></div>
             <div><span>Pendiente</span><strong>${money.format(totals.balance)}</strong></div>
+          </div>
+
+          <div class="qr-section">
+            <img src="${qrDataUrl}" alt="Código QR de la factura" />
+            <p>Escanee para consultar esta factura</p>
           </div>
         </body>
       </html>

@@ -134,12 +134,13 @@ export default function Invoices() {
       return acc + (isTaxable ? lineSubtotal * (taxRate / 100) : 0);
     }, 0);
 
-    const total = subtotal + tax;
+    const total = Math.round((subtotal + tax + Number.EPSILON) * 100) / 100;
     const paid = form.status === "paid" ? total : Number(form.amountPaid || 0);
     const balance = total - paid;
 
-    return { subtotal, tax, total, paid, balance };
-  }, [items, form.amountPaid, form.status, taxEnabled, taxMode, taxRate]);
+    return {
+    subtotal: Math.round((subtotal + Number.EPSILON) * 100) / 100, tax: Math.round((tax + Number.EPSILON) * 100) / 100, total, paid, balance: Math.round((balance + Number.EPSILON) * 100) / 100,};
+    }, [items, form.amountPaid, form.status, taxEnabled, taxMode, taxRate]);
 
   useEffect(() => {
   loadData();

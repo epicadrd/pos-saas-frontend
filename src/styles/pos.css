@@ -285,3 +285,212 @@
     align-items: stretch;
   }
 }
+
+.pos-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 14px;
+}
+
+.pos-summary-card {
+  background: #fff;
+  border: 1px solid #edf0f5;
+  border-radius: 20px;
+  padding: 18px;
+  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.06);
+}
+
+.pos-summary-card span {
+  display: block;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.pos-summary-card strong {
+  font-size: 24px;
+  color: #111827;
+}
+
+.pos-sales-filters {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(150px, 1fr)) auto auto;
+  gap: 12px;
+  align-items: end;
+}
+
+.pos-sales-filters label {
+  display: block;
+  font-weight: 800;
+  margin-bottom: 6px;
+  color: #334155;
+}
+
+.pos-sales-filters input,
+.pos-sales-filters select {
+  width: 100%;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 12px;
+  background: #fff;
+  min-height: 46px;
+}
+
+.pos-table-wrap {
+  overflow-x: auto;
+}
+
+.pos-sales-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 850px;
+}
+
+.pos-sales-table th,
+.pos-sales-table td {
+  padding: 14px;
+  text-align: left;
+  border-bottom: 1px solid #edf0f5;
+  white-space: nowrap;
+}
+
+.pos-sales-table th {
+  color: #64748b;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.table-icon-btn {
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pos-empty-state {
+  min-height: 160px;
+  color: #64748b;
+  display: flex;
+  gap: 10px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.pos-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+}
+
+.pos-sale-detail-modal {
+  width: min(680px, 100%);
+  max-height: 88vh;
+  overflow-y: auto;
+  background: #fff;
+  border-radius: 24px;
+  padding: 22px;
+  box-shadow: 0 30px 80px rgba(15, 23, 42, 0.25);
+}
+
+.pos-sale-detail-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: start;
+  border-bottom: 1px solid #edf0f5;
+  padding-bottom: 16px;
+  margin-bottom: 16px;
+}
+
+.pos-sale-detail-header span,
+.pos-sale-detail-info span {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.pos-sale-detail-header h3 {
+  margin: 6px 0;
+}
+
+.pos-sale-detail-header p {
+  margin: 0;
+  color: #64748b;
+}
+
+.pos-sale-detail-header button {
+  border: 0;
+  background: #f1f5f9;
+  border-radius: 12px;
+  width: 38px;
+  height: 38px;
+  cursor: pointer;
+}
+
+.pos-sale-detail-info {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.pos-sale-detail-info > div {
+  background: #f8fafc;
+  border: 1px solid #edf0f5;
+  border-radius: 16px;
+  padding: 14px;
+}
+
+.pos-sale-detail-info strong {
+  display: block;
+  margin-top: 6px;
+}
+
+.pos-sale-items h4 {
+  margin: 0 0 10px;
+}
+
+.pos-sale-item-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid #edf0f5;
+}
+
+.pos-sale-item-row span {
+  display: block;
+  margin-top: 4px;
+  color: #64748b;
+}
+
+.pos-sale-detail-total {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #edf0f5;
+  display: flex;
+  justify-content: space-between;
+  font-size: 22px;
+}
+
+@media (max-width: 1000px) {
+  .pos-sales-filters {
+    grid-template-columns: 1fr;
+  }
+}

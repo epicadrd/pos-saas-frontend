@@ -105,6 +105,11 @@ export default function SaaSLayout() {
       label: "Cajas",
       roles: ["master"],
     },
+    {
+      to: "/dashboard/pos/ventas",
+      label: "Ventas POS",
+      roles: ["master", "admin"],
+    },
   ],
 },
   {

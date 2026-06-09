@@ -28,6 +28,7 @@ const emptyForm = {
   customerRnc: "",
   customerPhone: "",
   customerEmail: "",
+  invoiceType: "consumer_final",
   status: "draft",
   amountPaid: "",
   terms: "Pago en 30 días",
@@ -95,6 +96,21 @@ export default function Invoices() {
   const taxEnabled = tenant?.invoiceTaxEnabled !== false;
   const taxMode = tenant?.invoiceTaxMode || "global";
   const taxRate = Number(tenant?.invoiceTaxRate || 18);
+
+  const invoiceTypeLabels = {
+  consumer_final: "FACTURA PARA CONSUMIDOR FINAL",
+  credit_fiscal: "FACTURA DE CRÉDITO FISCAL",
+  };
+
+  const getInvoiceTypeLabel = (type) => {
+    return invoiceTypeLabels[type] || invoiceTypeLabels.consumer_final;
+  };
+
+  const getInvoiceQrTarget = (invoice) => {
+    if (invoice?.dgiiQrUrl) return invoice.dgiiQrUrl;
+
+    return `${window.location.origin}/public/invoice/${invoice.invoiceNumber}`;
+  };
 
   const invoiceNumberPreview =
     editingInvoiceNumber || `FAC-${Date.now().toString().slice(-8)}`;
@@ -373,6 +389,7 @@ export default function Invoices() {
           customerRnc: form.customerRnc,
           customerPhone: form.customerPhone,
           customerEmail: form.customerEmail,
+          invoiceType: form.invoiceType,
           invoiceDate: form.invoiceDate || null,
           dueDate: form.dueDate || null,
           terms: form.terms,
@@ -385,6 +402,7 @@ export default function Invoices() {
           customerRnc: form.customerRnc,
           customerPhone: form.customerPhone,
           customerEmail: form.customerEmail,
+          invoiceType: form.invoiceType,
           invoiceDate: form.invoiceDate || null,
           dueDate: form.dueDate || null,
           terms: form.terms,
@@ -454,6 +472,7 @@ export default function Invoices() {
       customerRnc: invoice.customerRnc || "",
       customerPhone: invoice.customerPhone || "",
       customerEmail: invoice.customerEmail || "",
+      invoiceType: invoice.invoiceType || "consumer_final",
       amountPaid: invoice.amountPaid || "",
       invoiceDate: invoice.invoiceDate || new Date().toISOString().slice(0, 10),
       dueDate: invoice.dueDate || "",
@@ -547,41 +566,11 @@ export default function Invoices() {
     };
   };
 
-  const buildInvoiceQrValue = (invoice) => {
-  const invoiceUrl = `${window.location.origin}/invoice/${invoice.invoiceNumber}`;
-
-  return [
-    `COREX`,
-    `Factura: ${invoice.invoiceNumber || "-"}`,
-    `Empresa: ${tenant?.businessName || "-"}`,
-    `RNC Empresa: ${tenant?.rnc || "-"}`,
-    `Cliente: ${invoice.customerName || "-"}`,
-    `RNC Cliente: ${invoice.customerRnc || "-"}`,
-    `Fecha: ${invoice.invoiceDate || "-"}`,
-    `Subtotal: ${Number(invoice.subtotal || 0).toFixed(2)}`,
-    `ITBIS: ${Number(invoice.tax || 0).toFixed(2)}`,
-    `Total: ${Number(invoice.total || 0).toFixed(2)}`,
-    `URL: ${invoiceUrl}`,
-  ].join("\n");
+const buildInvoiceQrValue = (invoice) => {
+  return getInvoiceQrTarget(invoice);
 };
 
-const buildDraftQrValue = () => {
-  const invoiceUrl = `${window.location.origin}/invoice/${invoiceNumberPreview}`;
 
-  return [
-    `COREX`,
-    `Factura: ${invoiceNumberPreview}`,
-    `Empresa: ${tenant?.businessName || "-"}`,
-    `RNC Empresa: ${tenant?.rnc || "-"}`,
-    `Cliente: ${form.customerName || "-"}`,
-    `RNC Cliente: ${form.customerRnc || "-"}`,
-    `Fecha: ${form.invoiceDate || "-"}`,
-    `Subtotal: ${Number(totals.subtotal || 0).toFixed(2)}`,
-    `ITBIS: ${Number(totals.tax || 0).toFixed(2)}`,
-    `Total: ${Number(totals.total || 0).toFixed(2)}`,
-    `URL: ${invoiceUrl}`,
-  ].join("\n");
-};
 
   const handlePrintInvoice = async (invoice) => {
     const invoiceItems = invoice.items || [];
@@ -619,7 +608,7 @@ const buildDraftQrValue = () => {
                   ? `<img src="${invoiceLogo}" style="max-width:120px; max-height:80px; object-fit:contain; margin-bottom:12px;" />`
                   : ""
               }
-              <h1>FACTURA</h1>
+              <h1>${getInvoiceTypeLabel(invoice.invoiceType)}</h1>
               <p>${invoice.invoiceNumber}</p>
             </div>
 
@@ -717,10 +706,14 @@ const buildDraftQrValue = () => {
   };
 
   const handlePrintDraft = async () => {
-  const qrDataUrl = await QRCode.toDataURL(buildDraftQrValue(), {
-        width: 150,
-        margin: 1,
-      });
+  const qrDataUrl = await QRCode.toDataURL(
+    `${window.location.origin}/public/invoice/${invoiceNumberPreview}`,
+    {
+      width: 150,
+      margin: 1,
+    }
+  );  
+ 
     const html = `
       <html>
         <head>
@@ -750,7 +743,7 @@ const buildDraftQrValue = () => {
                   ? `<img src="${invoiceLogo}" style="max-width:120px; max-height:80px; object-fit:contain; margin-bottom:12px;" />`
                   : ""
               }
-              <h1>FACTURA</h1>
+              <h1>${getInvoiceTypeLabel(form.invoiceType)}</h1>
               <p>${invoiceNumberPreview}</p>
             </div>
 
@@ -1401,6 +1394,19 @@ const buildDraftQrValue = () => {
                 </label>
 
                 <label>
+                  Tipo de factura
+                  <select
+                    value={form.invoiceType}
+                    onChange={(e) =>
+                      setForm({ ...form, invoiceType: e.target.value })
+                    }
+                  >
+                    <option value="consumer_final">Consumidor final</option>
+                    <option value="credit_fiscal">Crédito fiscal</option>
+                  </select>
+                </label>
+
+                <label>
                   Términos
                   <select
                     value={form.terms}
@@ -1883,7 +1889,7 @@ const buildDraftQrValue = () => {
       <div className="qb-preview-body">
         <div className="qb-preview-header">
           <div>
-            <h2>FACTURA</h2>
+            <h2>{getInvoiceTypeLabel(form.invoiceType)}</h2>
             <p>{invoiceNumberPreview}</p>
           </div>
 

@@ -19,6 +19,8 @@ export default function POS() {
   const [paymentMethod, setPaymentMethod] = useState("cash");
   const [amountPaid, setAmountPaid] = useState("");
   const [discountTotal, setDiscountTotal] = useState("");
+  const [receiptType, setReceiptType] = useState("consumer_final");
+  const [customerRnc, setCustomerRnc] = useState("");
   const [lastSale, setLastSale] = useState(null);
 
 
@@ -63,21 +65,6 @@ export default function POS() {
   useEffect(() => {
     loadData();
   }, []);
-
-  const filteredProducts = useMemo(() => {
-    const term = search.trim().toLowerCase();
-
-    return products.filter((product) => {
-      if (!term) return true;
-
-      return (
-        product.name?.toLowerCase().includes(term) ||
-        product.sku?.toLowerCase().includes(term) ||
-        product.barcode?.toLowerCase().includes(term) ||
-        product.category?.toLowerCase().includes(term)
-      );
-    });
-  }, [products, search]);
 
   const subtotal = useMemo(() => {
     return cart.reduce((sum, item) => sum + Number(item.salePrice || 0) * item.quantity, 0);
@@ -159,6 +146,36 @@ export default function POS() {
     });
   };
 
+  const filteredProducts = useMemo(() => {
+  const term = search.trim().toLowerCase();
+
+  return products.filter((product) => {
+    if (!term) return true;
+
+    return (
+      product.name?.toLowerCase().includes(term) ||
+      product.sku?.toLowerCase().includes(term) ||
+      product.barcode?.toLowerCase().includes(term) ||
+      product.category?.toLowerCase().includes(term)
+    );
+  });
+}, [products, search]);
+
+  useEffect(() => {
+  const code = search.trim();
+
+  if (!code) return;
+
+  const product = products.find(
+    (p) => p.barcode && p.barcode.trim() === code
+  );
+
+  if (!product) return;
+
+  addToCart(product);
+  setSearch("");
+}, [search, products]);
+
   const updateQty = (productId, direction) => {
     setCart((prev) =>
       prev.map((item) =>
@@ -197,12 +214,19 @@ export default function POS() {
       return;
     }
 
+    if (receiptType === "credit_fiscal" && !customerRnc.trim()) {
+      alert("El RNC del cliente es obligatorio para factura de crédito fiscal electrónica");
+      return;
+    }
+
     try {
       const { data } = await api.post("/pos/sales", {
         cashSessionId: session.id,
         paymentMethod,
         amountPaid: paymentMethod === "cash" ? amountPaid : total,
         discountTotal: safeOrderDiscount,
+        receiptType,
+        customerRnc: receiptType === "credit_fiscal" ? customerRnc.trim() : "",
         items: cart.map((item) => ({
           productId: item.id,
           quantity: item.quantity,
@@ -215,6 +239,8 @@ export default function POS() {
       setCart([]);
       setAmountPaid("");
       setDiscountTotal("");
+      setReceiptType("consumer_final");
+      setCustomerRnc("");
       loadData();
     } catch (error) {
       alert(error.response?.data?.message || "No se pudo cobrar");
@@ -318,10 +344,11 @@ export default function POS() {
           <div className="pos-search">
             <Search size={18} />
             <input
-              placeholder="Buscar por nombre, SKU o código..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
+                placeholder="Escanee o busque un producto..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                autoFocus
+              />
           </div>
 
           <div className="pos-products-grid">
@@ -415,6 +442,31 @@ export default function POS() {
             <span>Total</span>
             <strong>{money.format(total)}</strong>
           </div>
+
+          <label>Tipo de factura</label>
+          <select
+            value={receiptType}
+            onChange={(e) => {
+              setReceiptType(e.target.value);
+              if (e.target.value === "consumer_final") {
+                setCustomerRnc("");
+              }
+            }}
+          >
+            <option value="consumer_final">Factura de consumo fiscal electrónica</option>
+            <option value="credit_fiscal">Factura de crédito fiscal electrónica</option>
+          </select>
+
+          {receiptType === "credit_fiscal" && (
+            <>
+              <label>RNC del cliente</label>
+              <input
+                value={customerRnc}
+                onChange={(e) => setCustomerRnc(e.target.value)}
+                placeholder="RNC del cliente"
+              />
+            </>
+          )}
 
           <label>Método de pago</label>
           <select value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)}>

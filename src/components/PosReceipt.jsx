@@ -10,6 +10,21 @@ const paymentLabels = {
   mixed: "Mixto",
 };
 
+const receiptTypeLabels = {
+  consumer_final: "FACTURA DE CONSUMO FISCAL ELECTRONICA",
+  credit_fiscal: "FACTURA DE CREDITO FISCAL ELECTRONICA",
+};
+
+const getReceiptTypeLabel = (type) => {
+  return receiptTypeLabels[type] || receiptTypeLabels.consumer_final;
+};
+
+const getReceiptQrTarget = (sale) => {
+  if (sale?.dgiiQrUrl) return sale.dgiiQrUrl;
+
+  return `${window.location.origin}/public/pos-receipt/${sale.saleNumber}`;
+};
+
 const formatMoney = (value) =>
   new Intl.NumberFormat("es-DO", {
     style: "currency",
@@ -30,13 +45,14 @@ export default function PosReceipt({ sale, onClose }) {
 
   const tenant = sale.tenant || {};
   const items = sale.items || [];
+  const receiptType = sale.receiptType || sale.invoiceType || "consumer_final";
   const [qrDataUrl, setQrDataUrl] = useState("");
 
 useEffect(() => {
   const generateQr = async () => {
     if (!sale) return;
 
-    const qrValue = `${window.location.origin}/pos/receipt/${sale.saleNumber}`;
+    const qrValue = getReceiptQrTarget(sale);
 
     const qr = await QRCode.toDataURL(qrValue, {
       width: 120,
@@ -72,6 +88,10 @@ useEffect(() => {
             <div className="receipt-business">
               <h2>{tenant.businessName || "Corex POS"}</h2>
 
+              <h3 className="receipt-type-title">
+                {getReceiptTypeLabel(receiptType)}
+              </h3>
+
               {tenant.rnc && <p>RNC: {tenant.rnc}</p>}
               {tenant.phone && <p>Tel: {tenant.phone}</p>}
               {tenant.address && <p>{tenant.address}</p>}
@@ -99,6 +119,13 @@ useEffect(() => {
               <p>
                 <span>Pago:</span>
                 <strong>{paymentLabels[sale.paymentMethod] || sale.paymentMethod}</strong>
+
+                {sale.customerRnc && (
+                  <p>
+                    <span>RNC cliente:</span>
+                    <strong>{sale.customerRnc}</strong>
+                  </p>
+                )}
               </p>
             </div>
 

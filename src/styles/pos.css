@@ -774,3 +774,28 @@
   text-align: center;
   font-size: 10px;
 }
+
+.ticket-items {
+  max-height: 280px;
+  overflow-y: auto;
+  padding-right: 6px;
+}
+
+.pos-ticket {
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+}
+
+.receipt-type-title {
+  margin: 4px 0 8px;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+.pos-products-grid {
+  max-height: calc(100vh - 320px);
+  overflow-y: auto;
+  padding-right: 6px;
+}

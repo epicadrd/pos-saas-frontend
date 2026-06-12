@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../../api/axios";
+import { getFiscalNumber } from "../../utils/fiscalNumber";
 
 const formatMoney = (value) =>
   new Intl.NumberFormat("es-DO", {
@@ -237,7 +238,7 @@ export default function AccountsReceivable() {
                     className={invoice.isOverdue ? "is-overdue" : ""}
                   >
                     <td>
-                      <strong>{invoice.invoiceNumber}</strong>
+                      <strong>{getFiscalNumber(invoice)}</strong>
                       {invoice.isOverdue && (
                         <small className="ar-overdue-text">
                           {invoice.daysOverdue} días vencida

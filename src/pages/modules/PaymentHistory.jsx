@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Calendar, FileText, Search, Wallet } from "lucide-react";
 import { api } from "../../api/axios";
+import { getFiscalNumber } from "../../utils/fiscalNumber";
 
 export default function PaymentHistory() {
   const [invoices, setInvoices] = useState([]);
@@ -32,7 +33,7 @@ export default function PaymentHistory() {
 
       const matchDate = invoiceMonth === month && invoiceYear === year;
 
-      const text = `${invoice.invoiceNumber} ${invoice.customerName}`.toLowerCase();
+      const text = `${getFiscalNumber(invoice)} ${invoice.customerName}`.toLowerCase();
       const matchSearch = text.includes(search.toLowerCase());
 
       return matchDate && matchSearch;
@@ -162,7 +163,7 @@ export default function PaymentHistory() {
           <tbody>
             {paidInvoices.map((invoice) => (
               <tr key={invoice.id}>
-                <td>{invoice.invoiceNumber}</td>
+                <td>{getFiscalNumber(invoice)}</td>
                 <td>{invoice.customerName}</td>
                 <td>{new Date(invoice.createdAt).toLocaleDateString("es-DO")}</td>
                 <td>{money.format(Number(invoice.subtotal || 0))}</td>

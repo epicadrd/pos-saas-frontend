@@ -39,6 +39,7 @@ import CatalogPublic from "./pages/CatalogPublic";
 import POS from "./pages/modules/POS";
 import CashRegisters from "./pages/modules/CashRegisters";
 import PosSales from "./pages/modules/PosSales";
+import CashSessionReports from "./pages/modules/CashSessionReports";
 
 function App() {
   return (
@@ -81,6 +82,7 @@ function App() {
         <Route path="pos" element={<RoleRoute allowedRoles={["master", "admin", "employee"]}><POS /></RoleRoute>}/>
         <Route path="pos/cajas" element={<RoleRoute allowedRoles={["master"]}><CashRegisters /></RoleRoute>}/>
         <Route path="pos/ventas" element={<RoleRoute allowedRoles={["master", "admin"]}><PosSales /></RoleRoute>}/>
+        <Route path="pos/cierres" element={<RoleRoute allowedRoles={["master", "admin"]}><CashSessionReports /></RoleRoute>}/>
 
       </Route>
 

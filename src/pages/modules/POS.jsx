@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Minus, Plus, Search, ShoppingCart, Trash2 } from "lucide-react";
+import { Minus, Plus, Search, ShoppingCart, Trash2, X } from "lucide-react";
 import { api } from "../../api/axios";
 import PosReceipt from "../../components/PosReceipt";
 import { useAuth } from "../../context/AuthContext";
@@ -14,6 +14,7 @@ export default function POS() {
   const [cashRegisterId, setCashRegisterId] = useState("");
   const [openingAmount, setOpeningAmount] = useState("");
   const [closingAmount, setClosingAmount] = useState("");
+  const [showCloseModal, setShowCloseModal] = useState(false);
   const [search, setSearch] = useState("");
   const [cart, setCart] = useState([]);
   const [paymentMethod, setPaymentMethod] = useState("cash");
@@ -21,6 +22,7 @@ export default function POS() {
   const [discountTotal, setDiscountTotal] = useState("");
   const [receiptType, setReceiptType] = useState("consumer_final");
   const [customerRnc, setCustomerRnc] = useState("");
+  const [customerName, setCustomerName] = useState("");
   const [lastSale, setLastSale] = useState(null);
 
 
@@ -105,7 +107,7 @@ export default function POS() {
 
     try {
       const { data } = await api.post(`/pos/sessions/${session.id}/close`, {
-        closingAmount,
+        closingAmount
       });
 
       const summary = data.summary;
@@ -126,6 +128,7 @@ export default function POS() {
       setSessionSummary(null);
       setCart([]);
       setClosingAmount("");
+      setShowCloseModal(false);
       loadData();
     } catch (error) {
       alert(error.response?.data?.message || "No se pudo cerrar la caja");
@@ -214,8 +217,8 @@ export default function POS() {
       return;
     }
 
-    if (receiptType === "credit_fiscal" && !customerRnc.trim()) {
-      alert("El RNC del cliente es obligatorio para factura de crédito fiscal electrónica");
+    if (receiptType === "credit_fiscal" && (!customerRnc.trim() || !customerName.trim())) {
+      alert("El RNC y la razón social del cliente son obligatorios para crédito fiscal");
       return;
     }
 
@@ -227,6 +230,7 @@ export default function POS() {
         discountTotal: safeOrderDiscount,
         receiptType,
         customerRnc: receiptType === "credit_fiscal" ? customerRnc.trim() : "",
+        customerName: receiptType === "credit_fiscal" ? customerName.trim() : "",
         items: cart.map((item) => ({
           productId: item.id,
           quantity: item.quantity,
@@ -241,6 +245,7 @@ export default function POS() {
       setDiscountTotal("");
       setReceiptType("consumer_final");
       setCustomerRnc("");
+      setCustomerName("");
       loadData();
     } catch (error) {
       alert(error.response?.data?.message || "No se pudo cobrar");
@@ -301,15 +306,14 @@ export default function POS() {
         </div>
 
         <div className="close-cash-box">
-          <input
-            type="number"
-            min="0"
-            step="0.01"
-            placeholder="Monto contado"
-            value={closingAmount}
-            onChange={(e) => setClosingAmount(e.target.value)}
-          />
-          <button className="danger-btn" type="button" onClick={closeSession}>
+          <button
+            className="danger-btn"
+            type="button"
+            onClick={() => {
+              setClosingAmount(sessionSummary?.expectedAmount || "");
+              setShowCloseModal(true);
+            }}
+          >
             Cerrar caja
           </button>
         </div>
@@ -450,6 +454,7 @@ export default function POS() {
               setReceiptType(e.target.value);
               if (e.target.value === "consumer_final") {
                 setCustomerRnc("");
+                setCustomerName("");
               }
             }}
           >
@@ -476,6 +481,13 @@ export default function POS() {
             <option value="check">Cheque</option>
             <option value="mixed">Mixto</option>
           </select>
+
+          <label>Razón social del cliente</label>
+            <input
+              value={customerName}
+              onChange={(e) => setCustomerName(e.target.value)}
+              placeholder="Razón social del cliente"
+            />
 
           {paymentMethod === "cash" && (
             <>
@@ -506,6 +518,85 @@ export default function POS() {
             onClose={() => setLastSale(null)}
           />
         )}
+           {showCloseModal && (
+              <div className="pos-modal-backdrop" onClick={() => setShowCloseModal(false)}>
+                <div className="pos-close-modal" onClick={(e) => e.stopPropagation()}>
+                  <div className="pos-close-modal-header">
+                    <div>
+                      <span>Arqueo de caja</span>
+                      <h3>Cierre de caja</h3>
+                      <p>{session.cashRegister?.name || "Caja abierta"}</p>
+                    </div>
+
+                    <button type="button" onClick={() => setShowCloseModal(false)}>
+                      <X size={20} />
+                    </button>
+                  </div>
+
+                  <div className="pos-close-summary">
+                    <div>
+                      <span>Monto inicial</span>
+                      <strong>{money.format(Number(session.openingAmount || 0))}</strong>
+                    </div>
+
+                    <div>
+                      <span>Efectivo vendido</span>
+                      <strong>{money.format(Number(sessionSummary?.cashSales || 0))}</strong>
+                    </div>
+
+                    <div>
+                      <span>Esperado efectivo</span>
+                      <strong>{money.format(Number(sessionSummary?.expectedAmount || 0))}</strong>
+                    </div>
+
+                    <div>
+                      <span>Tarjeta</span>
+                      <strong>{money.format(Number(sessionSummary?.cardSales || 0))}</strong>
+                    </div>
+
+                    <div>
+                      <span>Transferencia</span>
+                      <strong>{money.format(Number(sessionSummary?.transferSales || 0))}</strong>
+                    </div>
+
+                    <div>
+                      <span>Total vendido</span>
+                      <strong>{money.format(Number(sessionSummary?.totalSales || 0))}</strong>
+                    </div>
+                  </div>
+
+                  <label>Efectivo contado físicamente</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={closingAmount}
+                    onChange={(e) => setClosingAmount(e.target.value)}
+                    placeholder="0.00"
+                    autoFocus
+                  />
+
+                  <div className="pos-close-difference">
+                    <span>Diferencia</span>
+                    <strong>
+                      {money.format(
+                        Number(closingAmount || 0) - Number(sessionSummary?.expectedAmount || 0)
+                      )}
+                    </strong>
+                  </div>
+
+                  <div className="pos-close-actions">
+                    <button type="button" className="secondary-btn" onClick={() => setShowCloseModal(false)}>
+                      Cancelar
+                    </button>
+
+                    <button type="button" className="danger-btn" onClick={closeSession}>
+                      Confirmar cierre
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
     </div>
   );
 }

@@ -20,6 +20,7 @@ import {
 import { useEffect, useState, useRef } from "react";
 import { useAuth } from "../context/AuthContext";
 import { api } from "../api/axios";
+import { hasPlanFeature } from "../utils/plans";
 
 export default function SaaSLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -41,11 +42,14 @@ export default function SaaSLayout() {
   const canAccess = (item) => {
   if (!item.roles.includes(user?.role)) return false;
 
+  if (item.feature && !hasPlanFeature(tenant?.plan, item.feature)) {
+    return false;
+  }
+
   if (item.requiresCashRegisterAccess && !canUsePos) return false;
 
   return true;
 };
-
 const hasVisibleItems = (items = []) => {
   return items.some((item) => canAccess(item));
 };
@@ -73,51 +77,66 @@ const hasVisibleItems = (items = []) => {
       },
     ],
   },
+
   {
-  key: "inventory",
-  label: "Gestión de inventario",
-  icon: Package,
-  items: [
-    {
-      to: "/dashboard/inventario",
-      label: "Inventario",
-      roles: ["master", "admin"],
-    },
-    {
-      to: "/dashboard/conteo-inventario",
-      label: "Conteo de inventario",
-      roles: ["master", "admin"],
-    },
-    {
-      to: "/dashboard/catalogo",
-      label: "Catálogo",
-      roles: ["master", "admin"],
-    },
-  ],
-},
-{
-  key: "pos",
-  label: "POS / Caja",
-  icon: ShoppingCart,
-  items: [
-    {
-      to: "/dashboard/pos",
-      label: "Punto de venta",
-      roles: ["master", "admin", "employee"],
-      requiresCashRegisterAccess: true,
-    },
-    {
-      to: "/dashboard/pos/cajas",
-      label: "Cajas",
-      roles: ["master"],
-    },
-    {
-      to: "/dashboard/pos/ventas",
-      label: "Ventas POS",
-      roles: ["master", "admin"],
-    },
-  ],
-},
+    key: "inventory",
+    label: "Gestión de inventario",
+    icon: Package,
+    items: [
+      {
+        to: "/dashboard/inventario",
+        label: "Inventario",
+        roles: ["master", "admin"],
+        feature: "inventory",
+      },
+      {
+        to: "/dashboard/conteo-inventario",
+        label: "Conteo de inventario",
+        roles: ["master", "admin"],
+        feature: "inventoryCount",
+      },
+      {
+        to: "/dashboard/catalogo",
+        label: "Catálogo",
+        roles: ["master", "admin"],
+        feature: "catalog",
+      },
+    ],
+  },
+
+  {
+    key: "pos",
+    label: "POS / Caja",
+    icon: ShoppingCart,
+    items: [
+      {
+        to: "/dashboard/pos",
+        label: "Punto de venta",
+        roles: ["master", "admin", "employee"],
+        feature: "pos",
+        requiresCashRegisterAccess: true,
+      },
+      {
+        to: "/dashboard/pos/cajas",
+        label: "Cajas",
+        roles: ["master"],
+        feature: "pos",
+      },
+      {
+        to: "/dashboard/pos/cierres",
+        label: "Cierres de caja",
+        roles: ["master", "admin"],
+        feature: "pos",
+      },
+      {
+        to: "/dashboard/pos/ventas",
+        label: "Ventas POS",
+        roles: ["master", "admin"],
+        feature: "pos",
+      },
+    ],
+  },
+
   {
     key: "operations",
     label: "Operaciones",
@@ -127,59 +146,90 @@ const hasVisibleItems = (items = []) => {
         to: "/dashboard/conduces",
         label: "Conduces",
         roles: ["master", "admin"],
+        feature: "deliveryNotes",
       },
       {
         to: "/dashboard/ordenes-compra",
         label: "Órdenes de compra",
         roles: ["master", "admin"],
+        feature: "purchaseOrders",
       },
       {
         to: "/dashboard/proveedores",
         label: "Proveedores",
         roles: ["master", "admin"],
+        feature: "suppliers",
       },
     ],
   },
+
   {
-    key: "accounting",
-    label: "Contabilidad",
-    icon: CreditCard,
+  key: "accounting",
+  label: "Contabilidad",
+  icon: CreditCard,
+  items: [
+    {
+      to: "/dashboard/contabilidad",
+      label: "Resumen contable",
+      roles: ["master", "admin"],
+    },
+    {
+      to: "/dashboard/contabilidad/cuentas-por-cobrar",
+      label: "Cuentas por cobrar",
+      roles: ["master", "admin"],
+    },
+    {
+      to: "/dashboard/contabilidad/cuentas-por-pagar",
+      label: "Cuentas por pagar",
+      roles: ["master", "admin"],
+    },
+    {
+      to: "/dashboard/contabilidad/gastos",
+      label: "Gastos",
+      roles: ["master", "admin"],
+    },
+    {
+      to: "/dashboard/contabilidad/reportes",
+      label: "Reportes",
+      roles: ["master", "admin"],
+    },
+  ],
+},
+
+  {
+    key: "administration",
+    label: "Administración",
+    icon: Users,
     items: [
       {
-        to: "/dashboard/contabilidad",
-        label: "Resumen contable",
-        roles: ["master", "admin"],
+        to: "/dashboard/usuarios",
+        label: "Usuarios",
+        roles: ["master"],
       },
       {
-        to: "/dashboard/contabilidad/cuentas-por-cobrar",
-        label: "Cuentas por cobrar",
-        roles: ["master", "admin"],
-      },
-      {
-        to: "/dashboard/contabilidad/cuentas-por-pagar",
-        label: "Cuentas por pagar",
-        roles: ["master", "admin"],
-      },
-      {
-        to: "/dashboard/contabilidad/gastos",
-        label: "Gastos",
-        roles: ["master", "admin"],
-      },
-      {
-        to: "/dashboard/contabilidad/reportes",
-        label: "Reportes",
-        roles: ["master", "admin"],
+        to: "/dashboard/activity-log",
+        label: "Registro de actividades",
+        roles: ["master"],
+        feature: "activityLog",
       },
     ],
   },
 ];
 
   const moduleSearchItems = [
-    {
+  {
+    label: "Cierres de caja",
+    group: "POS / Caja",
+    path: "/dashboard/pos/cierres",
+    roles: ["master", "admin"],
+    feature: "pos",
+  },
+  {
     label: "Punto de venta",
     group: "POS / Caja",
     path: "/dashboard/pos",
     roles: ["master", "admin", "employee"],
+    feature: "pos",
     requiresCashRegisterAccess: true,
   },
   {
@@ -211,30 +261,42 @@ const hasVisibleItems = (items = []) => {
     group: "Inventario",
     path: "/dashboard/inventario",
     roles: ["master", "admin"],
+    feature: "inventory",
   },
   {
     label: "Conteo de inventario",
     group: "Gestión de inventario",
     path: "/dashboard/conteo-inventario",
     roles: ["master", "admin"],
+    feature: "inventoryCount",
+  },
+  {
+    label: "Catálogo",
+    group: "Gestión de inventario",
+    path: "/dashboard/catalogo",
+    roles: ["master", "admin"],
+    feature: "catalog",
   },
   {
     label: "Conduces",
     group: "Operaciones",
     path: "/dashboard/conduces",
     roles: ["master", "admin"],
+    feature: "deliveryNotes",
   },
   {
     label: "Órdenes de compra",
     group: "Operaciones",
     path: "/dashboard/ordenes-compra",
     roles: ["master", "admin"],
+    feature: "purchaseOrders",
   },
   {
     label: "Proveedores",
     group: "Operaciones",
     path: "/dashboard/proveedores",
     roles: ["master", "admin"],
+    feature: "suppliers",
   },
   {
     label: "Resumen contable",
@@ -277,6 +339,13 @@ const hasVisibleItems = (items = []) => {
     group: "Configuración",
     path: "/dashboard/usuarios",
     roles: ["master"],
+  },
+  {
+    label: "Registro de actividades",
+    group: "Configuración",
+    path: "/dashboard/activity-log",
+    roles: ["master"],
+    feature: "activityLog",
   },
   {
     label: "Cuenta y configuración",

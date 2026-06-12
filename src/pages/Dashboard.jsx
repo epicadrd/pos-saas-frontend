@@ -19,6 +19,7 @@ import {
 import { Link } from "react-router-dom";
 import { api } from "../api/axios";
 import { useAuth } from "../context/AuthContext";
+import { getFiscalNumber } from "../utils/fiscalNumber";
 
 const formatMoney = (value) =>
   new Intl.NumberFormat("es-DO", {
@@ -301,7 +302,7 @@ export default function Dashboard() {
                   data.recentInvoices.map((invoice) => (
                     <div className="dash-list-row" key={invoice.id}>
                       <div>
-                        <strong>{invoice.invoiceNumber}</strong>
+                        <strong>{getFiscalNumber(invoice)}</strong>
                         <span>{invoice.customerName}</span>
                       </div>
 

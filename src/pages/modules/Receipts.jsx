@@ -12,6 +12,7 @@ import { api } from "../../api/axios";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { useConfirm } from "../../components/ConfirmProvider";
+import { getFiscalNumber } from "../../utils/fiscalNumber";
 
 const emptyReceipt = {
   invoiceId: "",
@@ -134,7 +135,7 @@ export default function Receipts() {
           ...form,
           invoiceId: value,
           customerName: invoice.customerName,
-          concept: `Pago a factura ${invoice.invoiceNumber}`,
+          concept: `Pago a factura ${getFiscalNumber(invoice)}`,
           amount: invoice.balance || invoice.total || "",
         });
         return;
@@ -291,7 +292,7 @@ export default function Receipts() {
             <strong>Concepto:</strong> ${receipt.concept}<br/>
             <strong>Método:</strong> ${getPaymentMethodLabel(receipt.paymentMethod)}<br/>
             <strong>Referencia:</strong> ${receipt.reference || "-"}<br/>
-            <strong>Factura:</strong> ${receipt.Invoice?.invoiceNumber || "-"}
+            <strong>Factura:</strong> ${getFiscalNumber(receipt.Invoice)}
           </div>
 
           <div class="amount">
@@ -437,7 +438,7 @@ export default function Receipts() {
                     </td>
 
                     <td>{receipt.customerName}</td>
-                    <td>{receipt.Invoice?.invoiceNumber || "-"}</td>
+                    <td>{getFiscalNumber(receipt.Invoice)}</td>
                     <td>{getPaymentMethodLabel(receipt.paymentMethod)}</td>
                     <td>{receipt.reference || "-"}</td>
                     <td>
@@ -498,8 +499,8 @@ export default function Receipts() {
                     <option value="">Sin vincular a factura</option>
                     {pendingInvoices.map((invoice) => (
                       <option key={invoice.id} value={invoice.id}>
-                        {invoice.invoiceNumber} - {invoice.customerName} - Pendiente:{" "}
-                        {money.format(Number(invoice.balance || invoice.total || 0))}
+                        {getFiscalNumber(invoice)} - {invoice.customerName} - Pendiente:{" "}
+                        {money.format(Number(invoice.balance || 0))}
                       </option>
                     ))}
                   </select>

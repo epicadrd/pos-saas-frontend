@@ -9,6 +9,7 @@ import {
   Package,
 } from "lucide-react";
 import { api } from "../../api/axios";
+import { getFiscalNumber } from "../../utils/fiscalNumber";
 
 const today = new Date().toISOString().slice(0, 10);
 
@@ -308,7 +309,7 @@ export default function Reports() {
                 <tbody>
                   {(report?.tables?.recentInvoices || []).map((invoice) => (
                     <tr key={invoice.id}>
-                      <td>{invoice.invoiceNumber}</td>
+                      <td>{getFiscalNumber(invoice)}</td>
                       <td>{invoice.customerName}</td>
                       <td>
                         <span className={`report-status ${invoice.status}`}>

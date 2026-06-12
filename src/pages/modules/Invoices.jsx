@@ -20,6 +20,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useSearchParams } from "react-router-dom";
 import { useConfirm } from "../../components/ConfirmProvider";
 import QRCode from "qrcode";
+import { getFiscalNumber } from "../../utils/fiscalNumber";
 
 
 
@@ -104,6 +105,22 @@ export default function Invoices() {
 
   const getInvoiceTypeLabel = (type) => {
     return invoiceTypeLabels[type] || invoiceTypeLabels.consumer_final;
+  };
+
+  
+
+  const getTipoECFByInvoiceType = (invoiceType) => {
+  return invoiceType === "credit_fiscal" ? "31" : "32";
+  };
+
+  const getFiscalInvoiceNumber = (invoice) => {
+    return invoice?.eNcf || "e-NCF pendiente";
+  };
+
+  const getFiscalInvoiceTitle = (invoiceType) => {
+    return invoiceType === "credit_fiscal"
+      ? "FACTURA DE CRÉDITO FISCAL ELECTRÓNICA"
+      : "FACTURA DE CONSUMO FISCAL ELECTRÓNICA";
   };
 
   const getInvoiceQrTarget = (invoice) => {
@@ -414,7 +431,7 @@ export default function Invoices() {
         });
 
         if (status !== "draft") {
-          handlePrintInvoice({
+          const invoiceWithItems = {
             ...data.invoice,
             items: cleanItems.map((item) => {
               const product = products.find(
@@ -427,7 +444,11 @@ export default function Invoices() {
                 unitPrice: item.price,
               };
             }),
-          });
+          };
+
+          const fiscalInvoice = await emitElectronicInvoice(invoiceWithItems);
+
+          handlePrintInvoice(fiscalInvoice);
         }
       }
 
@@ -445,7 +466,7 @@ export default function Invoices() {
   const cancelInvoice = async (invoice) => {
     const ok = await confirm({
       title: "Anular factura",
-      message: `¿Anular ${invoice.invoiceNumber}? Esto devolverá el inventario.`,
+      message: `¿Anular ${getFiscalNumber(invoice)}? Esto devolverá el inventario.`,
       confirmText: "Anular",
       variant: "danger",
     });
@@ -570,7 +591,34 @@ const buildInvoiceQrValue = (invoice) => {
   return getInvoiceQrTarget(invoice);
 };
 
+const emitElectronicInvoice = async (invoice) => {
+  const tipoeCF = getTipoECFByInvoiceType(invoice.invoiceType);
 
+  const { data } = await api.post(
+    `/electronic-invoices/invoice/${invoice.id}/emit`,
+    {
+      tipoeCF,
+    }
+  );
+
+  return {
+    ...invoice,
+    eNcf:
+      data.electronicInvoice?.eNcf ||
+      data.response?.ecf ||
+      data.response?.ncf ||
+      invoice.eNcf,
+    tipoeCF,
+    dgiiQrUrl:
+      data.electronicInvoice?.qrUrl ||
+      data.response?.qr_url ||
+      invoice.dgiiQrUrl,
+    electronicInvoiceStatus:
+      data.electronicInvoice?.status ||
+      data.response?.status ||
+      "Enviado",
+  };
+};
 
   const handlePrintInvoice = async (invoice) => {
     const invoiceItems = invoice.items || [];
@@ -582,7 +630,7 @@ const buildInvoiceQrValue = (invoice) => {
     const html = `
       <html>
         <head>
-          <title>Factura ${invoice.invoiceNumber}</title>
+          <title>${getFiscalInvoiceNumber(invoice)}</title>
           <style>
             body { font-family: Arial, sans-serif; padding: 40px; color: #111827; }
             .header { display: flex; justify-content: space-between; border-bottom: 2px solid ${invoiceColor}; padding-bottom: 20px; margin-bottom: 30px; }
@@ -608,8 +656,8 @@ const buildInvoiceQrValue = (invoice) => {
                   ? `<img src="${invoiceLogo}" style="max-width:120px; max-height:80px; object-fit:contain; margin-bottom:12px;" />`
                   : ""
               }
-              <h1>${getInvoiceTypeLabel(invoice.invoiceType)}</h1>
-              <p>${invoice.invoiceNumber}</p>
+              <h1>${getFiscalInvoiceTitle(invoice.invoiceType)}</h1>
+              <p><strong>e-NCF:</strong> ${getFiscalInvoiceNumber(invoice)}</p>
             </div>
 
             <div>
@@ -627,7 +675,7 @@ const buildInvoiceQrValue = (invoice) => {
             <strong>Teléfono:</strong> ${invoice.customerPhone || "-"}<br/>
             <strong>Email:</strong> ${invoice.customerEmail || "-"}<br/><br/>
 
-            <strong>Fecha de factura:</strong> ${invoice.invoiceDate || "-"}<br/>
+            <strong>Fecha de emisión:</strong> ${invoice.invoiceDate || "-"}<br/>
             <strong>Fecha de vencimiento:</strong> ${invoice.dueDate || "-"}
           </div>
 
@@ -857,7 +905,7 @@ const buildInvoiceQrValue = (invoice) => {
   const markAsPaid = async (invoice) => {
     const ok = await confirm({
       title: "Marcar factura como pagada",
-      message: `¿Marcar ${invoice.invoiceNumber} como pagada?`,
+      message: `¿Marcar ${getFiscalNumber(invoice)} como pagada?`,
       confirmText: "Marcar como pagada",
       variant: "success",
     });
@@ -937,7 +985,7 @@ const buildInvoiceQrValue = (invoice) => {
           <table className="qb-table">
             <thead>
               <tr>
-                <th>Factura</th>
+                <th>e-NCF</th>
                 <th>Cliente</th>
                 <th>Subtotal</th>
                 <th>ITBIS</th>
@@ -960,7 +1008,7 @@ const buildInvoiceQrValue = (invoice) => {
               ) : invoices.length ? (
                 invoices.map((invoice) => (
                   <tr key={invoice.id}>
-                    <td>{invoice.invoiceNumber}</td>
+                    <td><strong>{invoice.eNcf || "Pendiente"}</strong></td>
                     <td>{invoice.customerName}</td>
                     <td>{money.format(Number(invoice.subtotal || 0))}</td>
                     <td>{money.format(Number(invoice.tax || 0))}</td>
@@ -1040,9 +1088,17 @@ const buildInvoiceQrValue = (invoice) => {
           <span>Facturación / Facturas / Nueva factura</span>
 
           <h1>
-            Factura {invoiceNumberPreview}
-            <small>{editingInvoiceId ? "Editando borrador" : "Borrador"}</small>
+            {editingInvoiceId
+              ? getFiscalNumber({
+                  eNcf: form.eNcf,
+                  invoiceNumber: editingInvoiceNumber,
+                })
+              : "Nueva factura"}
           </h1>
+
+          <small>
+            {editingInvoiceId ? "Editando borrador" : "Borrador"}
+          </small>
         </div>
 
         <div className="qb-top-actions">
@@ -1889,8 +1945,8 @@ const buildInvoiceQrValue = (invoice) => {
       <div className="qb-preview-body">
         <div className="qb-preview-header">
           <div>
-            <h2>{getInvoiceTypeLabel(form.invoiceType)}</h2>
-            <p>{invoiceNumberPreview}</p>
+            <h2>{getFiscalInvoiceTitle(form.invoiceType)}</h2>
+            <p><strong>e-NCF:</strong> se generará al emitir</p>
           </div>
 
           <div>

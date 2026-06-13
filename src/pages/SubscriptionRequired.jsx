@@ -14,7 +14,7 @@ import { useNavigate } from "react-router-dom";
 
 export default function SubscriptionRequired() {
   const navigate = useNavigate();
-  const { tenant } = useAuth();
+  const { tenant, refreshSession } = useAuth();
 
   const STATUS_MESSAGES = {
   inactive: {
@@ -87,16 +87,18 @@ export default function SubscriptionRequired() {
     }
   };
 
-  const retryPayment = async () => {
+ const retryPayment = async () => {
   try {
     setError("");
     setLoading(true);
 
     const { data } = await api.post("/billing/retry-payment");
 
+    await refreshSession();
+
     alert(data.message || "Pago realizado correctamente.");
 
-    window.location.reload();
+    navigate("/dashboard", { replace: true });
   } catch (error) {
     setError(
       error.response?.data?.message ||
@@ -106,7 +108,6 @@ export default function SubscriptionRequired() {
     setLoading(false);
   }
 };
-
   return (
     <div className="subscription-required-page">
       <div className="subscription-required-bg"></div>

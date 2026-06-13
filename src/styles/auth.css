@@ -327,9 +327,9 @@
 
 .select-plan-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 22px;
-  align-items: stretch;
+  grid-template-columns: repeat(3, minmax(280px, 340px));
+  justify-content: center;
+  gap: 18px;
 }
 
 .select-plan-card {
@@ -348,9 +348,24 @@
   background: linear-gradient(135deg, #2563eb, #00bfae);
 }
 
+.select-plan-card.popular {
+  transform: scale(1.03);
+}
+
+.select-plan-card.popular:hover {
+  transform: scale(1.03) translateY(-6px);
+}
+
 .plan-badge {
-  margin-bottom: 16px;
-  font-weight: 900;
+  width: fit-content;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.18);
+  backdrop-filter: blur(10px);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .5px;
+  text-transform: uppercase;
 }
 
 .select-plan-card h2 {
@@ -391,6 +406,17 @@
 }
 
 .select-plan-feature {
+  font-size: 15px;
+  gap: 8px;
+}
+
+.plan-button {
+  margin-top: auto;
+  height: 52px;
+  border-radius: 14px;
+}
+
+.select-plan-feature {
   display: flex;
   align-items: flex-start;
   gap: 10px;
@@ -422,6 +448,14 @@
   }
 }
 
+.select-plan-card:hover {
+  transform: translateY(-6px);
+  border-color: rgba(0,191,174,.35);
+  box-shadow:
+    0 25px 50px rgba(0,0,0,.35),
+    0 0 0 1px rgba(255,255,255,.05);
+}
+
 @media (max-width: 640px) {
   .select-plan-container {
     padding: 36px 14px 32px;
@@ -435,17 +469,21 @@
     gap: 16px;
   }
 
-  .select-plan-card {
-    border-radius: 24px;
-    padding: 22px;
-  }
+ .select-plan-card {
+  padding: 24px;
+  border-radius: 24px;
+  backdrop-filter: blur(20px);
+  transition: all .25s ease;
+}
 
   .select-plan-card h2 {
     font-size: 26px;
   }
 
   .select-plan-price strong {
-    font-size: 40px;
+    font-size: 56px;
+    letter-spacing: -2px;
+    font-weight: 900;
   }
 
   .select-plan-feature {

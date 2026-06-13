@@ -358,14 +358,18 @@
 
 .plan-badge {
   width: fit-content;
-  padding: 6px 12px;
+  padding: 6px 14px;
   border-radius: 999px;
-  background: rgba(255,255,255,.18);
+  background: rgba(255,255,255,.15);
   backdrop-filter: blur(10px);
+
   font-size: 12px;
   font-weight: 800;
   letter-spacing: .5px;
   text-transform: uppercase;
+
+  margin-top: 8px;
+  margin-bottom: 32px;
 }
 
 .select-plan-card h2 {

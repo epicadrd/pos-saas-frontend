@@ -77,7 +77,7 @@ export default function SelectPlan() {
               key={plan.id}
               className={`select-plan-card ${plan.popular ? "popular" : ""}`}
             >
-              {plan.popular && <div className="plan-badge">Más recomendado</div>}
+              {plan.popular && <div className="plan-badge">Más popular</div>}
 
               <div>
                 <h2>{plan.name}</h2>

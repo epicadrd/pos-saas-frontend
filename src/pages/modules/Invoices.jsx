@@ -77,6 +77,8 @@ export default function Invoices() {
   const [previewModalOpen, setPreviewModalOpen] = useState(false);
   const [actionsOpen, setActionsOpen] = useState(false);
   const [adminMenuOpen, setAdminMenuOpen] = useState(false);
+  const [selectedInvoice, setSelectedInvoice] = useState(null);
+  const [selectedDraft, setSelectedDraft] = useState(null);
   const adminMenuRef = useRef(null);
   const actionsMenuRef = useRef(null);
 
@@ -981,92 +983,244 @@ const emitElectronicInvoice = async (invoice) => {
           </div>
         </div>
 
-        <div className="qb-table-card">
-          <table className="qb-table">
-            <thead>
-              <tr>
-                <th>e-NCF</th>
-                <th>Cliente</th>
-                <th>Subtotal</th>
-                <th>ITBIS</th>
-                <th>Total</th>
-                <th>Pagado</th>
-                <th>Pendiente</th>
-                <th>Estado</th>
-                <th>Creada por</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
+        <div className="qb-table-card qb-invoices-desktop">
+  <table className="qb-table">
+    <thead>
+      <tr>
+        <th>e-NCF</th>
+        <th>Cliente</th>
+        <th>Subtotal</th>
+        <th>ITBIS</th>
+        <th>Total</th>
+        <th>Pagado</th>
+        <th>Pendiente</th>
+        <th>Estado</th>
+        <th>Creada por</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
 
-            <tbody>
-              {loading ? (
-                <tr>
-                  <td colSpan="10" className="qb-empty">
-                    Cargando facturas...
-                  </td>
-                </tr>
-              ) : invoices.length ? (
-                invoices.map((invoice) => (
-                  <tr key={invoice.id}>
-                    <td><strong>{invoice.eNcf || "Pendiente"}</strong></td>
-                    <td>{invoice.customerName}</td>
-                    <td>{money.format(Number(invoice.subtotal || 0))}</td>
-                    <td>{money.format(Number(invoice.tax || 0))}</td>
-                    <td>{money.format(Number(invoice.total || 0))}</td>
-                    <td>{money.format(Number(invoice.amountPaid || 0))}</td>
-                    <td>{money.format(Number(invoice.balance || 0))}</td>
+    <tbody>
+      {loading ? (
+        <tr>
+          <td colSpan="10" className="qb-empty">
+            Cargando facturas...
+          </td>
+        </tr>
+      ) : invoices.length ? (
+        invoices.map((invoice) => (
+          <tr key={invoice.id}>
+            <td><strong>{invoice.eNcf || "Pendiente"}</strong></td>
+            <td>{invoice.customerName}</td>
+            <td>{money.format(Number(invoice.subtotal || 0))}</td>
+            <td>{money.format(Number(invoice.tax || 0))}</td>
+            <td>{money.format(Number(invoice.total || 0))}</td>
+            <td>{money.format(Number(invoice.amountPaid || 0))}</td>
+            <td>{money.format(Number(invoice.balance || 0))}</td>
 
-                    <td>
-                      
-                      <span className={`qb-status qb-${invoice.status}`}>
-                        {getInvoiceStatusLabel(invoice.status)}
-                      </span>
-                    </td>
-                        <td>{invoice.creator?.name || "Sistema"}</td>
-                    <td>
-                      <div className="qb-actions-cell">
-                        <button
-                          className="qb-secondary-btn"
-                          onClick={() => handlePrintInvoice(invoice)}
-                        >
-                          <Printer size={16} />
-                          Imprimir
-                        </button>
+            <td>
+              <span className={`qb-status qb-${invoice.status}`}>
+                {getInvoiceStatusLabel(invoice.status)}
+              </span>
+            </td>
 
-                        {invoice.status !== "paid" &&
-                          invoice.status !== "cancelled" &&
-                          invoice.status !== "draft" && (
-                            <button
-                              className="qb-secondary-btn"
-                              onClick={() => markAsPaid(invoice)}
-                            >
-                              Marcar pagada
-                            </button>
-                          )}
+            <td>{invoice.creator?.name || "Sistema"}</td>
 
-                        {invoice.status !== "cancelled" &&
-                          invoice.status !== "draft" && (
-                            <button
-                              className="qb-icon-danger"
-                              onClick={() => cancelInvoice(invoice)}
-                            >
-                              <Ban size={16} />
-                            </button>
-                          )}
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="10" className="qb-empty">
-                    No hay facturas registradas.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+            <td>
+              <div className="qb-actions-cell">
+                <button
+                  className="qb-secondary-btn"
+                  onClick={() => handlePrintInvoice(invoice)}
+                >
+                  <Printer size={16} />
+                  Imprimir
+                </button>
+
+                {invoice.status !== "paid" &&
+                  invoice.status !== "cancelled" &&
+                  invoice.status !== "draft" && (
+                    <button
+                      className="qb-secondary-btn"
+                      onClick={() => markAsPaid(invoice)}
+                    >
+                      Marcar pagada
+                    </button>
+                  )}
+
+                {invoice.status !== "cancelled" &&
+                  invoice.status !== "draft" && (
+                    <button
+                      className="qb-icon-danger"
+                      onClick={() => cancelInvoice(invoice)}
+                    >
+                      <Ban size={16} />
+                    </button>
+                  )}
+              </div>
+            </td>
+          </tr>
+        ))
+      ) : (
+        <tr>
+          <td colSpan="10" className="qb-empty">
+            No hay facturas registradas.
+          </td>
+        </tr>
+      )}
+    </tbody>
+  </table>
+</div>
+
+<div className="qb-invoices-mobile">
+  {loading ? (
+    <div className="qb-mobile-empty">Cargando facturas...</div>
+  ) : invoices.length ? (
+    invoices.map((invoice) => (
+      <button
+        type="button"
+        key={invoice.id}
+        className="qb-invoice-mobile-card"
+        onClick={() => setSelectedInvoice(invoice)}
+      >
+        <div className="qb-mobile-card-top">
+          <div>
+            <span className="qb-mobile-label">Factura</span>
+            <strong>{invoice.eNcf || "e-NCF pendiente"}</strong>
+          </div>
+
+          <span className={`qb-status qb-${invoice.status}`}>
+            {getInvoiceStatusLabel(invoice.status)}
+          </span>
         </div>
+
+        <div className="qb-mobile-client">
+          <span>Cliente</span>
+          <strong>{invoice.customerName || "Sin cliente"}</strong>
+        </div>
+
+        <div className="qb-mobile-money-grid">
+          <div>
+            <span>Total</span>
+            <strong>{money.format(Number(invoice.total || 0))}</strong>
+          </div>
+
+          <div>
+            <span>Pendiente</span>
+            <strong>{money.format(Number(invoice.balance || 0))}</strong>
+          </div>
+        </div>
+
+        <div className="qb-mobile-card-footer">
+          <span>Creada por {invoice.creator?.name || "Sistema"}</span>
+          <strong>Ver detalle</strong>
+        </div>
+      </button>
+    ))
+  ) : (
+    <div className="qb-mobile-empty">No hay facturas registradas.</div>
+  )}
+</div>
+
+{selectedInvoice && (
+  <div className="qb-mobile-detail-overlay" onClick={() => setSelectedInvoice(null)}>
+    <div className="qb-mobile-detail-modal" onClick={(e) => e.stopPropagation()}>
+      <div className="qb-mobile-detail-header">
+        <div>
+          <span>Detalle de factura</span>
+          <h3>{selectedInvoice.eNcf || "e-NCF pendiente"}</h3>
+        </div>
+
+        <button type="button" onClick={() => setSelectedInvoice(null)}>
+          <X size={20} />
+        </button>
+      </div>
+
+      <div className="qb-mobile-detail-status">
+        <span className={`qb-status qb-${selectedInvoice.status}`}>
+          {getInvoiceStatusLabel(selectedInvoice.status)}
+        </span>
+      </div>
+
+      <div className="qb-mobile-detail-list">
+        <div>
+          <span>Cliente</span>
+          <strong>{selectedInvoice.customerName || "Sin cliente"}</strong>
+        </div>
+
+        <div>
+          <span>Subtotal</span>
+          <strong>{money.format(Number(selectedInvoice.subtotal || 0))}</strong>
+        </div>
+
+        <div>
+          <span>ITBIS</span>
+          <strong>{money.format(Number(selectedInvoice.tax || 0))}</strong>
+        </div>
+
+        <div>
+          <span>Total</span>
+          <strong>{money.format(Number(selectedInvoice.total || 0))}</strong>
+        </div>
+
+        <div>
+          <span>Pagado</span>
+          <strong>{money.format(Number(selectedInvoice.amountPaid || 0))}</strong>
+        </div>
+
+        <div>
+          <span>Pendiente</span>
+          <strong>{money.format(Number(selectedInvoice.balance || 0))}</strong>
+        </div>
+
+        <div>
+          <span>Creada por</span>
+          <strong>{selectedInvoice.creator?.name || "Sistema"}</strong>
+        </div>
+      </div>
+
+      <div className="qb-mobile-detail-actions">
+        <button
+          type="button"
+          className="qb-primary-btn"
+          onClick={() => handlePrintInvoice(selectedInvoice)}
+        >
+          <Printer size={16} />
+          Imprimir
+        </button>
+
+        {selectedInvoice.status !== "paid" &&
+          selectedInvoice.status !== "cancelled" &&
+          selectedInvoice.status !== "draft" && (
+            <button
+              type="button"
+              className="qb-secondary-btn"
+              onClick={() => {
+                markAsPaid(selectedInvoice);
+                setSelectedInvoice(null);
+              }}
+            >
+              Marcar pagada
+            </button>
+          )}
+
+        {selectedInvoice.status !== "cancelled" &&
+          selectedInvoice.status !== "draft" && (
+            <button
+              type="button"
+              className="qb-mobile-danger-btn"
+              onClick={() => {
+                cancelInvoice(selectedInvoice);
+                setSelectedInvoice(null);
+              }}
+            >
+              <Ban size={16} />
+              Anular
+            </button>
+          )}
+      </div>
+    </div>
+  </div>
+)}
       </div>
     );
   }
@@ -1242,61 +1396,204 @@ const emitElectronicInvoice = async (invoice) => {
       </div>
 
       {activeTab === "drafts" ? (
-        <div className="qb-table-card">
-          <table className="qb-table">
-            <thead>
-              <tr>
-                <th>Factura</th>
-                <th>Cliente</th>
-                <th>Total</th>
-                <th>Acciones</th>
+  <>
+    <div className="qb-table-card qb-drafts-desktop">
+      <table className="qb-table">
+        <thead>
+          <tr>
+            <th>Factura</th>
+            <th>Cliente</th>
+            <th>Total</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {drafts.length ? (
+            drafts.map((invoice) => (
+              <tr key={invoice.id}>
+                <td>{invoice.invoiceNumber || "Borrador"}</td>
+                <td>{invoice.customerName || "Sin cliente"}</td>
+                <td>{money.format(Number(invoice.total || 0))}</td>
+                <td>
+                  <div className="qb-actions-cell">
+                    <button
+                      className="qb-secondary-btn"
+                      onClick={() => loadDraft(invoice)}
+                    >
+                      Editar
+                    </button>
+
+                    <button
+                      className="qb-secondary-btn"
+                      onClick={() => issueDraft(invoice)}
+                    >
+                      Emitir
+                    </button>
+
+                    <button
+                      className="qb-icon-danger"
+                      onClick={() => deleteDraft(invoice)}
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                </td>
               </tr>
-            </thead>
+            ))
+          ) : (
+            <tr>
+              <td colSpan="4" className="qb-empty">
+                No hay borradores.
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+    </div>
 
-            <tbody>
-              {drafts.length ? (
-                drafts.map((invoice) => (
-                  <tr key={invoice.id}>
-                    <td>{invoice.invoiceNumber}</td>
-                    <td>{invoice.customerName}</td>
-                    <td>{money.format(Number(invoice.total || 0))}</td>
-                    <td>
-                      <div style={{ display: "flex", gap: "8px" }}>
-                        <button
-                          className="qb-secondary-btn"
-                          onClick={() => loadDraft(invoice)}
-                        >
-                          Editar
-                        </button>
+    <div className="qb-drafts-mobile">
+      {drafts.length ? (
+        drafts.map((invoice) => (
+          <button
+            type="button"
+            key={invoice.id}
+            className="qb-draft-mobile-card"
+            onClick={() => setSelectedDraft(invoice)}
+          >
+            <div className="qb-mobile-card-top">
+              <div>
+                <span className="qb-mobile-label">Borrador</span>
+                <strong>{invoice.invoiceNumber || "Sin número"}</strong>
+              </div>
 
-                        <button
-                          className="qb-secondary-btn"
-                          onClick={() => issueDraft(invoice)}
-                        >
-                          Emitir
-                        </button>
+              <span className="qb-status qb-draft">Borrador</span>
+            </div>
 
-                        <button
-                          className="qb-icon-danger"
-                          onClick={() => deleteDraft(invoice)}
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="4" className="qb-empty">
-                    No hay borradores.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+            <div className="qb-mobile-client">
+              <span>Cliente</span>
+              <strong>{invoice.customerName || "Sin cliente"}</strong>
+            </div>
+
+            <div className="qb-mobile-money-grid">
+              <div>
+                <span>Subtotal</span>
+                <strong>{money.format(Number(invoice.subtotal || 0))}</strong>
+              </div>
+
+              <div>
+                <span>Total</span>
+                <strong>{money.format(Number(invoice.total || 0))}</strong>
+              </div>
+            </div>
+
+            <div className="qb-mobile-card-footer">
+              <span>ITBIS {money.format(Number(invoice.tax || 0))}</span>
+              <strong>Ver detalle</strong>
+            </div>
+          </button>
+        ))
       ) : (
+        <div className="qb-mobile-empty">No hay borradores.</div>
+      )}
+    </div>
+
+    {selectedDraft && (
+      <div
+        className="qb-mobile-detail-overlay"
+        onClick={() => setSelectedDraft(null)}
+      >
+        <div
+          className="qb-mobile-detail-modal"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="qb-mobile-detail-header">
+            <div>
+              <span>Detalle del borrador</span>
+              <h3>{selectedDraft.invoiceNumber || "Sin número"}</h3>
+            </div>
+
+            <button type="button" onClick={() => setSelectedDraft(null)}>
+              <X size={20} />
+            </button>
+          </div>
+
+          <div className="qb-mobile-detail-status">
+            <span className="qb-status qb-draft">Borrador</span>
+          </div>
+
+          <div className="qb-mobile-detail-list">
+            <div>
+              <span>Cliente</span>
+              <strong>{selectedDraft.customerName || "Sin cliente"}</strong>
+            </div>
+
+            <div>
+              <span>Subtotal</span>
+              <strong>{money.format(Number(selectedDraft.subtotal || 0))}</strong>
+            </div>
+
+            <div>
+              <span>ITBIS</span>
+              <strong>{money.format(Number(selectedDraft.tax || 0))}</strong>
+            </div>
+
+            <div>
+              <span>Total</span>
+              <strong>{money.format(Number(selectedDraft.total || 0))}</strong>
+            </div>
+
+            <div>
+              <span>Pagado</span>
+              <strong>{money.format(Number(selectedDraft.amountPaid || 0))}</strong>
+            </div>
+
+            <div>
+              <span>Pendiente</span>
+              <strong>{money.format(Number(selectedDraft.balance || 0))}</strong>
+            </div>
+          </div>
+
+          <div className="qb-mobile-detail-actions">
+            <button
+              type="button"
+              className="qb-primary-btn"
+              onClick={() => {
+                loadDraft(selectedDraft);
+                setSelectedDraft(null);
+              }}
+            >
+              Editar borrador
+            </button>
+
+            <button
+              type="button"
+              className="qb-secondary-btn"
+              onClick={() => {
+                issueDraft(selectedDraft);
+                setSelectedDraft(null);
+              }}
+            >
+              Emitir factura
+            </button>
+
+            <button
+              type="button"
+              className="qb-mobile-danger-btn"
+              onClick={() => {
+                deleteDraft(selectedDraft);
+                setSelectedDraft(null);
+              }}
+            >
+              <Trash2 size={16} />
+              Eliminar
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+  </>
+) : (
         <div className="qb-layout">
           <main className="qb-document">
             <section className="qb-company">
@@ -1499,199 +1796,364 @@ const emitElectronicInvoice = async (invoice) => {
             </section>
 
             <section className="qb-items-card">
-              <div className="qb-items-head">
-                <h3>Productos y servicios</h3>
-                <button onClick={addLine}>
-                  <Plus size={16} />
-                  Agregar línea
-                </button>
-              </div>
+  <div className="qb-items-head">
+    <h3>Productos y servicios</h3>
+    <button onClick={addLine}>
+      <Plus size={16} />
+      Agregar línea
+    </button>
+  </div>
 
-              <table className="qb-items-table">
-                <thead>
-                  <tr>
-                    <th>#</th>
-                    <th>Producto / Servicio</th>
-                    <th>Descripción</th>
-                    <th>Cantidad</th>
-                    <th>Unidad</th>
-                    <th>Precio</th>
-                    <th>Descuento</th>
-                    <th>Subtotal</th>
-                    {taxMode === "line" && <th>Aplica ITBIS</th>}
-                    <th>ITBIS</th>
-                    <th>Total</th>
-                    <th></th>
-                  </tr>
-                </thead>
+  <div className="qb-items-table-wrapper">
+    <table className="qb-items-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Producto / Servicio</th>
+          <th>Descripción</th>
+          <th>Cantidad</th>
+          <th>Unidad</th>
+          <th>Precio</th>
+          <th>Descuento</th>
+          <th>Subtotal</th>
+          {taxMode === "line" && <th>Aplica ITBIS</th>}
+          <th>ITBIS</th>
+          <th>Total</th>
+          <th></th>
+        </tr>
+      </thead>
 
-                <tbody>
-                  {items.length ? (
-                    items.map((item, index) => {
-                      const product = products.find(
-                        (p) => String(p.id) === String(item.productId)
-                      );
+      <tbody>
+        {items.length ? (
+          items.map((item, index) => {
+            const product = products.find(
+              (p) => String(p.id) === String(item.productId)
+            );
 
-                      const isService =
-                        product?.productType === "service" ||
-                        product?.trackStock === false;
+            const isService =
+              product?.productType === "service" ||
+              product?.trackStock === false;
 
-                      const lineSubtotal = Math.max(
-                        Number(item.quantity || 0) * Number(item.price || 0) -
-                          Number(item.discount || 0),
-                        0
-                      );
+            const lineSubtotal = Math.max(
+              Number(item.quantity || 0) * Number(item.price || 0) -
+                Number(item.discount || 0),
+              0
+            );
 
-                      const isTaxable =
-                        taxEnabled &&
-                        (taxMode === "global" ? true : item.isTaxable !== false);
+            const isTaxable =
+              taxEnabled &&
+              (taxMode === "global" ? true : item.isTaxable !== false);
 
-                      const lineTax = isTaxable
-                        ? lineSubtotal * (taxRate / 100)
-                        : 0;
+            const lineTax = isTaxable ? lineSubtotal * (taxRate / 100) : 0;
+            const lineTotal = lineSubtotal + lineTax;
 
-                      const lineTotal = lineSubtotal + lineTax;
+            const stockError =
+              product &&
+              !isService &&
+              Number(item.quantity || 0) > Number(product.stock || 0);
 
-                      const stockError =
-                        product &&
-                        !isService &&
-                        Number(item.quantity || 0) > Number(product.stock || 0);
+            return (
+              <tr key={index} className={stockError ? "stock-error-row" : ""}>
+                <td>{index + 1}</td>
+
+                <td>
+                  <select
+                    value={item.productId}
+                    onChange={(e) =>
+                      updateItem(index, "productId", e.target.value)
+                    }
+                  >
+                    <option value="">Selecciona producto/servicio</option>
+
+                    {products.map((product) => {
+                      const service =
+                        product.productType === "service" ||
+                        product.trackStock === false;
 
                       return (
-                        <tr
-                          key={index}
-                          className={stockError ? "stock-error-row" : ""}
-                        >
-                          <td>{index + 1}</td>
-
-                          <td>
-                            <select
-                              value={item.productId}
-                              onChange={(e) =>
-                                updateItem(index, "productId", e.target.value)
-                              }
-                            >
-                              <option value="">Selecciona producto/servicio</option>
-
-                              {products.map((product) => {
-                                const service =
-                                  product.productType === "service" ||
-                                  product.trackStock === false;
-
-                                return (
-                                  <option key={product.id} value={product.id}>
-                                    {product.name}{" "}
-                                    {service
-                                      ? "(Servicio)"
-                                      : `(Stock: ${product.stock})`}
-                                  </option>
-                                );
-                              })}
-                            </select>
-
-                            {product && (
-                              <small className={isService ? "service-label" : ""}>
-                                {isService
-                                  ? "Servicio"
-                                  : stockError
-                                  ? `Stock insuficiente: ${product.stock}`
-                                  : `Disponible: ${product.stock}`}
-                              </small>
-                            )}
-                          </td>
-
-                          <td>
-                            <input
-                              value={item.description}
-                              onChange={(e) =>
-                                updateItem(index, "description", e.target.value)
-                              }
-                            />
-                          </td>
-
-                          <td>
-                            <input
-                              type="number"
-                              min="1"
-                              value={item.quantity}
-                              onChange={(e) =>
-                                updateItem(index, "quantity", e.target.value)
-                              }
-                            />
-                          </td>
-
-                          <td>{item.unit}</td>
-
-                          <td>
-                            <input
-                              type="number"
-                              value={item.price}
-                              onChange={(e) =>
-                                updateItem(index, "price", e.target.value)
-                              }
-                            />
-                          </td>
-
-                          <td>
-                            <input
-                              type="number"
-                              value={item.discount}
-                              onChange={(e) =>
-                                updateItem(index, "discount", e.target.value)
-                              }
-                            />
-                          </td>
-
-                          <td>{money.format(lineSubtotal)}</td>
-
-                          {taxMode === "line" && (
-                            <td>
-                              <select
-                                value={item.isTaxable === false ? "no" : "yes"}
-                                onChange={(e) =>
-                                  updateItem(
-                                    index,
-                                    "isTaxable",
-                                    e.target.value === "yes"
-                                  )
-                                }
-                              >
-                                <option value="yes">Sí</option>
-                                <option value="no">No</option>
-                              </select>
-                            </td>
-                          )}
-
-                          <td>{money.format(lineTax)}</td>
-
-                          <td>
-                            <strong>{money.format(lineTotal)}</strong>
-                          </td>
-
-                          <td>
-                            <button
-                              className="qb-trash"
-                              onClick={() => removeItem(index)}
-                            >
-                              <Trash2 size={15} />
-                            </button>
-                          </td>
-                        </tr>
+                        <option key={product.id} value={product.id}>
+                          {product.name}{" "}
+                          {service ? "(Servicio)" : `(Stock: ${product.stock})`}
+                        </option>
                       );
-                    })
-                  ) : (
-                    <tr>
-                      <td
-                        colSpan={taxMode === "line" ? 12 : 11}
-                        className="qb-empty"
-                      >
-                        Agrega productos o servicios para construir la factura.
-                      </td>
-                    </tr>
+                    })}
+                  </select>
+
+                  {product && (
+                    <small className={isService ? "service-label" : ""}>
+                      {isService
+                        ? "Servicio"
+                        : stockError
+                        ? `Stock insuficiente: ${product.stock}`
+                        : `Disponible: ${product.stock}`}
+                    </small>
                   )}
-                </tbody>
-              </table>
-            </section>
+                </td>
+
+                <td>
+                  <input
+                    value={item.description}
+                    onChange={(e) =>
+                      updateItem(index, "description", e.target.value)
+                    }
+                  />
+                </td>
+
+                <td>
+                  <input
+                    type="number"
+                    min="1"
+                    value={item.quantity}
+                    onChange={(e) =>
+                      updateItem(index, "quantity", e.target.value)
+                    }
+                  />
+                </td>
+
+                <td>{item.unit}</td>
+
+                <td>
+                  <input
+                    type="number"
+                    value={item.price}
+                    onChange={(e) => updateItem(index, "price", e.target.value)}
+                  />
+                </td>
+
+                <td>
+                  <input
+                    type="number"
+                    value={item.discount}
+                    onChange={(e) =>
+                      updateItem(index, "discount", e.target.value)
+                    }
+                  />
+                </td>
+
+                <td>{money.format(lineSubtotal)}</td>
+
+                {taxMode === "line" && (
+                  <td>
+                    <select
+                      value={item.isTaxable === false ? "no" : "yes"}
+                      onChange={(e) =>
+                        updateItem(index, "isTaxable", e.target.value === "yes")
+                      }
+                    >
+                      <option value="yes">Sí</option>
+                      <option value="no">No</option>
+                    </select>
+                  </td>
+                )}
+
+                <td>{money.format(lineTax)}</td>
+
+                <td>
+                  <strong>{money.format(lineTotal)}</strong>
+                </td>
+
+                <td>
+                  <button className="qb-trash" onClick={() => removeItem(index)}>
+                    <Trash2 size={15} />
+                  </button>
+                </td>
+              </tr>
+            );
+          })
+        ) : (
+          <tr>
+            <td colSpan={taxMode === "line" ? 12 : 11} className="qb-empty">
+              Agrega productos o servicios para construir la factura.
+            </td>
+          </tr>
+        )}
+      </tbody>
+    </table>
+  </div>
+
+  <div className="qb-mobile-items">
+    {items.length ? (
+      items.map((item, index) => {
+        const product = products.find(
+          (p) => String(p.id) === String(item.productId)
+        );
+
+        const isService =
+          product?.productType === "service" || product?.trackStock === false;
+
+        const lineSubtotal = Math.max(
+          Number(item.quantity || 0) * Number(item.price || 0) -
+            Number(item.discount || 0),
+          0
+        );
+
+        const isTaxable =
+          taxEnabled && (taxMode === "global" ? true : item.isTaxable !== false);
+
+        const lineTax = isTaxable ? lineSubtotal * (taxRate / 100) : 0;
+        const lineTotal = lineSubtotal + lineTax;
+
+        const stockError =
+          product &&
+          !isService &&
+          Number(item.quantity || 0) > Number(product.stock || 0);
+
+        return (
+          <div
+            className={`qb-mobile-item-card ${
+              stockError ? "qb-mobile-item-error" : ""
+            }`}
+            key={index}
+          >
+            <div className="qb-mobile-item-head">
+              <h4>Producto #{index + 1}</h4>
+
+              <button type="button" onClick={() => removeItem(index)}>
+                <Trash2 size={16} />
+              </button>
+            </div>
+
+            <div className="qb-mobile-item-grid">
+              <label>
+                Producto / servicio
+                <select
+                  value={item.productId}
+                  onChange={(e) =>
+                    updateItem(index, "productId", e.target.value)
+                  }
+                >
+                  <option value="">Selecciona producto/servicio</option>
+
+                  {products.map((product) => {
+                    const service =
+                      product.productType === "service" ||
+                      product.trackStock === false;
+
+                    return (
+                      <option key={product.id} value={product.id}>
+                        {product.name}{" "}
+                        {service ? "(Servicio)" : `(Stock: ${product.stock})`}
+                      </option>
+                    );
+                  })}
+                </select>
+              </label>
+
+              {product && (
+                <small className={stockError ? "qb-stock-warning" : ""}>
+                  {isService
+                    ? "Servicio"
+                    : stockError
+                    ? `Stock insuficiente: ${product.stock}`
+                    : `Disponible: ${product.stock}`}
+                </small>
+              )}
+
+              <label>
+                Descripción
+                <input
+                  value={item.description}
+                  onChange={(e) =>
+                    updateItem(index, "description", e.target.value)
+                  }
+                  placeholder="Descripción del producto"
+                />
+              </label>
+
+              <div className="qb-mobile-item-row-2">
+                <label>
+                  Cantidad
+                  <input
+                    type="number"
+                    min="1"
+                    value={item.quantity}
+                    onChange={(e) =>
+                      updateItem(index, "quantity", e.target.value)
+                    }
+                  />
+                </label>
+
+                <label>
+                  Precio
+                  <input
+                    type="number"
+                    value={item.price}
+                    onChange={(e) =>
+                      updateItem(index, "price", e.target.value)
+                    }
+                  />
+                </label>
+              </div>
+
+              <div className="qb-mobile-item-row-2">
+                <label>
+                  Descuento
+                  <input
+                    type="number"
+                    value={item.discount}
+                    onChange={(e) =>
+                      updateItem(index, "discount", e.target.value)
+                    }
+                  />
+                </label>
+
+                <label>
+                  Unidad
+                  <input value={item.unit || "UND"} disabled />
+                </label>
+              </div>
+
+              {taxMode === "line" && (
+                <label>
+                  Aplica ITBIS
+                  <select
+                    value={item.isTaxable === false ? "no" : "yes"}
+                    onChange={(e) =>
+                      updateItem(index, "isTaxable", e.target.value === "yes")
+                    }
+                  >
+                    <option value="yes">Sí</option>
+                    <option value="no">No</option>
+                  </select>
+                </label>
+              )}
+            </div>
+
+            <div className="qb-mobile-item-total">
+              <p>
+                <span>Subtotal</span>
+                <strong>{money.format(lineSubtotal)}</strong>
+              </p>
+
+              <p>
+                <span>ITBIS</span>
+                <strong>{money.format(lineTax)}</strong>
+              </p>
+
+              <p className="big">
+                <span>Total</span>
+                <strong>{money.format(lineTotal)}</strong>
+              </p>
+            </div>
+          </div>
+        );
+      })
+    ) : (
+      <div className="qb-mobile-empty">
+        Agrega productos o servicios para construir la factura.
+      </div>
+    )}
+
+    <button
+      type="button"
+      className="qb-secondary-btn qb-mobile-add-line"
+      onClick={addLine}
+    >
+      <Plus size={16} />
+      Agregar producto o servicio
+    </button>
+  </div>
+</section>
 
             <section className="qb-bottom-area">
               <textarea

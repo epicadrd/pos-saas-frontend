@@ -10,6 +10,8 @@ import {
 } from "lucide-react";
 import { api } from "../../api/axios";
 import { getFiscalNumber } from "../../utils/fiscalNumber";
+import { useAuth } from "../../context/AuthContext";
+import { isDominicanTenant } from "../../utils/taxConfig";
 
 const today = new Date().toISOString().slice(0, 10);
 
@@ -19,11 +21,7 @@ const firstDayOfMonth = () => {
   return date.toISOString().slice(0, 10);
 };
 
-const formatMoney = (value) =>
-  new Intl.NumberFormat("es-DO", {
-    style: "currency",
-    currency: "DOP",
-  }).format(Number(value || 0));
+
 
 const statusLabels = {
   issued: "Emitida",
@@ -43,6 +41,18 @@ export default function Reports() {
     to: today,
   });
 
+  const { tenant } = useAuth();
+  const isDO = isDominicanTenant(tenant);
+
+  const formatMoney = (value) =>
+    new Intl.NumberFormat(
+      isDO ? "es-DO" : "en-US",
+      {
+        style: "currency",
+        currency: isDO ? "DOP" : "USD",
+      }
+    ).format(Number(value || 0));
+    
   const summary = report?.summary || {};
 
   const maxCategoryTotal = useMemo(() => {
@@ -298,7 +308,7 @@ export default function Reports() {
               <table className="reports-table">
                 <thead>
                   <tr>
-                    <th>No.</th>
+                    <th>{isDO ? "e-NCF" : "Invoice #"}</th>
                     <th>Cliente</th>
                     <th>Estado</th>
                     <th>Total</th>
@@ -309,7 +319,11 @@ export default function Reports() {
                 <tbody>
                   {(report?.tables?.recentInvoices || []).map((invoice) => (
                     <tr key={invoice.id}>
-                      <td>{getFiscalNumber(invoice)}</td>
+                      <td>
+                        {isDO
+                          ? getFiscalNumber(invoice)
+                          : invoice.invoiceNumber || invoice.id}
+                      </td>
                       <td>{invoice.customerName}</td>
                       <td>
                         <span className={`report-status ${invoice.status}`}>

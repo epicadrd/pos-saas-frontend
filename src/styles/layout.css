@@ -226,12 +226,6 @@
   max-width: 100% !important;
 }
 
-.qb-document {
-  width: 100%;
-  max-width: 1400px;
-  margin: 0 auto;
-}
-
 .qb-invoice-page {
   max-width: 100% !important;
   width: 100%;
@@ -258,7 +252,7 @@
 
 .qb-items-table {
   width: 100%;
-  min-width: 1000px; /* 👈 clave para laptop */
+  min-width: 100%;
 }
 
 .qb-items-table th,
@@ -279,9 +273,7 @@
 }
 
 @media (max-width: 1366px) {
-  .qb-document {
-    max-width: 1100px;
-  }
+
 
   .qb-company {
     grid-template-columns: 1fr 1fr 140px;
@@ -1462,7 +1454,7 @@
 
   transition: all 0.2s ease;
 
-  z-index: 999;
+  z-index: 35;
 }
 
 .sidebar-toggle-tab:hover {
@@ -1481,4 +1473,92 @@
 
 .saas-sidebar {
   position: relative;
+}
+
+/* Facturas full width */
+.qb-invoice-page {
+  width: 100%;
+  max-width: none !important;
+}
+
+.qb-invoice-page .qb-layout {
+  width: 100%;
+  max-width: none;
+}
+
+.qb-invoice-page .qb-document {
+  width: 100%;
+  max-width: none !important;
+  margin: 0;
+}
+
+.qb-invoice-page .qb-items-table {
+  width: 100%;
+}
+
+/* Factura: hacer la tabla de productos más cómoda en PC/Laptop */
+.qb-invoice-page .qb-items-card {
+  width: 100%;
+}
+
+.qb-invoice-page .qb-items-table-wrapper {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: visible;
+}
+
+.qb-invoice-page .qb-items-table {
+  width: 100%;
+  min-width: 100%;
+  table-layout: auto;
+}
+
+.qb-invoice-page .qb-items-table th,
+.qb-invoice-page .qb-items-table td {
+  white-space: nowrap;
+}
+
+.qb-invoice-page .qb-items-table th:nth-child(3),
+.qb-invoice-page .qb-items-table td:nth-child(3) {
+  min-width: 260px;
+}
+
+.qb-invoice-page .qb-items-table th:nth-child(2),
+.qb-invoice-page .qb-items-table td:nth-child(2) {
+  min-width: 240px;
+}
+
+/* FACTURAS - usar todo el ancho disponible */
+.qb-invoice-page {
+  width: 100% !important;
+  max-width: none !important;
+}
+
+.qb-invoice-page .qb-layout {
+  width: 100% !important;
+  max-width: none !important;
+  display: block !important;
+}
+
+.qb-invoice-page .qb-document {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+}
+
+/* La sección de productos debe usar todo el ancho */
+.qb-invoice-page .qb-items-card {
+  width: 100% !important;
+  max-width: none !important;
+}
+
+.qb-invoice-page .qb-items-table-wrapper {
+  width: 100% !important;
+  max-width: none !important;
+  overflow-x: auto !important;
+}
+
+.qb-invoice-page .qb-items-table {
+  width: 100% !important;
+  min-width: 1350px !important;
 }

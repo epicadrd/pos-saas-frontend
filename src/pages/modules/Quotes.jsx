@@ -18,6 +18,11 @@ import { api } from "../../api/axios";
 import { Pencil } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useConfirm } from "../../components/ConfirmProvider";
+import {
+  getTaxRate,
+  getTaxLabel,
+  isDominicanTenant,
+} from "../../utils/taxConfig";
 
 const emptyQuote = {
   customerName: "",
@@ -68,13 +73,39 @@ export default function Quotes() {
   const quoteColor = tenant?.primaryColor || "#00bfae";
   const quoteLogo = tenant?.logoDataUrl || "";
   const [editingQuoteId, setEditingQuoteId] = useState(null);
+  const [selectedQuote, setSelectedQuote] = useState(null);
 
-  const money = new Intl.NumberFormat("es-DO", {
-    style: "currency",
-    currency: "DOP",
-  });
+  const isDO = isDominicanTenant(tenant);
+  const locale = isDO ? "es-DO" : "en-US";
+
+  const money = new Intl.NumberFormat(
+    locale,
+    {
+      style: "currency",
+      currency: isDO ? "DOP" : "USD",
+    }
+  );
 
   const todayString = new Date().toISOString().slice(0, 10);
+
+  const taxRate = getTaxRate(tenant);
+  const taxLabel = getTaxLabel(tenant);
+
+  const usTaxBreakdown = {
+    stateRate: Number(tenant?.usStateTaxRate || 0),
+    countyRate: Number(tenant?.usCountyTaxRate || 0),
+    cityRate: Number(tenant?.usCityTaxRate || 0),
+  };
+
+  const getTaxAmount = (rate, base = 0) =>
+    Math.round(
+      (
+        Number(base || 0) *
+        (Number(rate || 0) / 100) +
+        Number.EPSILON
+      ) *
+        100
+    ) / 100;
 
   const getStatus = (quote) => quote.effectiveStatus || quote.status || "draft";
 
@@ -98,7 +129,7 @@ export default function Quotes() {
       const gross = Number(item.quantity || 0) * Number(item.price || 0);
       const discountPercent = Math.min(Math.max(Number(item.discount || 0), 0), 100);
       const lineSubtotal = Math.max(gross - gross * (discountPercent / 100), 0);
-      return acc + (item.isTaxable === false ? 0 : lineSubtotal * 0.18);
+      return acc + (item.isTaxable === false ? 0 : lineSubtotal * (taxRate / 100));
     }, 0);
 
     return {
@@ -106,7 +137,7 @@ export default function Quotes() {
       tax,
       total: subtotal + tax,
     };
-  }, [items]);
+  }, [items, taxRate]);
 
   const stats = useMemo(() => {
     return {
@@ -352,7 +383,7 @@ export default function Quotes() {
       Number(quote.total || 0)
     )}. Válida hasta: ${
       quote.validUntil
-        ? new Date(quote.validUntil).toLocaleDateString("es-DO")
+        ? new Date(quote.validUntil).toLocaleDateString(locale)
         : "según disponibilidad"
     }.`;
 
@@ -434,13 +465,13 @@ export default function Quotes() {
         <div>
           <strong>${tenant?.businessName || "Mi empresa"}</strong><br/>
           ${tenant?.address || ""}<br/>
-          RNC/Cédula: ${tenant?.rnc || "-"}<br/>
+          ${isDO ? `RNC/Cédula: ${tenant?.rnc || "-"}<br/>` : ""}
           ${tenant?.email || ""}<br/>
           ${tenant?.phone || ""}<br/><br/>
-          <strong>Fecha:</strong> ${new Date(quote.createdAt).toLocaleDateString("es-DO")}<br/>
+          <strong>Fecha:</strong> ${new Date(quote.createdAt).toLocaleDateString(locale)}<br/>
           <strong>Válida hasta:</strong> ${
             quote.validUntil
-              ? new Date(quote.validUntil).toLocaleDateString("es-DO")
+              ? new Date(quote.validUntil).toLocaleDateString(locale)
               : "-"
           }
         </div>
@@ -448,7 +479,7 @@ export default function Quotes() {
 
           <div class="box">
             <strong>Cliente:</strong> ${quote.customerName}<br/>
-            <strong>RNC:</strong> ${quote.customerRnc || "-"}<br/>
+            ${isDO ? `<strong>RNC:</strong> ${quote.customerRnc || "-"}<br/>` : ""}
             <strong>Teléfono:</strong> ${quote.customerPhone || "-"}<br/>
             <strong>Email:</strong> ${quote.customerEmail || "-"}
           </div>
@@ -461,7 +492,7 @@ export default function Quotes() {
                 <th>Precio</th>
                 <th>Desc.</th>
                 <th>Subtotal</th>
-                <th>ITBIS</th>
+                <th>${taxLabel}</th>
                 <th>Total</th>
               </tr>
             </thead>
@@ -489,10 +520,36 @@ export default function Quotes() {
               <span>Subtotal</span>
               <strong>${money.format(Number(quote.subtotal || 0))}</strong>
             </div>
-            <div>
-              <span>ITBIS</span>
-              <strong>${money.format(Number(quote.tax || 0))}</strong>
-            </div>
+            ${
+  isDO
+    ? `
+      <div>
+        <span>${taxLabel} (${taxRate}%)</span>
+        <strong>${money.format(Number(quote.tax || 0))}</strong>
+      </div>
+    `
+    : `
+      <div>
+        <span>State Tax (${usTaxBreakdown.stateRate}%)</span>
+        <strong>${money.format(getTaxAmount(usTaxBreakdown.stateRate, Number(quote.subtotal || 0)))}</strong>
+      </div>
+
+      <div>
+        <span>County Tax (${usTaxBreakdown.countyRate}%)</span>
+        <strong>${money.format(getTaxAmount(usTaxBreakdown.countyRate, Number(quote.subtotal || 0)))}</strong>
+      </div>
+
+      <div>
+        <span>City Tax (${usTaxBreakdown.cityRate}%)</span>
+        <strong>${money.format(getTaxAmount(usTaxBreakdown.cityRate, Number(quote.subtotal || 0)))}</strong>
+      </div>
+
+      <div>
+        <span>Total Taxes (${taxRate}%)</span>
+        <strong>${money.format(Number(quote.tax || 0))}</strong>
+      </div>
+    `
+}
             <div class="total">
               <span>Total</span>
               <strong>${money.format(Number(quote.total || 0))}</strong>
@@ -608,147 +665,366 @@ export default function Quotes() {
           </div>
         </div>
 
-        <div className="quote-table-wrap">
-          <table className="quote-table">
-            <thead>
-              <tr>
-                <th>Cotización</th>
-                <th>Cliente</th>
-                <th>Fecha</th>
-                <th>Válida hasta</th>
-                <th>Subtotal</th>
-                <th>ITBIS</th>
-                <th>Total</th>
-                <th>Estado</th>
-                <th>Creada por</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
+        <div className="quote-table-wrap quote-desktop-list">
+  <table className="quote-table">
+    <thead>
+      <tr>
+        <th>Cotización</th>
+        <th>Cliente</th>
+        <th>Fecha</th>
+        <th>Válida hasta</th>
+        <th>Subtotal</th>
+        <th>{isDO ? taxLabel : "Total Taxes"}</th>
+        <th>Total</th>
+        <th>Estado</th>
+        <th>Creada por</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
 
-            <tbody>
-              {loading ? (
-                <tr>
-                  <td colSpan="10" className="table-empty">
-                    Cargando cotizaciones...
-                  </td>
-                </tr>
-              ) : filteredQuotes.length === 0 ? (
-                <tr>
-                  <td colSpan="10" className="table-empty">
-                    No hay cotizaciones registradas.
-                  </td>
-                </tr>
-              ) : (
-                filteredQuotes.map((quote) => {
-                  const status = getStatus(quote);
+    <tbody>
+      {loading ? (
+        <tr>
+          <td colSpan="10" className="table-empty">
+            Cargando cotizaciones...
+          </td>
+        </tr>
+      ) : filteredQuotes.length === 0 ? (
+        <tr>
+          <td colSpan="10" className="table-empty">
+            No hay cotizaciones registradas.
+          </td>
+        </tr>
+      ) : (
+        filteredQuotes.map((quote) => {
+          const status = getStatus(quote);
 
-                  return (
-                    <tr key={quote.id}>
-                      <td>
-                        <div className="quote-number-cell">
-                          <div className="quote-icon">
-                            <ClipboardList size={18} />
-                          </div>
-                          <strong>{quote.quoteNumber}</strong>
-                        </div>
-                      </td>
+          return (
+            <tr key={quote.id}>
+              <td>
+                <div className="quote-number-cell">
+                  <div className="quote-icon">
+                    <ClipboardList size={18} />
+                  </div>
+                  <strong>{quote.quoteNumber}</strong>
+                </div>
+              </td>
 
-                      <td>{quote.customerName}</td>
+              <td>{quote.customerName}</td>
+              <td>{new Date(quote.createdAt).toLocaleDateString(locale)}</td>
+              <td>
+                {quote.validUntil
+                  ? new Date(quote.validUntil).toLocaleDateString(locale)
+                  : "-"}
+              </td>
+              <td>{money.format(Number(quote.subtotal || 0))}</td>
+              <td>{money.format(Number(quote.tax || 0))}</td>
+              <td>
+                <strong>{money.format(Number(quote.total || 0))}</strong>
+              </td>
+              <td>
+                <span className={statusClass[status] || "badge warning"}>
+                  {statusLabel[status] || "Borrador"}
+                </span>
+              </td>
+              <td>{quote.creator?.name || "Sistema"}</td>
 
-                      <td>
-                        {new Date(quote.createdAt).toLocaleDateString("es-DO")}
-                      </td>
+              <td>
+                <div className="table-actions quote-actions">
+                  {status !== "converted" && status !== "expired" && (
+                    <>
+                      <button title="Marcar enviada" onClick={() => handleStatus(quote, "sent")}>
+                        <Send size={16} />
+                      </button>
 
-                      <td>
-                        {quote.validUntil
-                          ? new Date(quote.validUntil).toLocaleDateString("es-DO")
-                          : "-"}
-                      </td>
+                      <button title="Aprobar" onClick={() => handleStatus(quote, "approved")}>
+                        <CheckCircle size={16} />
+                      </button>
 
-                      <td>{money.format(Number(quote.subtotal || 0))}</td>
-                      <td>{money.format(Number(quote.tax || 0))}</td>
+                      <button title="Rechazar" onClick={() => handleStatus(quote, "rejected")}>
+                        <XCircle size={16} />
+                      </button>
+                    </>
+                  )}
 
-                      <td>
-                        <strong>{money.format(Number(quote.total || 0))}</strong>
-                      </td>
+                  <button title="Copiar mensaje WhatsApp" onClick={() => copyWhatsAppMessage(quote)}>
+                    <Copy size={16} />
+                  </button>
 
-                      <td>
-                        <span className={statusClass[status] || "badge warning"}>
-                          {statusLabel[status] || "Borrador"}
-                        </span>
-                      </td>
-                          <td>{quote.creator?.name || "Sistema"}</td>
-                      <td>
-                        <div className="table-actions quote-actions">
-                          {status !== "converted" && status !== "expired" && (
-                            <>
-                              <button
-                                title="Marcar enviada"
-                                onClick={() => handleStatus(quote, "sent")}
-                              >
-                                <Send size={16} />
-                              </button>
+                  {status !== "converted" && (
+                    <button title="Editar" onClick={() => openEditQuote(quote)}>
+                      <Pencil size={16} />
+                    </button>
+                  )}
 
-                              <button
-                                title="Aprobar"
-                                onClick={() => handleStatus(quote, "approved")}
-                              >
-                                <CheckCircle size={16} />
-                              </button>
+                  <button title="Imprimir" onClick={() => handlePrint(quote)}>
+                    <Printer size={16} />
+                  </button>
 
-                              <button
-                                title="Rechazar"
-                                onClick={() => handleStatus(quote, "rejected")}
-                              >
-                                <XCircle size={16} />
-                              </button>
-                            </>
-                          )}
+                  {status !== "converted" && status !== "expired" && (
+                    <button title="Convertir a factura" onClick={() => handleConvertToInvoice(quote)}>
+                      <FilePlus2 size={16} />
+                    </button>
+                  )}
 
-                          <button
-                            title="Copiar mensaje WhatsApp"
-                            onClick={() => copyWhatsAppMessage(quote)}
-                          >
-                            <Copy size={16} />
-                          </button>
+                  {status !== "converted" && (
+                    <button className="danger-btn" title="Eliminar" onClick={() => handleDeleteQuote(quote)}>
+                      <Trash2 size={16} />
+                    </button>
+                  )}
+                </div>
+              </td>
+            </tr>
+          );
+        })
+      )}
+    </tbody>
+  </table>
+</div>
 
-                          {status !== "converted" && (
-                              <button title="Editar" onClick={() => openEditQuote(quote)}>
-                                <Pencil size={16} />
-                              </button>
-                          )}
+<div className="quote-mobile-list">
+  {loading ? (
+    <div className="quote-mobile-empty">Cargando cotizaciones...</div>
+  ) : filteredQuotes.length ? (
+    filteredQuotes.map((quote) => {
+      const status = getStatus(quote);
 
-                          <button title="Imprimir" onClick={() => handlePrint(quote)}>
-                            <Printer size={16} />
-                          </button>
+      return (
+        <button
+          type="button"
+          key={quote.id}
+          className="quote-mobile-card"
+          onClick={() => setSelectedQuote(quote)}
+        >
+          <div className="quote-mobile-top">
+            <div>
+              <span>Cotización</span>
+              <strong>{quote.quoteNumber}</strong>
+            </div>
 
-                          {status !== "converted" && status !== "expired" && (
-                            <button
-                              title="Convertir a factura"
-                              onClick={() => handleConvertToInvoice(quote)}
-                            >
-                              <FilePlus2 size={16} />
-                            </button>
-                          )}
+            <span className={statusClass[status] || "badge warning"}>
+              {statusLabel[status] || "Borrador"}
+            </span>
+          </div>
 
-                          {status !== "converted" && (
-                            <button
-                              className="danger-btn"
-                              title="Eliminar"
-                              onClick={() => handleDeleteQuote(quote)}
-                            >
-                              <Trash2 size={16} />
-                            </button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
+          <div className="quote-mobile-client">
+            <span>Cliente</span>
+            <strong>{quote.customerName || "Sin cliente"}</strong>
+          </div>
+
+          <div className="quote-mobile-money-grid">
+            <div>
+              <span>Subtotal</span>
+              <strong>{money.format(Number(quote.subtotal || 0))}</strong>
+            </div>
+
+            <div>
+              <span>Total</span>
+              <strong>{money.format(Number(quote.total || 0))}</strong>
+            </div>
+          </div>
+
+          <div className="quote-mobile-footer">
+            <span>
+              Válida hasta{" "}
+              {quote.validUntil
+                ? new Date(quote.validUntil).toLocaleDateString(locale)
+                : "-"}
+            </span>
+            <strong>Ver detalle</strong>
+          </div>
+        </button>
+      );
+    })
+  ) : (
+    <div className="quote-mobile-empty">No hay cotizaciones registradas.</div>
+  )}
+</div>
+
+{selectedQuote && (
+  <div className="quote-detail-overlay" onClick={() => setSelectedQuote(null)}>
+    <div className="quote-detail-modal" onClick={(e) => e.stopPropagation()}>
+      <div className="quote-detail-header">
+        <div>
+          <span>Detalle de cotización</span>
+          <h3>{selectedQuote.quoteNumber}</h3>
         </div>
+
+        <button type="button" onClick={() => setSelectedQuote(null)}>
+          <X size={20} />
+        </button>
+      </div>
+
+      <div className="quote-detail-status">
+        <span className={statusClass[getStatus(selectedQuote)] || "badge warning"}>
+          {statusLabel[getStatus(selectedQuote)] || "Borrador"}
+        </span>
+      </div>
+
+      <div className="quote-detail-list">
+        <div>
+          <span>Cliente</span>
+          <strong>{selectedQuote.customerName || "Sin cliente"}</strong>
+        </div>
+
+        <div>
+          <span>Fecha</span>
+          <strong>{new Date(selectedQuote.createdAt).toLocaleDateString(locale)}</strong>
+        </div>
+
+        <div>
+          <span>Válida hasta</span>
+          <strong>
+            {selectedQuote.validUntil
+              ? new Date(selectedQuote.validUntil).toLocaleDateString(locale)
+              : "-"}
+          </strong>
+        </div>
+
+        <div>
+          <span>Subtotal</span>
+          <strong>{money.format(Number(selectedQuote.subtotal || 0))}</strong>
+        </div>
+
+        {isDO ? (
+  <div>
+    <span>{taxLabel}</span>
+    <strong>{money.format(Number(selectedQuote.tax || 0))}</strong>
+  </div>
+) : (
+  <>
+    <div>
+      <span>State Tax</span>
+      <strong>
+        {money.format(
+          getTaxAmount(
+            usTaxBreakdown.stateRate,
+            Number(selectedQuote.subtotal || 0)
+          )
+        )}
+      </strong>
+    </div>
+
+    <div>
+      <span>County Tax</span>
+      <strong>
+        {money.format(
+          getTaxAmount(
+            usTaxBreakdown.countyRate,
+            Number(selectedQuote.subtotal || 0)
+          )
+        )}
+      </strong>
+    </div>
+
+    <div>
+      <span>City Tax</span>
+      <strong>
+        {money.format(
+          getTaxAmount(
+            usTaxBreakdown.cityRate,
+            Number(selectedQuote.subtotal || 0)
+          )
+        )}
+      </strong>
+    </div>
+
+    <div>
+      <span>Total Taxes</span>
+      <strong>{money.format(Number(selectedQuote.tax || 0))}</strong>
+    </div>
+  </>
+)}
+
+        <div>
+          <span>Total</span>
+          <strong>{money.format(Number(selectedQuote.total || 0))}</strong>
+        </div>
+
+        <div>
+          <span>Creada por</span>
+          <strong>{selectedQuote.creator?.name || "Sistema"}</strong>
+        </div>
+      </div>
+
+      <div className="quote-detail-actions">
+        {getStatus(selectedQuote) !== "converted" &&
+          getStatus(selectedQuote) !== "expired" && (
+            <>
+              <button type="button" className="quote-action-btn" onClick={() => handleStatus(selectedQuote, "sent")}>
+                <Send size={16} />
+                Marcar enviada
+              </button>
+
+              <button type="button" className="quote-action-btn" onClick={() => handleStatus(selectedQuote, "approved")}>
+                <CheckCircle size={16} />
+                Aprobar
+              </button>
+
+              <button type="button" className="quote-action-btn" onClick={() => handleStatus(selectedQuote, "rejected")}>
+                <XCircle size={16} />
+                Rechazar
+              </button>
+            </>
+          )}
+
+        <button type="button" className="quote-action-btn" onClick={() => copyWhatsAppMessage(selectedQuote)}>
+          <Copy size={16} />
+          Copiar WhatsApp
+        </button>
+
+        {getStatus(selectedQuote) !== "converted" && (
+          <button
+            type="button"
+            className="quote-action-btn"
+            onClick={() => {
+              openEditQuote(selectedQuote);
+              setSelectedQuote(null);
+            }}
+          >
+            <Pencil size={16} />
+            Editar
+          </button>
+        )}
+
+        <button type="button" className="quote-action-btn" onClick={() => handlePrint(selectedQuote)}>
+          <Printer size={16} />
+          Imprimir
+        </button>
+
+        {getStatus(selectedQuote) !== "converted" &&
+          getStatus(selectedQuote) !== "expired" && (
+            <button
+              type="button"
+              className="quote-action-btn quote-primary-action"
+              onClick={() => {
+                handleConvertToInvoice(selectedQuote);
+                setSelectedQuote(null);
+              }}
+            >
+              <FilePlus2 size={16} />
+              Convertir a factura
+            </button>
+          )}
+
+        {getStatus(selectedQuote) !== "converted" && (
+          <button
+            type="button"
+            className="quote-danger-action"
+            onClick={() => {
+              handleDeleteQuote(selectedQuote);
+              setSelectedQuote(null);
+            }}
+          >
+            <Trash2 size={16} />
+            Eliminar
+          </button>
+        )}
+      </div>
+    </div>
+  </div>
+)}
+
       </section>
 
       {modalOpen && (
@@ -767,77 +1043,86 @@ export default function Quotes() {
 
             <form onSubmit={handleSaveQuote} className="quote-form">
               <div className="quote-form-grid">
-                <div className="form-row">
-                  <label>Cliente *</label>
-                  <input
-                    name="customerName"
-                    list="quote-customers"
-                    value={quoteForm.customerName}
-                    onChange={handleQuoteChange}
-                    placeholder="Nombre del cliente"
-                  />
-                  <datalist id="quote-customers">
-                    {customers.map((customer) => (
-                      <option key={customer.id} value={customer.name} />
-                    ))}
-                  </datalist>
-                </div>
+  <div className="form-row">
+    <label>Cliente *</label>
 
-                <div className="form-row">
-                  <label>RNC / Cédula</label>
-                  <input
-                    name="customerRnc"
-                    value={quoteForm.customerRnc}
-                    onChange={handleQuoteChange}
-                    placeholder="RNC o cédula"
-                  />
-                </div>
+    <input
+      name="customerName"
+      list="quote-customers"
+      value={quoteForm.customerName}
+      onChange={handleQuoteChange}
+      placeholder="Nombre del cliente"
+    />
 
-                <div className="form-row">
-                  <label>Teléfono</label>
-                  <input
-                    name="customerPhone"
-                    value={quoteForm.customerPhone}
-                    onChange={handleQuoteChange}
-                    placeholder="809-000-0000"
-                  />
-                </div>
+    <datalist id="quote-customers">
+      {customers.map((customer) => (
+        <option key={customer.id} value={customer.name} />
+      ))}
+    </datalist>
+  </div>
 
-                <div className="form-row">
-                  <label>Email</label>
-                  <input
-                    name="customerEmail"
-                    value={quoteForm.customerEmail}
-                    onChange={handleQuoteChange}
-                    placeholder="cliente@email.com"
-                  />
-                </div>
+  {isDO && (
+    <div className="form-row">
+      <label>RNC / Cédula</label>
 
-                <div className="form-row">
-                  <label>Válida hasta</label>
-                  <input
-                    name="validUntil"
-                    type="date"
-                    min={todayString}
-                    value={quoteForm.validUntil}
-                    onChange={handleQuoteChange}
-                  />
-                </div>
+      <input
+        name="customerRnc"
+        value={quoteForm.customerRnc}
+        onChange={handleQuoteChange}
+        placeholder="RNC o cédula"
+      />
+    </div>
+  )}
 
-                <div className="form-row">
-                  <label>Estado</label>
-                  <select
-                    name="status"
-                    value={quoteForm.status}
-                    onChange={handleQuoteChange}
-                  >
-                    <option value="draft">Borrador</option>
-                    <option value="sent">Enviada</option>
-                    <option value="approved">Aprobada</option>
-                    <option value="rejected">Rechazada</option>
-                  </select>
-                </div>
-              </div>
+  <div className="form-row">
+    <label>Teléfono</label>
+
+    <input
+      name="customerPhone"
+      value={quoteForm.customerPhone}
+      onChange={handleQuoteChange}
+      placeholder="809-000-0000"
+    />
+  </div>
+
+  <div className="form-row">
+    <label>Email</label>
+
+    <input
+      name="customerEmail"
+      value={quoteForm.customerEmail}
+      onChange={handleQuoteChange}
+      placeholder="cliente@email.com"
+    />
+  </div>
+
+  <div className="form-row">
+    <label>Válida hasta</label>
+
+    <input
+      name="validUntil"
+      type="date"
+      min={todayString}
+      value={quoteForm.validUntil}
+      onChange={handleQuoteChange}
+    />
+  </div>
+
+  <div className="form-row">
+    <label>Estado</label>
+
+    <select
+      name="status"
+      value={quoteForm.status}
+      onChange={handleQuoteChange}
+    >
+      <option value="draft">Borrador</option>
+      <option value="sent">Enviada</option>
+      <option value="approved">Aprobada</option>
+      <option value="rejected">Rechazada</option>
+    </select>
+  </div>
+</div>
 
               <div className="quote-items-box">
                 <div className="items-header">
@@ -853,94 +1138,196 @@ export default function Quotes() {
                 </div>
 
                 {items.length === 0 ? (
-                  <div className="items-empty">
-                    No hay productos agregados a esta cotización.
-                  </div>
-                ) : (
-                  <div className="quote-items-list">
-                    {items.map((item, index) => {
-                      const gross =
-                        Number(item.quantity || 0) * Number(item.price || 0);
-                      const discount = Math.min(
-                        Math.max(Number(item.discount || 0), 0),
-                        100
-                      );
-                      const subtotal = Math.max(gross - gross * (discount / 100), 0);
-                      const tax = item.isTaxable === false ? 0 : subtotal * 0.18;
-                      const total = subtotal + tax;
+  <div className="items-empty">
+    No hay productos agregados a esta cotización.
+  </div>
+) : (
+  <>
+    <div className="quote-items-list">
+      {items.map((item, index) => {
+        const gross = Number(item.quantity || 0) * Number(item.price || 0);
+        const discount = Math.min(Math.max(Number(item.discount || 0), 0), 100);
+        const subtotal = Math.max(gross - gross * (discount / 100), 0);
+        const tax =
+          item.isTaxable === false
+            ? 0
+            : subtotal * (taxRate / 100);
+        const total = subtotal + tax;
 
-                      return (
-                        <div className="quote-item-row" key={index}>
-                          <select
-                            value={item.productId}
-                            onChange={(e) =>
-                              handleItemChange(index, "productId", e.target.value)
-                            }
-                          >
-                            <option value="">Seleccionar producto</option>
-                            {products.map((product) => (
-                              <option key={product.id} value={product.id}>
-                                {product.name} - Stock: {product.stock}
-                              </option>
-                            ))}
-                          </select>
+        return (
+          <div className="quote-item-row" key={index}>
+            <select
+              value={item.productId}
+              onChange={(e) => handleItemChange(index, "productId", e.target.value)}
+            >
+              <option value="">Seleccionar producto</option>
+              {products.map((product) => (
+                <option key={product.id} value={product.id}>
+                  {product.name} - Stock: {product.stock}
+                </option>
+              ))}
+            </select>
 
-                          <input
-                            type="number"
-                            min="1"
-                            value={item.quantity}
-                            onChange={(e) =>
-                              handleItemChange(index, "quantity", e.target.value)
-                            }
-                            placeholder="Cant."
-                          />
+            <input
+              type="number"
+              min="1"
+              value={item.quantity}
+              onChange={(e) => handleItemChange(index, "quantity", e.target.value)}
+              placeholder="Cant."
+            />
 
-                          <input
-                            type="number"
-                            step="0.01"
-                            value={item.price}
-                            onChange={(e) =>
-                              handleItemChange(index, "price", e.target.value)
-                            }
-                            placeholder="Precio"
-                          />
+            <input
+              type="number"
+              step="0.01"
+              value={item.price}
+              onChange={(e) => handleItemChange(index, "price", e.target.value)}
+              placeholder="Precio"
+            />
 
-                          <input
-                            type="number"
-                            step="0.01"
-                            min="0"
-                            max="100"
-                            value={item.discount}
-                            onChange={(e) =>
-                              handleItemChange(index, "discount", e.target.value)
-                            }
-                            placeholder="Desc. %"
-                          />
+            <input
+              type="number"
+              step="0.01"
+              min="0"
+              max="100"
+              value={item.discount}
+              onChange={(e) => handleItemChange(index, "discount", e.target.value)}
+              placeholder="Desc. %"
+            />
 
-                          <select
-                            value={item.isTaxable === false ? "false" : "true"}
-                            onChange={(e) =>
-                              handleItemChange(index, "isTaxable", e.target.value)
-                            }
-                          >
-                            <option value="true">Con ITBIS</option>
-                            <option value="false">Sin ITBIS</option>
-                          </select>
+            <select
+              value={item.isTaxable === false ? "false" : "true"}
+              onChange={(e) => handleItemChange(index, "isTaxable", e.target.value)}
+            >
+              <option value="true">
+                {isDO ? "Con ITBIS" : "Taxable"}
+              </option>
 
-                          <strong>{money.format(total)}</strong>
+              <option value="false">
+                {isDO ? "Sin ITBIS" : "Non-Taxable"}
+              </option>
+            </select>
 
-                          <button
-                            type="button"
-                            className="remove-item-btn"
-                            onClick={() => removeItem(index)}
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
+            <strong>{money.format(total)}</strong>
+
+            <button
+              type="button"
+              className="remove-item-btn"
+              onClick={() => removeItem(index)}
+            >
+              <Trash2 size={16} />
+            </button>
+          </div>
+        );
+      })}
+    </div>
+
+    <div className="quote-mobile-items">
+      {items.map((item, index) => {
+        const gross = Number(item.quantity || 0) * Number(item.price || 0);
+        const discount = Math.min(Math.max(Number(item.discount || 0), 0), 100);
+        const subtotal = Math.max(gross - gross * (discount / 100), 0);
+        const tax =
+            item.isTaxable === false
+              ? 0
+              : subtotal * (taxRate / 100);
+        const total = subtotal + tax;
+
+        return (
+          <div className="quote-mobile-item-card" key={index}>
+            <div className="quote-mobile-item-head">
+              <h4>Producto #{index + 1}</h4>
+
+              <button type="button" onClick={() => removeItem(index)}>
+                <Trash2 size={16} />
+              </button>
+            </div>
+
+            <div className="quote-mobile-item-grid">
+              <label>
+                Producto
+                <select
+                  value={item.productId}
+                  onChange={(e) => handleItemChange(index, "productId", e.target.value)}
+                >
+                  <option value="">Seleccionar producto</option>
+                  {products.map((product) => (
+                    <option key={product.id} value={product.id}>
+                      {product.name} - Stock: {product.stock}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <div className="quote-mobile-item-row-2">
+                <label>
+                  Cantidad
+                  <input
+                    type="number"
+                    min="1"
+                    value={item.quantity}
+                    onChange={(e) => handleItemChange(index, "quantity", e.target.value)}
+                  />
+                </label>
+
+                <label>
+                  Precio
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={item.price}
+                    onChange={(e) => handleItemChange(index, "price", e.target.value)}
+                  />
+                </label>
+              </div>
+
+              <div className="quote-mobile-item-row-2">
+                <label>
+                  Descuento %
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    max="100"
+                    value={item.discount}
+                    onChange={(e) => handleItemChange(index, "discount", e.target.value)}
+                  />
+                </label>
+
+                <label>
+                  {taxLabel}
+                  <select
+                    value={item.isTaxable === false ? "false" : "true"}
+                    onChange={(e) => handleItemChange(index, "isTaxable", e.target.value)}
+                  >
+                    <option value="true">Con {taxLabel}</option>
+                    <option value="false">Sin {taxLabel}</option>
+                  </select>
+                </label>
+              </div>
+            </div>
+
+            <div className="quote-mobile-item-total">
+              <p>
+                <span>Subtotal</span>
+                <strong>{money.format(subtotal)}</strong>
+              </p>
+
+              <p>
+                <span>{taxLabel}</span>
+                <strong>{money.format(tax)}</strong>
+              </p>
+
+              <p className="big">
+                <span>Total</span>
+                <strong>{money.format(total)}</strong>
+              </p>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  </>
+)}
               </div>
 
               <div className="form-row full quote-notes">
@@ -954,21 +1341,45 @@ export default function Quotes() {
               </div>
 
               <div className="quote-summary">
-                <div>
-                  <span>Subtotal</span>
-                  <strong>{money.format(totals.subtotal)}</strong>
-                </div>
+  <div>
+    <span>Subtotal</span>
+    <strong>{money.format(totals.subtotal)}</strong>
+  </div>
 
-                <div>
-                  <span>ITBIS</span>
-                  <strong>{money.format(totals.tax)}</strong>
-                </div>
+  {isDO ? (
+    <div>
+      <span>{taxLabel} ({taxRate}%)</span>
+      <strong>{money.format(totals.tax)}</strong>
+    </div>
+  ) : (
+    <>
+      <div>
+        <span>State Tax ({usTaxBreakdown.stateRate}%)</span>
+        <strong>{money.format(getTaxAmount(usTaxBreakdown.stateRate, totals.subtotal))}</strong>
+      </div>
 
-                <div className="summary-total">
-                  <span>Total</span>
-                  <strong>{money.format(totals.total)}</strong>
-                </div>
-              </div>
+      <div>
+        <span>County Tax ({usTaxBreakdown.countyRate}%)</span>
+        <strong>{money.format(getTaxAmount(usTaxBreakdown.countyRate, totals.subtotal))}</strong>
+      </div>
+
+      <div>
+        <span>City Tax ({usTaxBreakdown.cityRate}%)</span>
+        <strong>{money.format(getTaxAmount(usTaxBreakdown.cityRate, totals.subtotal))}</strong>
+      </div>
+
+      <div>
+        <span>Total Taxes ({taxRate}%)</span>
+        <strong>{money.format(totals.tax)}</strong>
+      </div>
+    </>
+  )}
+
+  <div className="summary-total">
+    <span>Total</span>
+    <strong>{money.format(totals.total)}</strong>
+  </div>
+</div>
 
               <div className="modal-actions">
                 <button type="button" onClick={closeModal} className="cancel-btn">

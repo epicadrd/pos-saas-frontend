@@ -12,6 +12,10 @@ export default function InvoicePreferences() {
     invoiceTaxEnabled: true,
     invoiceTaxMode: "global",
     invoiceTaxRate: 18,
+    country: "DO",
+    usStateTaxRate: 0,
+    usCountyTaxRate: 0,
+    usCityTaxRate: 0,
   });
 
   useEffect(() => {
@@ -19,7 +23,11 @@ export default function InvoicePreferences() {
       setForm({
         invoiceTaxEnabled: tenant.invoiceTaxEnabled !== false,
         invoiceTaxMode: tenant.invoiceTaxMode || "global",
-        invoiceTaxRate: tenant.invoiceTaxRate || 18,
+        invoiceTaxRate: tenant.invoiceTaxRate ?? 18,
+        country: tenant.country || "DO",
+        usStateTaxRate: tenant.usStateTaxRate ?? 0,
+        usCountyTaxRate: tenant.usCountyTaxRate ?? 0,
+        usCityTaxRate: tenant.usCityTaxRate ?? 0,
       });
     }
   }, [tenant]);
@@ -27,18 +35,34 @@ export default function InvoicePreferences() {
   const savePreferences = async () => {
     try {
       const { data } = await api.patch("/auth/tenant", {
-        ...tenant,
+        businessName: tenant?.businessName || "",
+        email: tenant?.email || "",
+        address: tenant?.address || "",
+        rnc: tenant?.rnc || "",
+        phone: tenant?.phone || "",
+
         invoiceTaxEnabled: form.invoiceTaxEnabled,
         invoiceTaxMode: form.invoiceTaxMode,
         invoiceTaxRate: Number(form.invoiceTaxRate || 0),
+        country: form.country,
+        usStateTaxRate: Number(form.usStateTaxRate || 0),
+        usCountyTaxRate: Number(form.usCountyTaxRate || 0),
+        usCityTaxRate: Number(form.usCityTaxRate || 0),
       });
-
+      
       setTenant(data.tenant);
-      alert("Preferencias de factura guardadas correctamente");
+      alert("Preferencias fiscales guardadas correctamente");
     } catch (error) {
       alert(error.response?.data?.message || "Error guardando preferencias");
     }
   };
+
+  const usTotalTax =
+    Number(form.usStateTaxRate || 0) +
+    Number(form.usCountyTaxRate || 0) +
+    Number(form.usCityTaxRate || 0);
+ 
+    const taxLabel = form.country === "DO" ? "ITBIS" : "Sales Tax";
 
   return (
     <div className="qb-list-page">
@@ -51,8 +75,8 @@ export default function InvoicePreferences() {
             <ArrowLeft size={18} />
           </button>
 
-          <h1>Preferencias de factura</h1>
-          <p>Configura cómo se calculará el ITBIS en tus facturas.</p>
+          <h1>Preferencias fiscales</h1>
+          <p>Configura el país y los impuestos que se aplicarán en tus documentos.</p>
         </div>
 
         <button className="qb-primary-btn" onClick={savePreferences}>
@@ -65,8 +89,11 @@ export default function InvoicePreferences() {
         <div className="qb-preferences-title">
           <Percent size={22} />
           <div>
-            <h3>Configuración de ITBIS</h3>
-            <p>Define si el impuesto será global o configurable por línea.</p>
+            <h3>Configuración de impuestos</h3>
+            <p>
+              En República Dominicana se usa {taxLabel}. En Estados Unidos puedes
+              configurar impuesto estatal, condado y ciudad.
+            </p>
           </div>
         </div>
 
@@ -78,10 +105,28 @@ export default function InvoicePreferences() {
               setForm({ ...form, invoiceTaxEnabled: e.target.checked })
             }
           />
-          Aplicar ITBIS en facturas
+          Aplicar impuestos en documentos
         </label>
 
         <div className="qb-form-grid">
+          <label>
+            País
+            <select
+              value={form.country}
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  country: e.target.value,
+                  invoiceTaxRate: e.target.value === "DO" ? 18 : form.invoiceTaxRate,
+                })
+              }
+              disabled={!form.invoiceTaxEnabled}
+            >
+              <option value="DO">República Dominicana</option>
+              <option value="US">Estados Unidos</option>
+            </select>
+          </label>
+
           <label>
             Modo de impuesto
             <select
@@ -91,30 +136,83 @@ export default function InvoicePreferences() {
               }
               disabled={!form.invoiceTaxEnabled}
             >
-              <option value="global">Global para toda la factura</option>
+              <option value="global">Global para todo el documento</option>
               <option value="line">Configurable por producto/línea</option>
             </select>
           </label>
-
-          <label>
-            Tasa de ITBIS %
-            <input
-              type="number"
-              min="0"
-              step="0.01"
-              value={form.invoiceTaxRate}
-              onChange={(e) =>
-                setForm({ ...form, invoiceTaxRate: e.target.value })
-              }
-              disabled={!form.invoiceTaxEnabled}
-            />
-          </label>
         </div>
 
+        {form.country === "DO" ? (
+          <div className="qb-form-grid">
+            <label>
+              {taxLabel} %
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                value={form.invoiceTaxRate}
+                onChange={(e) =>
+                  setForm({ ...form, invoiceTaxRate: e.target.value })
+                }
+                disabled={!form.invoiceTaxEnabled}
+              />
+            </label>
+          </div>
+        ) : (
+          <>
+            <div className="qb-form-grid">
+              <label>
+                Impuesto estatal %
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={form.usStateTaxRate}
+                  onChange={(e) =>
+                    setForm({ ...form, usStateTaxRate: e.target.value })
+                  }
+                  disabled={!form.invoiceTaxEnabled}
+                />
+              </label>
+
+              <label>
+                Impuesto del condado %
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={form.usCountyTaxRate}
+                  onChange={(e) =>
+                    setForm({ ...form, usCountyTaxRate: e.target.value })
+                  }
+                  disabled={!form.invoiceTaxEnabled}
+                />
+              </label>
+
+              <label>
+                Impuesto de la ciudad %
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={form.usCityTaxRate}
+                  onChange={(e) =>
+                    setForm({ ...form, usCityTaxRate: e.target.value })
+                  }
+                  disabled={!form.invoiceTaxEnabled}
+                />
+              </label>
+            </div>
+
+            <div className="qb-preference-note">
+              <strong>Total Sales Tax:</strong> {usTotalTax.toFixed(2)}%
+            </div>
+          </>
+        )}
+
         <div className="qb-preference-note">
-          <strong>Recomendación:</strong> deja “Global” si todos tus productos y
-          servicios llevan ITBIS. Usa “Por línea” si algunos conceptos no llevan
-          impuesto.
+          <strong>Nota:</strong> estos valores serán usados por Corex para
+          calcular los impuestos según el país de la empresa.
         </div>
       </div>
     </div>

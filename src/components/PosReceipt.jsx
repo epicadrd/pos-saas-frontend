@@ -1,6 +1,11 @@
 import { useEffect, useState } from "react";
 import { Printer, X } from "lucide-react";
 import QRCode from "qrcode";
+import {
+  getTaxRate,
+  getTaxLabel,
+  isDominicanTenant,
+} from "../utils/taxConfig";
 
 const paymentLabels = {
   cash: "EFECTIVO",
@@ -23,11 +28,14 @@ const getReceiptQrTarget = (sale) => {
   return `${window.location.origin}/public/pos-receipt/${sale.saleNumber}`;
 };
 
-const formatMoney = (value) =>
-  `RD$${Number(value || 0).toLocaleString("es-DO", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })}`;
+const formatMoney = (value, tenant = {}) => {
+  const isDO = isDominicanTenant(tenant);
+
+  return new Intl.NumberFormat(isDO ? "es-DO" : "en-US", {
+    style: "currency",
+    currency: isDO ? "DOP" : "USD",
+  }).format(Number(value || 0));
+};
 
 const formatDate = (value) => {
   if (!value) return "-";
@@ -43,13 +51,6 @@ const formatDate = (value) => {
   }).format(new Date(value));
 };
 
-const getExpirationDate = (value) => {
-  const date = value ? new Date(value) : new Date();
-  const year = date.getFullYear();
-
-  return `31/12/${year}`;
-};
-
 const getFiscalNumber = (sale) => {
   return (
     sale?.eCf ||
@@ -63,11 +64,6 @@ const getFiscalNumber = (sale) => {
   );
 };
 
-const getFiscalLabel = (sale) => {
-  if (sale?.eCf || sale?.ecf || sale?.ecfNumber) return "e-CF";
-  if (sale?.eNcf || sale?.encf || sale?.ncf) return "e-NCF";
-  return "No. venta";
-};
 
 export default function PosReceipt({ sale, onClose }) {
   const [qrDataUrl, setQrDataUrl] = useState("");
@@ -75,6 +71,25 @@ export default function PosReceipt({ sale, onClose }) {
   if (!sale) return null;
 
   const tenant = sale.tenant || {};
+  const taxLabel = getTaxLabel(tenant);
+  const isDO = isDominicanTenant(tenant);
+  const taxRate = getTaxRate(tenant);
+
+  const usTaxBreakdown = {
+    stateRate: Number(tenant?.usStateTaxRate || 0),
+    countyRate: Number(tenant?.usCountyTaxRate || 0),
+    cityRate: Number(tenant?.usCityTaxRate || 0),
+  };
+
+  const getTaxAmount = (rate, base = 0) =>
+    Math.round(
+      (
+        Number(base || 0) *
+        (Number(rate || 0) / 100) +
+        Number.EPSILON
+      ) *
+        100
+    ) / 100;
   const items = sale.items || [];
   const receiptType = sale.receiptType || sale.invoiceType || "consumer_final";
 
@@ -118,7 +133,7 @@ export default function PosReceipt({ sale, onClose }) {
             <div className="receipt-center">
               <h2>{tenant.businessName || "COREX POS"}</h2>
 
-              {tenant.rnc && <p>RNC: {tenant.rnc}</p>}
+              {isDO && tenant.rnc && <p>RNC: {tenant.rnc}</p>}
               {tenant.phone && <p>Tel: {tenant.phone}</p>}
               {tenant.address && <p>{tenant.address}</p>}
             </div>
@@ -126,18 +141,22 @@ export default function PosReceipt({ sale, onClose }) {
             <div className="receipt-separator" />
 
             <div className="receipt-center">
-              <h3 className="receipt-type-title">{getReceiptTypeLabel(receiptType)}</h3>
+              <h3 className="receipt-type-title">
+                {isDO ? getReceiptTypeLabel(receiptType) : "COMPROBANTE DE VENTA"}
+              </h3>
             </div>
 
             <div className="receipt-info-block receipt-info-lines">
-              <p>e-NCF: {getFiscalNumber(sale)}</p>
+              {isDO && <p>e-NCF: {getFiscalNumber(sale)}</p>}
 
-              {receiptType === "credit_fiscal" && (
+              {isDO && receiptType === "credit_fiscal" && (
                 <>
                   {sale.customerRnc && <p>RNC Comprador: {sale.customerRnc}</p>}
                   {sale.customerName && <p>Razón social comprador: {sale.customerName}</p>}
                 </>
               )}
+
+              {!isDO && sale.customerName && <p>Cliente: {sale.customerName}</p>}
 
               <p>Fecha emisión: {formatDate(sale.createdAt)}</p>
             </div>
@@ -169,15 +188,15 @@ export default function PosReceipt({ sale, onClose }) {
                   <div className="receipt-item-name">
                     <strong>{item.productName}</strong>
                     <span>
-                      {item.quantity} x {formatMoney(item.unitPrice)}
+                      {item.quantity} x {formatMoney(item.unitPrice, tenant)}
                     </span>
 
                     {Number(item.discountAmount || 0) > 0 && (
-                      <span>Desc: {formatMoney(item.discountAmount)}</span>
+                      <span>Desc: {formatMoney(item.discountAmount, tenant)}</span>
                     )}
                   </div>
 
-                  <strong className="receipt-item-total">{formatMoney(item.total)}</strong>
+                  <strong className="receipt-item-total">{formatMoney(item.total, tenant)}</strong>
                 </div>
               ))}
             </div>
@@ -187,32 +206,71 @@ export default function PosReceipt({ sale, onClose }) {
             <div className="receipt-totals">
               <p>
                 <span>SUBTOTAL</span>
-                <strong>{formatMoney(sale.subtotal)}</strong>
+                <strong>{formatMoney(sale.subtotal, tenant)}</strong>
               </p>
 
               <p>
                 <span>DESCUENTO</span>
-                <strong>{formatMoney(sale.discountTotal)}</strong>
+                <strong>{formatMoney(sale.discountTotal, tenant)}</strong>
               </p>
 
-              <p>
-                <span>ITBIS</span>
-                <strong>{formatMoney(sale.taxTotal)}</strong>
-              </p>
+              {isDO ? (
+  <p>
+    <span>{taxLabel} ({taxRate}%)</span>
+    <strong>{formatMoney(sale.taxTotal, tenant)}</strong>
+  </p>
+) : (
+  <>
+    <p>
+      <span>State Tax ({usTaxBreakdown.stateRate}%)</span>
+      <strong>
+        {formatMoney(
+          getTaxAmount(usTaxBreakdown.stateRate, sale.subtotal),
+          tenant
+        )}
+      </strong>
+    </p>
+
+    <p>
+      <span>County Tax ({usTaxBreakdown.countyRate}%)</span>
+      <strong>
+        {formatMoney(
+          getTaxAmount(usTaxBreakdown.countyRate, sale.subtotal),
+          tenant
+        )}
+      </strong>
+    </p>
+
+    <p>
+      <span>City Tax ({usTaxBreakdown.cityRate}%)</span>
+      <strong>
+        {formatMoney(
+          getTaxAmount(usTaxBreakdown.cityRate, sale.subtotal),
+          tenant
+        )}
+      </strong>
+    </p>
+
+    <p>
+      <span>Total Taxes ({taxRate}%)</span>
+      <strong>{formatMoney(sale.taxTotal, tenant)}</strong>
+    </p>
+  </>
+)}
 
               <p className="receipt-total-line">
                 <span>TOTAL</span>
-                <strong>{formatMoney(sale.total)}</strong>
+                <strong>{formatMoney(sale.total, tenant)}</strong>
               </p>
 
               <p>
                 <span>PAGADO</span>
-                <strong>{formatMoney(sale.amountPaid)}</strong>
+                <strong>{formatMoney(sale.amountPaid, tenant)}</strong>
               </p>
 
               <p>
                 <span>CAMBIO</span>
-                <strong>{formatMoney(sale.changeAmount)}</strong>
+                <strong>{formatMoney(sale.changeAmount, tenant)}</strong>
               </p>
             </div>
 
@@ -222,7 +280,7 @@ export default function PosReceipt({ sale, onClose }) {
               <p>TOTAL ITEMS {items.length}</p>
             </div>
 
-            {qrDataUrl && (
+            {isDO && qrDataUrl && (
               <div className="receipt-qr">
                 <img src={qrDataUrl} alt="QR del comprobante" />
                 <p>Escanee para consultar</p>

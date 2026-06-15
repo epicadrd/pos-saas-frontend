@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { Eye, Filter, Receipt, Search, X } from "lucide-react";
 import { api } from "../../api/axios";
 import PosReceipt from "../../components/PosReceipt";
+import { useAuth } from "../../context/AuthContext";
+import { isDominicanTenant } from "../../utils/taxConfig";
 import "../../styles/pos.css";
 
 const paymentLabels = {
@@ -13,6 +15,11 @@ const paymentLabels = {
 };
 
 export default function PosSales() {
+  const { tenant } = useAuth();
+  const isDO = isDominicanTenant(tenant);
+  const locale = isDO ? "es-DO" : "en-US";
+  const currency = isDO ? "DOP" : "USD";
+
   const [sales, setSales] = useState([]);
   const [summary, setSummary] = useState(null);
   const [registers, setRegisters] = useState([]);
@@ -30,17 +37,17 @@ export default function PosSales() {
 
   const money = useMemo(
     () =>
-      new Intl.NumberFormat("es-DO", {
+      new Intl.NumberFormat(locale, {
         style: "currency",
-        currency: "DOP",
+        currency,
       }),
-    []
+    [locale, currency]
   );
 
   const formatDate = (value) => {
     if (!value) return "-";
 
-    return new Intl.DateTimeFormat("es-DO", {
+    return new Intl.DateTimeFormat(locale, {
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
@@ -62,7 +69,10 @@ export default function PosSales() {
 
       if (filters.dateFrom) params.append("dateFrom", filters.dateFrom);
       if (filters.dateTo) params.append("dateTo", filters.dateTo);
-      if (filters.cashRegisterId) params.append("cashRegisterId", filters.cashRegisterId);
+      if (filters.cashRegisterId) {
+        params.append("cashRegisterId", filters.cashRegisterId);
+      }
+
       if (filters.paymentMethod && filters.paymentMethod !== "all") {
         params.append("paymentMethod", filters.paymentMethod);
       }
@@ -72,7 +82,9 @@ export default function PosSales() {
       setSales(data.sales || []);
       setSummary(data.summary || null);
     } catch (error) {
-      alert(error.response?.data?.message || "No se pudieron cargar las ventas POS");
+      alert(
+        error.response?.data?.message || "No se pudieron cargar las ventas POS"
+      );
     } finally {
       setLoading(false);
     }
@@ -80,9 +92,6 @@ export default function PosSales() {
 
   useEffect(() => {
     loadRegisters();
-  }, []);
-
-  useEffect(() => {
     loadSales();
   }, []);
 
@@ -148,17 +157,23 @@ export default function PosSales() {
 
         <article className="pos-summary-card">
           <span>Efectivo</span>
-          <strong>{money.format(Number(summary?.byPaymentMethod?.cash || 0))}</strong>
+          <strong>
+            {money.format(Number(summary?.byPaymentMethod?.cash || 0))}
+          </strong>
         </article>
 
         <article className="pos-summary-card">
           <span>Tarjeta</span>
-          <strong>{money.format(Number(summary?.byPaymentMethod?.card || 0))}</strong>
+          <strong>
+            {money.format(Number(summary?.byPaymentMethod?.card || 0))}
+          </strong>
         </article>
 
         <article className="pos-summary-card">
           <span>Transferencia</span>
-          <strong>{money.format(Number(summary?.byPaymentMethod?.transfer || 0))}</strong>
+          <strong>
+            {money.format(Number(summary?.byPaymentMethod?.transfer || 0))}
+          </strong>
         </article>
       </section>
 
@@ -256,7 +271,9 @@ export default function PosSales() {
                     <td>{sale.saleNumber}</td>
                     <td>{sale.cashRegister?.name || "-"}</td>
                     <td>{sale.user?.name || "-"}</td>
-                    <td>{paymentLabels[sale.paymentMethod] || sale.paymentMethod}</td>
+                    <td>
+                      {paymentLabels[sale.paymentMethod] || sale.paymentMethod}
+                    </td>
                     <td>
                       <strong>{money.format(Number(sale.total || 0))}</strong>
                     </td>
@@ -276,7 +293,9 @@ export default function PosSales() {
                           type="button"
                           className="table-icon-btn"
                           onClick={async () => {
-                            const { data } = await api.get(`/pos/sales/${sale.id}`);
+                            const { data } = await api.get(
+                              `/pos/sales/${sale.id}`
+                            );
                             setReceiptSale(data);
                           }}
                           title="Reimprimir ticket"
@@ -294,8 +313,14 @@ export default function PosSales() {
       </section>
 
       {selectedSale && (
-        <div className="pos-modal-backdrop" onClick={() => setSelectedSale(null)}>
-          <div className="pos-sale-detail-modal" onClick={(event) => event.stopPropagation()}>
+        <div
+          className="pos-modal-backdrop"
+          onClick={() => setSelectedSale(null)}
+        >
+          <div
+            className="pos-sale-detail-modal"
+            onClick={(event) => event.stopPropagation()}
+          >
             <div className="pos-sale-detail-header">
               <div>
                 <span>Detalle de venta</span>
@@ -321,7 +346,10 @@ export default function PosSales() {
 
               <div>
                 <span>Método</span>
-                <strong>{paymentLabels[selectedSale.paymentMethod] || selectedSale.paymentMethod}</strong>
+                <strong>
+                  {paymentLabels[selectedSale.paymentMethod] ||
+                    selectedSale.paymentMethod}
+                </strong>
               </div>
 
               <div>
@@ -338,7 +366,8 @@ export default function PosSales() {
                   <div>
                     <strong>{item.productName}</strong>
                     <span>
-                      {item.quantity} x {money.format(Number(item.unitPrice || 0))}
+                      {item.quantity} x{" "}
+                      {money.format(Number(item.unitPrice || 0))}
                     </span>
                   </div>
 
@@ -351,7 +380,8 @@ export default function PosSales() {
               <span>Total</span>
               <strong>{money.format(Number(selectedSale.total || 0))}</strong>
             </div>
-          <button
+
+            <button
               type="button"
               className="primary-btn"
               onClick={() => setReceiptSale(selectedSale)}
@@ -362,12 +392,10 @@ export default function PosSales() {
           </div>
         </div>
       )}
+
       {receiptSale && (
-          <PosReceipt
-            sale={receiptSale}
-            onClose={() => setReceiptSale(null)}
-          />
-        )}
+        <PosReceipt sale={receiptSale} onClose={() => setReceiptSale(null)} />
+      )}
     </div>
   );
 }

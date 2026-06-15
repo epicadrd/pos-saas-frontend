@@ -8,14 +8,24 @@ import {
   RefreshCcw,
 } from "lucide-react";
 import { api } from "../../api/axios";
+import { useAuth } from "../../context/AuthContext";
+import { isDominicanTenant } from "../../utils/taxConfig";
 
-const formatMoney = (value) =>
-  new Intl.NumberFormat("es-DO", {
-    style: "currency",
-    currency: "DOP",
-  }).format(Number(value || 0));
 
 export default function AccountingSummary() {
+
+    const { tenant } = useAuth();
+
+  const isDO = isDominicanTenant(tenant);
+  const locale = isDO ? "es-DO" : "en-US";
+  const currency = isDO ? "DOP" : "USD";
+
+  const formatMoney = (value) =>
+    new Intl.NumberFormat(locale, {
+      style: "currency",
+      currency,
+    }).format(Number(value || 0));
+    
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -129,7 +139,7 @@ export default function AccountingSummary() {
                     </div>
                     <span>
                       {new Date(`${item.date}T00:00:00`).toLocaleDateString(
-                        "es-DO",
+                        locale,
                         { day: "2-digit", month: "short" }
                       )}
                     </span>

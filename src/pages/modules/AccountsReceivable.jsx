@@ -11,13 +11,10 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../../api/axios";
+import { useAuth } from "../../context/AuthContext";
+import { isDominicanTenant } from "../../utils/taxConfig";
 import { getFiscalNumber } from "../../utils/fiscalNumber";
 
-const formatMoney = (value) =>
-  new Intl.NumberFormat("es-DO", {
-    style: "currency",
-    currency: "DOP",
-  }).format(Number(value || 0));
 
 const statusLabels = {
   issued: "Pendiente",
@@ -28,6 +25,17 @@ const statusLabels = {
 };
 
 export default function AccountsReceivable() {
+    const { tenant } = useAuth();
+
+  const isDO = isDominicanTenant(tenant);
+  const locale = isDO ? "es-DO" : "en-US";
+  const currency = isDO ? "DOP" : "USD";
+
+  const formatMoney = (value) =>
+    new Intl.NumberFormat(locale, {
+      style: "currency",
+      currency,
+    }).format(Number(value || 0));
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState(true);
@@ -251,8 +259,17 @@ export default function AccountsReceivable() {
                       <small>{invoice.customerPhone || invoice.customerEmail || "—"}</small>
                     </td>
 
-                    <td>{invoice.invoiceDate || "—"}</td>
-                    <td>{invoice.dueDate || "—"}</td>
+                    <td>
+                      {invoice.invoiceDate
+                        ? new Date(invoice.invoiceDate).toLocaleDateString(locale)
+                        : "—"}
+                    </td>
+
+                    <td>
+                      {invoice.dueDate
+                        ? new Date(invoice.dueDate).toLocaleDateString(locale)
+                        : "—"}
+                    </td>
                     <td>{formatMoney(invoice.total)}</td>
                     <td>{formatMoney(invoice.amountPaid)}</td>
 

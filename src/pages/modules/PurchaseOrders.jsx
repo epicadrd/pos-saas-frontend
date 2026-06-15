@@ -9,6 +9,12 @@ import {
   X,
 } from "lucide-react";
 import { api } from "../../api/axios";
+import { useAuth } from "../../context/AuthContext";
+import {
+  getTaxLabel,
+  getTaxRate,
+  isDominicanTenant,
+} from "../../utils/taxConfig";
 import { useConfirm } from "../../components/ConfirmProvider";
 
 const emptyOrder = {
@@ -22,7 +28,24 @@ const emptyOrder = {
 };
 
 export default function PurchaseOrders() {
-  const { confirm } = useConfirm();
+const { confirm } = useConfirm();
+const { tenant } = useAuth();
+
+const isDO = isDominicanTenant(tenant);
+const locale = isDO ? "es-DO" : "en-US";
+const currency = isDO ? "DOP" : "USD";
+
+const money = useMemo(
+  () =>
+    new Intl.NumberFormat(locale, {
+      style: "currency",
+      currency,
+    }),
+  [locale, currency]
+);
+
+const taxLabel = getTaxLabel(tenant);
+const taxRate = getTaxRate(tenant);
   const [orders, setOrders] = useState([]);
   const [products, setProducts] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
@@ -32,11 +55,6 @@ export default function PurchaseOrders() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [suppliers, setSuppliers] = useState([]);
-
-  const money = new Intl.NumberFormat("es-DO", {
-    style: "currency",
-    currency: "DOP",
-  });
 
   const filteredOrders = orders.filter((order) => {
     const text = `${order.orderNumber} ${order.supplierName}`.toLowerCase();
@@ -49,11 +67,11 @@ export default function PurchaseOrders() {
       0
     );
 
-    const tax = subtotal * 0.18;
+    const tax = subtotal * (Number(taxRate || 0) / 100);
     const total = subtotal + tax;
 
     return { subtotal, tax, total };
-  }, [items]);
+  }, [items, taxRate]);
 
   const stats = useMemo(() => {
     const totalOrders = orders.length;
@@ -432,11 +450,11 @@ const getLastProductPurchase = (productId) => {
             </div>
             <div>
               <strong>Fecha:</strong><br/>
-              ${new Date(order.createdAt).toLocaleDateString("es-DO")}<br/><br/>
+              ${new Date(order.createdAt).toLocaleDateString(locale)}
               <strong>Entrega esperada:</strong><br/>
               ${
                 order.expectedDate
-                  ? new Date(order.expectedDate).toLocaleDateString("es-DO")
+                  ? new Date(order.expectedDate).toLocaleDateString(locale)
                   : "-"
               }
             </div>
@@ -474,6 +492,7 @@ const getLastProductPurchase = (productId) => {
                 .join("")}
             </tbody>
           </table>
+          
 
           <div class="totals">
             <div>
@@ -481,7 +500,7 @@ const getLastProductPurchase = (productId) => {
               <strong>${money.format(Number(order.subtotal))}</strong>
             </div>
             <div>
-              <span>ITBIS 18%</span>
+              <span>${taxLabel}</span>
               <strong>${money.format(Number(order.tax))}</strong>
             </div>
             <div class="total">
@@ -591,7 +610,7 @@ const getLastProductPurchase = (productId) => {
                 <th>Fecha</th>
                 <th>Entrega esperada</th>
                 <th>Subtotal</th>
-                <th>ITBIS</th>
+                <th>{taxLabel}</th>
                 <th>Total</th>
                 <th>Creada por</th>
                 <th>Estado</th>
@@ -625,10 +644,10 @@ const getLastProductPurchase = (productId) => {
                     </td>
 
                     <td>{order.supplierName}</td>
-                    <td>{new Date(order.createdAt).toLocaleDateString("es-DO")}</td>
+                    <td>{new Date(order.createdAt).toLocaleDateString(locale)}</td>
                     <td>
                       {order.expectedDate
-                        ? new Date(order.expectedDate).toLocaleDateString("es-DO")
+                        ? new Date(order.expectedDate).toLocaleDateString(locale)
                         : "-"}
                     </td>
                     <td>{money.format(Number(order.subtotal || 0))}</td>
@@ -788,7 +807,7 @@ const getLastProductPurchase = (productId) => {
                 <div>
                   <strong>{order.orderNumber}</strong>
                   <span>
-                    {new Date(order.createdAt).toLocaleDateString("es-DO")} ·{" "}
+                    {new Date(order.createdAt).toLocaleDateString(locale)} ·{" "}
                     {getStatusLabel(order.status)}
                   </span>
                 </div>
@@ -931,7 +950,7 @@ const getLastProductPurchase = (productId) => {
                 </div>
 
                 <div>
-                  <span>ITBIS 18%</span>
+                  <span>{taxLabel}</span>
                   <strong>{money.format(totals.tax)}</strong>
                 </div>
 

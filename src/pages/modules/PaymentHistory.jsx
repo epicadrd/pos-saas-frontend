@@ -1,19 +1,39 @@
 import { useEffect, useMemo, useState } from "react";
 import { Calendar, FileText, Search, Wallet, X } from "lucide-react";
 import { api } from "../../api/axios";
+import { useAuth } from "../../context/AuthContext";
+import { getTaxLabel, isDominicanTenant } from "../../utils/taxConfig";
 import { getFiscalNumber } from "../../utils/fiscalNumber";
 
 export default function PaymentHistory() {
+  const { tenant } = useAuth();
+
   const [invoices, setInvoices] = useState([]);
-  const [month, setMonth] = useState(String(new Date().getMonth() + 1).padStart(2, "0"));
+  const [month, setMonth] = useState(
+    String(new Date().getMonth() + 1).padStart(2, "0")
+  );
   const [year, setYear] = useState(String(new Date().getFullYear()));
   const [search, setSearch] = useState("");
   const [selectedInvoice, setSelectedInvoice] = useState(null);
 
-  const money = new Intl.NumberFormat("es-DO", {
-    style: "currency",
-    currency: "DOP",
-  });
+  const isDO = isDominicanTenant(tenant);
+  const locale = isDO ? "es-DO" : "en-US";
+  const currency = isDO ? "DOP" : "USD";
+  const taxLabel = getTaxLabel(tenant);
+
+  const money = useMemo(
+    () =>
+      new Intl.NumberFormat(locale, {
+        style: "currency",
+        currency,
+      }),
+    [locale, currency]
+  );
+
+  const formatDate = (value) => {
+    if (!value) return "-";
+    return new Date(value).toLocaleDateString(locale);
+  };
 
   const loadInvoices = async () => {
     const { data } = await api.get("/invoices");
@@ -34,7 +54,9 @@ export default function PaymentHistory() {
 
       const matchDate = invoiceMonth === month && invoiceYear === year;
 
-      const text = `${getFiscalNumber(invoice)} ${invoice.customerName}`.toLowerCase();
+      const text = `${getFiscalNumber(invoice)} ${
+        invoice.customerName || ""
+      }`.toLowerCase();
       const matchSearch = text.includes(search.toLowerCase());
 
       return matchDate && matchSearch;
@@ -74,7 +96,7 @@ export default function PaymentHistory() {
       <div className="payment-history-header">
         <div>
           <h1>Historial de pagos</h1>
-          <p>Consulta facturas pagadas, total cobrado e ITBIS por mes.</p>
+          <p>Consulta facturas pagadas, total cobrado e {taxLabel} por mes.</p>
         </div>
       </div>
 
@@ -131,7 +153,7 @@ export default function PaymentHistory() {
             <Calendar size={22} />
           </div>
           <div>
-            <span>ITBIS</span>
+            <span>{taxLabel}</span>
             <strong>{money.format(totals.tax)}</strong>
           </div>
         </div>
@@ -148,143 +170,161 @@ export default function PaymentHistory() {
       </div>
 
       <div className="payment-table-card payment-history-desktop">
-  <table className="payment-table">
-    <thead>
-      <tr>
-        <th>Factura</th>
-        <th>Cliente</th>
-        <th>Fecha</th>
-        <th>Subtotal</th>
-        <th>ITBIS</th>
-        <th>Total</th>
-        <th>Pagado</th>
-      </tr>
-    </thead>
+        <table className="payment-table">
+          <thead>
+            <tr>
+              <th>Factura</th>
+              <th>Cliente</th>
+              <th>Fecha</th>
+              <th>Subtotal</th>
+              <th>{taxLabel}</th>
+              <th>Total</th>
+              <th>Pagado</th>
+            </tr>
+          </thead>
 
-    <tbody>
-      {paidInvoices.map((invoice) => (
-        <tr key={invoice.id}>
-          <td>{getFiscalNumber(invoice)}</td>
-          <td>{invoice.customerName}</td>
-          <td>{new Date(invoice.createdAt).toLocaleDateString("es-DO")}</td>
-          <td>{money.format(Number(invoice.subtotal || 0))}</td>
-          <td>{money.format(Number(invoice.tax || 0))}</td>
-          <td>{money.format(Number(invoice.total || 0))}</td>
-          <td>
-            <strong>{money.format(Number(invoice.amountPaid || 0))}</strong>
-          </td>
-        </tr>
-      ))}
+          <tbody>
+            {paidInvoices.map((invoice) => (
+              <tr key={invoice.id}>
+                <td>{getFiscalNumber(invoice)}</td>
+                <td>{invoice.customerName}</td>
+                <td>{formatDate(invoice.createdAt)}</td>
+                <td>{money.format(Number(invoice.subtotal || 0))}</td>
+                <td>{money.format(Number(invoice.tax || 0))}</td>
+                <td>{money.format(Number(invoice.total || 0))}</td>
+                <td>
+                  <strong>
+                    {money.format(Number(invoice.amountPaid || 0))}
+                  </strong>
+                </td>
+              </tr>
+            ))}
 
-      {!paidInvoices.length && (
-        <tr>
-          <td colSpan="7" className="payment-empty">
+            {!paidInvoices.length && (
+              <tr>
+                <td colSpan="7" className="payment-empty">
+                  No hay facturas pagadas en este mes.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="payment-history-mobile">
+        {paidInvoices.length ? (
+          paidInvoices.map((invoice) => (
+            <button
+              type="button"
+              key={invoice.id}
+              className="payment-mobile-card"
+              onClick={() => setSelectedInvoice(invoice)}
+            >
+              <div className="payment-mobile-card-top">
+                <div>
+                  <span>Factura</span>
+                  <strong>{getFiscalNumber(invoice)}</strong>
+                </div>
+
+                <small>{formatDate(invoice.createdAt)}</small>
+              </div>
+
+              <div className="payment-mobile-client">
+                <span>Cliente</span>
+                <strong>{invoice.customerName || "Sin cliente"}</strong>
+              </div>
+
+              <div className="payment-mobile-money-grid">
+                <div>
+                  <span>Total</span>
+                  <strong>{money.format(Number(invoice.total || 0))}</strong>
+                </div>
+
+                <div>
+                  <span>Pagado</span>
+                  <strong>
+                    {money.format(Number(invoice.amountPaid || 0))}
+                  </strong>
+                </div>
+              </div>
+
+              <div className="payment-mobile-footer">
+                <span>
+                  {taxLabel} {money.format(Number(invoice.tax || 0))}
+                </span>
+                <strong>Ver detalle</strong>
+              </div>
+            </button>
+          ))
+        ) : (
+          <div className="payment-mobile-empty">
             No hay facturas pagadas en este mes.
-          </td>
-        </tr>
+          </div>
+        )}
+      </div>
+
+      {selectedInvoice && (
+        <div
+          className="payment-detail-overlay"
+          onClick={() => setSelectedInvoice(null)}
+        >
+          <div
+            className="payment-detail-modal"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="payment-detail-header">
+              <div>
+                <span>Detalle del pago</span>
+                <h3>{getFiscalNumber(selectedInvoice)}</h3>
+              </div>
+
+              <button type="button" onClick={() => setSelectedInvoice(null)}>
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="payment-detail-list">
+              <div>
+                <span>Cliente</span>
+                <strong>{selectedInvoice.customerName || "Sin cliente"}</strong>
+              </div>
+
+              <div>
+                <span>Fecha</span>
+                <strong>{formatDate(selectedInvoice.createdAt)}</strong>
+              </div>
+
+              <div>
+                <span>Subtotal</span>
+                <strong>
+                  {money.format(Number(selectedInvoice.subtotal || 0))}
+                </strong>
+              </div>
+
+              <div>
+                <span>{taxLabel}</span>
+                <strong>
+                  {money.format(Number(selectedInvoice.tax || 0))}
+                </strong>
+              </div>
+
+              <div>
+                <span>Total</span>
+                <strong>
+                  {money.format(Number(selectedInvoice.total || 0))}
+                </strong>
+              </div>
+
+              <div>
+                <span>Pagado</span>
+                <strong>
+                  {money.format(Number(selectedInvoice.amountPaid || 0))}
+                </strong>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
-    </tbody>
-  </table>
-</div>
-
-<div className="payment-history-mobile">
-  {paidInvoices.length ? (
-    paidInvoices.map((invoice) => (
-      <button
-        type="button"
-        key={invoice.id}
-        className="payment-mobile-card"
-        onClick={() => setSelectedInvoice(invoice)}
-      >
-        <div className="payment-mobile-card-top">
-          <div>
-            <span>Factura</span>
-            <strong>{getFiscalNumber(invoice)}</strong>
-          </div>
-
-          <small>{new Date(invoice.createdAt).toLocaleDateString("es-DO")}</small>
-        </div>
-
-        <div className="payment-mobile-client">
-          <span>Cliente</span>
-          <strong>{invoice.customerName || "Sin cliente"}</strong>
-        </div>
-
-        <div className="payment-mobile-money-grid">
-          <div>
-            <span>Total</span>
-            <strong>{money.format(Number(invoice.total || 0))}</strong>
-          </div>
-
-          <div>
-            <span>Pagado</span>
-            <strong>{money.format(Number(invoice.amountPaid || 0))}</strong>
-          </div>
-        </div>
-
-        <div className="payment-mobile-footer">
-          <span>ITBIS {money.format(Number(invoice.tax || 0))}</span>
-          <strong>Ver detalle</strong>
-        </div>
-      </button>
-    ))
-  ) : (
-    <div className="payment-mobile-empty">
-      No hay facturas pagadas en este mes.
-    </div>
-  )}
-</div>
-
-{selectedInvoice && (
-  <div className="payment-detail-overlay" onClick={() => setSelectedInvoice(null)}>
-    <div className="payment-detail-modal" onClick={(e) => e.stopPropagation()}>
-      <div className="payment-detail-header">
-        <div>
-          <span>Detalle del pago</span>
-          <h3>{getFiscalNumber(selectedInvoice)}</h3>
-        </div>
-
-        <button type="button" onClick={() => setSelectedInvoice(null)}>
-          <X size={20} />
-        </button>
-      </div>
-
-      <div className="payment-detail-list">
-        <div>
-          <span>Cliente</span>
-          <strong>{selectedInvoice.customerName || "Sin cliente"}</strong>
-        </div>
-
-        <div>
-          <span>Fecha</span>
-          <strong>
-            {new Date(selectedInvoice.createdAt).toLocaleDateString("es-DO")}
-          </strong>
-        </div>
-
-        <div>
-          <span>Subtotal</span>
-          <strong>{money.format(Number(selectedInvoice.subtotal || 0))}</strong>
-        </div>
-
-        <div>
-          <span>ITBIS</span>
-          <strong>{money.format(Number(selectedInvoice.tax || 0))}</strong>
-        </div>
-
-        <div>
-          <span>Total</span>
-          <strong>{money.format(Number(selectedInvoice.total || 0))}</strong>
-        </div>
-
-        <div>
-          <span>Pagado</span>
-          <strong>{money.format(Number(selectedInvoice.amountPaid || 0))}</strong>
-        </div>
-      </div>
-    </div>
-  </div>
-)}
     </div>
   );
 }

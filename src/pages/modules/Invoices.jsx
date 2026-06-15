@@ -21,7 +21,11 @@ import { useSearchParams } from "react-router-dom";
 import { useConfirm } from "../../components/ConfirmProvider";
 import QRCode from "qrcode";
 import { getFiscalNumber } from "../../utils/fiscalNumber";
-
+import {
+  getTaxRate,
+  getTaxLabel,
+  isDominicanTenant,
+} from "../../utils/taxConfig";
 
 
 const emptyForm = {
@@ -91,23 +95,37 @@ export default function Invoices() {
     phone: "",
   });
 
-  const money = new Intl.NumberFormat("es-DO", {
-    style: "currency",
-    currency: "DOP",
-  });
+const isDO = isDominicanTenant(tenant);
+
+const money = new Intl.NumberFormat(isDO ? "es-DO" : "en-US", {
+  style: "currency",
+  currency: isDO ? "DOP" : "USD",
+});
 
   const taxEnabled = tenant?.invoiceTaxEnabled !== false;
   const taxMode = tenant?.invoiceTaxMode || "global";
-  const taxRate = Number(tenant?.invoiceTaxRate || 18);
+  const taxRate = getTaxRate(tenant);
+  const taxLabel = getTaxLabel(tenant);
+  const usTaxBreakdown = {
+  stateRate: Number(tenant?.usStateTaxRate || 0),
+  countyRate: Number(tenant?.usCountyTaxRate || 0),
+  cityRate: Number(tenant?.usCityTaxRate || 0),
+};
+
+const getTaxAmount = (rate, base = totals.subtotal) => {
+  return Math.round((Number(base || 0) * (Number(rate || 0) / 100) + Number.EPSILON) * 100) / 100;
+};
 
   const invoiceTypeLabels = {
-  consumer_final: "FACTURA PARA CONSUMIDOR FINAL",
+  consumer_final: "FACTURA DE CONSUMO FISCAL",
   credit_fiscal: "FACTURA DE CRÉDITO FISCAL",
-  };
+};
 
   const getInvoiceTypeLabel = (type) => {
-    return invoiceTypeLabels[type] || invoiceTypeLabels.consumer_final;
-  };
+  if (!isDO) return "INVOICE";
+
+  return invoiceTypeLabels[type] || invoiceTypeLabels.consumer_final;
+};
 
   
 
@@ -116,8 +134,12 @@ export default function Invoices() {
   };
 
   const getFiscalInvoiceNumber = (invoice) => {
-    return invoice?.eNcf || "e-NCF pendiente";
-  };
+  if (!isDO) {
+    return invoice?.invoiceNumber || "Pending";
+  }
+
+  return invoice?.eNcf || "e-NCF pendiente";
+};
 
   const getFiscalInvoiceTitle = (invoiceType) => {
     return invoiceType === "credit_fiscal"
@@ -132,7 +154,8 @@ export default function Invoices() {
   };
 
   const invoiceNumberPreview =
-    editingInvoiceNumber || `FAC-${Date.now().toString().slice(-8)}`;
+  editingInvoiceNumber ||
+  `${isDO ? "FAC" : "INV"}-${Date.now().toString().slice(-8)}`;
 
   const filteredCustomers = customers.filter((customer) => {
     const search = form.customerName.toLowerCase().trim();
@@ -448,9 +471,13 @@ export default function Invoices() {
             }),
           };
 
-          const fiscalInvoice = await emitElectronicInvoice(invoiceWithItems);
+          if (isDO) {
+            const fiscalInvoice = await emitElectronicInvoice(invoiceWithItems);
+            handlePrintInvoice(fiscalInvoice);
+            } else {
+            handlePrintInvoice(invoiceWithItems);
+            }
 
-          handlePrintInvoice(fiscalInvoice);
         }
       }
 
@@ -594,6 +621,10 @@ const buildInvoiceQrValue = (invoice) => {
 };
 
 const emitElectronicInvoice = async (invoice) => {
+  if (!isDO) {
+    return invoice;
+  }
+
   const tipoeCF = getTipoECFByInvoiceType(invoice.invoiceType);
 
   const { data } = await api.post(
@@ -621,7 +652,6 @@ const emitElectronicInvoice = async (invoice) => {
       "Enviado",
   };
 };
-
   const handlePrintInvoice = async (invoice) => {
     const invoiceItems = invoice.items || [];
     const qrDataUrl = await QRCode.toDataURL(buildInvoiceQrValue(invoice), {
@@ -658,14 +688,19 @@ const emitElectronicInvoice = async (invoice) => {
                   ? `<img src="${invoiceLogo}" style="max-width:120px; max-height:80px; object-fit:contain; margin-bottom:12px;" />`
                   : ""
               }
-              <h1>${getFiscalInvoiceTitle(invoice.invoiceType)}</h1>
-              <p><strong>e-NCF:</strong> ${getFiscalInvoiceNumber(invoice)}</p>
+              <h1>${isDO ? getFiscalInvoiceTitle(invoice.invoiceType) : "INVOICE"}</h1>
+
+                ${
+                  isDO
+                    ? `<p><strong>e-NCF:</strong> ${getFiscalInvoiceNumber(invoice)}</p>`
+                    : ""
+                }
             </div>
 
             <div>
               <strong>${tenant?.businessName || "Mi empresa"}</strong><br/>
               ${tenant?.address || ""}<br/>
-              RNC/Cédula: ${tenant?.rnc || "-"}<br/>
+              ${isDO ? `RNC/Cédula: ${tenant?.rnc || "-" }<br/>` : ""}
               ${tenant?.email || ""}<br/>
               ${tenant?.phone || ""}
             </div>
@@ -673,7 +708,7 @@ const emitElectronicInvoice = async (invoice) => {
 
           <div class="box">
             <strong>Cliente:</strong> ${invoice.customerName || "-"}<br/>
-            <strong>RNC/Cédula:</strong> ${invoice.customerRnc || "-"}<br/>
+            ${isDO ? `<strong>RNC/Cédula:</strong> ${invoice.customerRnc || "-"}<br/>` : ""}
             <strong>Teléfono:</strong> ${invoice.customerPhone || "-"}<br/>
             <strong>Email:</strong> ${invoice.customerEmail || "-"}<br/><br/>
 
@@ -689,7 +724,7 @@ const emitElectronicInvoice = async (invoice) => {
                 <th>Precio</th>
                 <th>Descuento</th>
                 <th>Subtotal</th>
-                ${taxMode === "line" ? "<th>ITBIS</th>" : ""}
+               ${taxMode === "line" ? `<th>${taxLabel}</th>` : ""}
                 <th>Total</th>
               </tr>
             </thead>
@@ -732,16 +767,31 @@ const emitElectronicInvoice = async (invoice) => {
 
           <div class="totals">
             <div><span>Subtotal</span><strong>${money.format(Number(invoice.subtotal || 0))}</strong></div>
-            <div><span>ITBIS (${taxRate}%)</span><strong>${money.format(Number(invoice.tax || 0))}</strong></div>
+            ${
+              isDO
+                ? `<div><span>${taxLabel} (${taxRate}%)</span><strong>${money.format(Number(invoice.tax || 0))}</strong></div>`
+                : `
+                  <div><span>State Tax (${usTaxBreakdown.stateRate}%)</span><strong>${money.format(getTaxAmount(usTaxBreakdown.stateRate, Number(invoice.subtotal || 0)))}</strong></div>
+                  <div><span>County Tax (${usTaxBreakdown.countyRate}%)</span><strong>${money.format(getTaxAmount(usTaxBreakdown.countyRate, Number(invoice.subtotal || 0)))}</strong></div>
+                  <div><span>City Tax (${usTaxBreakdown.cityRate}%)</span><strong>${money.format(getTaxAmount(usTaxBreakdown.cityRate, Number(invoice.subtotal || 0)))}</strong></div>
+                  <div><span>Total Taxes (${taxRate}%)</span><strong>${money.format(Number(invoice.tax || 0))}</strong></div>
+                `
+            }
             <div class="total"><span>Total</span><strong>${money.format(Number(invoice.total || 0))}</strong></div>
             <div><span>Pagado</span><strong>${money.format(Number(invoice.amountPaid || 0))}</strong></div>
             <div><span>Pendiente</span><strong>${money.format(Number(invoice.balance || 0))}</strong></div>
           </div>
 
-          <div class="qr-section">
-            <img src="${qrDataUrl}" alt="Código QR de la factura" />
-            <p>Escanee para consultar esta factura</p>
-          </div>
+          ${
+            isDO
+              ? `
+                <div class="qr-section">
+                  <img src="${qrDataUrl}" alt="Código QR de la factura" />
+                  <p>Escanee para consultar esta factura</p>
+                </div>
+              `
+              : ""
+          }
         </body>
       </html>
     `;
@@ -787,20 +837,25 @@ const emitElectronicInvoice = async (invoice) => {
 
         <body>
           <div class="header">
-            <div>
-              ${
-                invoiceLogo
-                  ? `<img src="${invoiceLogo}" style="max-width:120px; max-height:80px; object-fit:contain; margin-bottom:12px;" />`
-                  : ""
-              }
-              <h1>${getInvoiceTypeLabel(form.invoiceType)}</h1>
-              <p>${invoiceNumberPreview}</p>
-            </div>
+  <div>
+    ${
+      invoiceLogo
+        ? `<img src="${invoiceLogo}" style="max-width:120px; max-height:80px; object-fit:contain; margin-bottom:12px;" />`
+        : ""
+    }
+    <h1>${getInvoiceTypeLabel(form.invoiceType)}</h1>
+
+    ${
+      isDO
+        ? `<p>${invoiceNumberPreview}</p>`
+        : `<p>Invoice # ${invoiceNumberPreview}</p>`
+    }
+  </div>
 
             <div>
               <strong>${tenant?.businessName || "Mi empresa"}</strong><br/>
               ${tenant?.address || ""}<br/>
-              RNC/Cédula: ${tenant?.rnc || "-"}<br/>
+              ${isDO ? `RNC/Cédula: ${tenant?.rnc || "-"}<br/>` : ""}
               ${tenant?.email || ""}<br/>
               ${tenant?.phone || ""}
             </div>
@@ -808,7 +863,7 @@ const emitElectronicInvoice = async (invoice) => {
 
           <div class="box">
             <strong>Cliente:</strong> ${form.customerName || "-"}<br/>
-            <strong>RNC/Cédula:</strong> ${form.customerRnc || "-"}<br/>
+            ${isDO ? `<strong>RNC/Cédula:</strong> ${form.customerRnc || "-"}<br/>` : ""}
             <strong>Teléfono:</strong> ${form.customerPhone || "-"}<br/>
             <strong>Email:</strong> ${form.customerEmail || "-"}<br/><br/>
 
@@ -824,7 +879,7 @@ const emitElectronicInvoice = async (invoice) => {
                 <th>Precio</th>
                 <th>Descuento</th>
                 <th>Subtotal</th>
-                ${taxMode === "line" ? "<th>ITBIS</th>" : ""}
+                ${taxMode === "line" ? `<th>${taxLabel}</th>` : ""}
                 <th>Total</th>
               </tr>
             </thead>
@@ -870,16 +925,31 @@ const emitElectronicInvoice = async (invoice) => {
 
           <div class="totals">
             <div><span>Subtotal</span><strong>${money.format(totals.subtotal)}</strong></div>
-            <div><span>ITBIS (${taxRate}%)</span><strong>${money.format(totals.tax)}</strong></div>
+            ${
+  isDO
+    ? `<div><span>${taxLabel} (${taxRate}%)</span><strong>${money.format(totals.tax)}</strong></div>`
+    : `
+      <div><span>State Tax (${usTaxBreakdown.stateRate}%)</span><strong>${money.format(getTaxAmount(usTaxBreakdown.stateRate))}</strong></div>
+      <div><span>County Tax (${usTaxBreakdown.countyRate}%)</span><strong>${money.format(getTaxAmount(usTaxBreakdown.countyRate))}</strong></div>
+      <div><span>City Tax (${usTaxBreakdown.cityRate}%)</span><strong>${money.format(getTaxAmount(usTaxBreakdown.cityRate))}</strong></div>
+      <div><span>Total Taxes (${taxRate}%)</span><strong>${money.format(totals.tax)}</strong></div>
+    `
+}
             <div class="total"><span>Total</span><strong>${money.format(totals.total)}</strong></div>
             <div><span>Pagado</span><strong>${money.format(totals.paid)}</strong></div>
             <div><span>Pendiente</span><strong>${money.format(totals.balance)}</strong></div>
           </div>
 
-          <div class="qr-section">
-            <img src="${qrDataUrl}" alt="Código QR de la factura" />
-            <p>Escanee para consultar esta factura</p>
-          </div>
+          ${
+            isDO
+              ? `
+                <div class="qr-section">
+                  <img src="${qrDataUrl}" alt="Código QR de la factura" />
+                  <p>Escanee para consultar esta factura</p>
+                </div>
+              `
+              : ""
+          }
         </body>
       </html>
     `;
@@ -987,10 +1057,10 @@ const emitElectronicInvoice = async (invoice) => {
   <table className="qb-table">
     <thead>
       <tr>
-        <th>e-NCF</th>
+        <th>{isDO ? "e-NCF" : "Invoice #"}</th>
         <th>Cliente</th>
         <th>Subtotal</th>
-        <th>ITBIS</th>
+        <th>{taxLabel}</th>
         <th>Total</th>
         <th>Pagado</th>
         <th>Pendiente</th>
@@ -1010,7 +1080,13 @@ const emitElectronicInvoice = async (invoice) => {
       ) : invoices.length ? (
         invoices.map((invoice) => (
           <tr key={invoice.id}>
-            <td><strong>{invoice.eNcf || "Pendiente"}</strong></td>
+            <td>
+              <strong>
+                {isDO
+                  ? invoice.eNcf || "Pendiente"
+                  : invoice.invoiceNumber || "Pending"}
+              </strong>
+            </td>
             <td>{invoice.customerName}</td>
             <td>{money.format(Number(invoice.subtotal || 0))}</td>
             <td>{money.format(Number(invoice.tax || 0))}</td>
@@ -1085,7 +1161,11 @@ const emitElectronicInvoice = async (invoice) => {
         <div className="qb-mobile-card-top">
           <div>
             <span className="qb-mobile-label">Factura</span>
-            <strong>{invoice.eNcf || "e-NCF pendiente"}</strong>
+            <strong>
+              {isDO
+                ? invoice.eNcf || "e-NCF pendiente"
+                : invoice.invoiceNumber || "Pending"}
+            </strong>
           </div>
 
           <span className={`qb-status qb-${invoice.status}`}>
@@ -1127,7 +1207,11 @@ const emitElectronicInvoice = async (invoice) => {
       <div className="qb-mobile-detail-header">
         <div>
           <span>Detalle de factura</span>
-          <h3>{selectedInvoice.eNcf || "e-NCF pendiente"}</h3>
+          <h3>
+            {isDO
+              ? selectedInvoice.eNcf || "e-NCF pendiente"
+              : selectedInvoice.invoiceNumber || "Pending"}
+          </h3>
         </div>
 
         <button type="button" onClick={() => setSelectedInvoice(null)}>
@@ -1153,7 +1237,7 @@ const emitElectronicInvoice = async (invoice) => {
         </div>
 
         <div>
-          <span>ITBIS</span>
+          <span>{taxLabel}</span>
           <strong>{money.format(Number(selectedInvoice.tax || 0))}</strong>
         </div>
 
@@ -1239,7 +1323,11 @@ const emitElectronicInvoice = async (invoice) => {
             ←
           </button>
 
-          <span>Facturación / Facturas / Nueva factura</span>
+          <span>
+            {isDO
+              ? "Facturación / Facturas / Nueva factura"
+              : "Billing / Invoices / New Invoice"}
+          </span>
 
           <h1>
             {editingInvoiceId
@@ -1488,7 +1576,7 @@ const emitElectronicInvoice = async (invoice) => {
             </div>
 
             <div className="qb-mobile-card-footer">
-              <span>ITBIS {money.format(Number(invoice.tax || 0))}</span>
+              <span>{taxLabel} {money.format(Number(invoice.tax || 0))}</span>
               <strong>Ver detalle</strong>
             </div>
           </button>
@@ -1534,7 +1622,7 @@ const emitElectronicInvoice = async (invoice) => {
             </div>
 
             <div>
-              <span>ITBIS</span>
+              <span>{taxLabel}</span>
               <strong>{money.format(Number(selectedDraft.tax || 0))}</strong>
             </div>
 
@@ -1598,10 +1686,10 @@ const emitElectronicInvoice = async (invoice) => {
           <main className="qb-document">
             <section className="qb-company">
               <div>
-                <h2>FACTURA</h2>
+                <h2>{isDO ? "FACTURA" : "INVOICE"}</h2>
                 <strong>{tenant?.businessName || "Mi empresa"}</strong>
                 <p>{tenant?.address || "Dirección no configurada"}</p>
-                <p>RNC/Cédula: {tenant?.rnc || "No configurado"}</p>
+                {isDO && <p>RNC/Cédula: {tenant?.rnc || "No configurado"}</p>}
                 <a onClick={() => setCompanyModalOpen(true)}>Editar empresa</a>
               </div>
 
@@ -1705,16 +1793,18 @@ const emitElectronicInvoice = async (invoice) => {
                     )}
                   </label>
 
-                  <label>
-                    RNC / Cédula
-                    <input
-                      value={form.customerRnc}
-                      onChange={(e) =>
-                        setForm({ ...form, customerRnc: e.target.value })
-                      }
-                      placeholder="RNC o cédula"
-                    />
-                  </label>
+                  {isDO && (
+                    <label>
+                      RNC / Cédula
+                      <input
+                        value={form.customerRnc}
+                        onChange={(e) =>
+                          setForm({ ...form, customerRnc: e.target.value })
+                        }
+                        placeholder="RNC o cédula"
+                      />
+                    </label>
+                  )}
 
                   <label>
                     Correo electrónico
@@ -1746,18 +1836,20 @@ const emitElectronicInvoice = async (invoice) => {
                   <input value={invoiceNumberPreview} disabled />
                 </label>
 
-                <label>
-                  Tipo de factura
-                  <select
-                    value={form.invoiceType}
-                    onChange={(e) =>
-                      setForm({ ...form, invoiceType: e.target.value })
-                    }
-                  >
-                    <option value="consumer_final">Consumidor final</option>
-                    <option value="credit_fiscal">Crédito fiscal</option>
-                  </select>
-                </label>
+                {isDO && (
+                  <label>
+                    Tipo de factura
+                    <select
+                      value={form.invoiceType}
+                      onChange={(e) =>
+                        setForm({ ...form, invoiceType: e.target.value })
+                      }
+                    >
+                      <option value="consumer_final">Consumidor final</option>
+                      <option value="credit_fiscal">Crédito fiscal</option>
+                    </select>
+                  </label>
+                )}
 
                 <label>
                   Términos
@@ -1816,8 +1908,8 @@ const emitElectronicInvoice = async (invoice) => {
           <th>Precio</th>
           <th>Descuento</th>
           <th>Subtotal</th>
-          {taxMode === "line" && <th>Aplica ITBIS</th>}
-          <th>ITBIS</th>
+          {taxMode === "line" && <th>Aplica {taxLabel}</th>}
+          <th>{taxLabel}</th>
           <th>Total</th>
           <th></th>
         </tr>
@@ -2105,7 +2197,7 @@ const emitElectronicInvoice = async (invoice) => {
 
               {taxMode === "line" && (
                 <label>
-                  Aplica ITBIS
+                  Aplica {taxLabel}
                   <select
                     value={item.isTaxable === false ? "no" : "yes"}
                     onChange={(e) =>
@@ -2126,7 +2218,7 @@ const emitElectronicInvoice = async (invoice) => {
               </p>
 
               <p>
-                <span>ITBIS</span>
+                <span>{taxLabel}</span>
                 <strong>{money.format(lineTax)}</strong>
               </p>
 
@@ -2190,10 +2282,34 @@ const emitElectronicInvoice = async (invoice) => {
                   <strong>{money.format(totals.subtotal)}</strong>
                 </p>
 
+                {isDO ? (
                 <p>
-                  <span>ITBIS ({taxRate}%)</span>
+                  <span>{taxLabel} ({taxRate}%)</span>
                   <strong>{money.format(totals.tax)}</strong>
                 </p>
+              ) : (
+                <>
+                  <p>
+                    <span>State Tax ({usTaxBreakdown.stateRate}%)</span>
+                    <strong>{money.format(getTaxAmount(usTaxBreakdown.stateRate))}</strong>
+                  </p>
+
+                  <p>
+                    <span>County Tax ({usTaxBreakdown.countyRate}%)</span>
+                    <strong>{money.format(getTaxAmount(usTaxBreakdown.countyRate))}</strong>
+                  </p>
+
+                  <p>
+                    <span>City Tax ({usTaxBreakdown.cityRate}%)</span>
+                    <strong>{money.format(getTaxAmount(usTaxBreakdown.cityRate))}</strong>
+                  </p>
+
+                  <p>
+                    <span>Total Taxes ({taxRate}%)</span>
+                    <strong>{money.format(totals.tax)}</strong>
+                  </p>
+                </>
+              )}
 
                 <p className="big">
                   <span>Total</span>
@@ -2339,16 +2455,21 @@ const emitElectronicInvoice = async (invoice) => {
                 />
               </label>
 
-              <label>
-                RNC / Cédula
-                <input
-                  value={companyForm.rnc}
-                  onChange={(e) =>
-                    setCompanyForm({ ...companyForm, rnc: e.target.value })
-                  }
-                  placeholder="RNC o cédula"
-                />
-              </label>
+              {isDO && (
+                <label>
+                  RNC / Cédula
+                  <input
+                    value={companyForm.rnc}
+                    onChange={(e) =>
+                      setCompanyForm({
+                        ...companyForm,
+                        rnc: e.target.value,
+                      })
+                    }
+                    placeholder="RNC o cédula"
+                  />
+                </label>
+              )}
 
               <label>
                 Teléfono
@@ -2407,14 +2528,19 @@ const emitElectronicInvoice = async (invoice) => {
       <div className="qb-preview-body">
         <div className="qb-preview-header">
           <div>
-            <h2>{getFiscalInvoiceTitle(form.invoiceType)}</h2>
-            <p><strong>e-NCF:</strong> se generará al emitir</p>
+            <h2>{isDO ? getFiscalInvoiceTitle(form.invoiceType) : "INVOICE"}</h2>
+
+              {isDO && (
+                <p><strong>e-NCF:</strong> se generará al emitir</p>
+              )}
           </div>
 
           <div>
             <strong>{tenant?.businessName || "Mi empresa"}</strong>
             <p>{tenant?.address || "Dirección no configurada"}</p>
-            <p>RNC/Cédula: {tenant?.rnc || "-"}</p>
+            {isDO && (
+              <p>RNC/Cédula: {tenant?.rnc || "-"}</p>
+            )}
             <p>{tenant?.email || ""}</p>
             <p>{tenant?.phone || ""}</p>
           </div>
@@ -2422,7 +2548,7 @@ const emitElectronicInvoice = async (invoice) => {
 
         <div className="qb-preview-client">
           <strong>Cliente:</strong> {form.customerName || "-"} <br />
-          <strong>RNC/Cédula:</strong> {form.customerRnc || "-"} <br />
+          {isDO && (<><strong>RNC/Cédula:</strong> {form.customerRnc || "-"} <br /></>)}
           <strong>Teléfono:</strong> {form.customerPhone || "-"} <br />
           <strong>Email:</strong> {form.customerEmail || "-"} <br />
           <strong>Fecha:</strong> {form.invoiceDate || "-"} <br />
@@ -2436,7 +2562,7 @@ const emitElectronicInvoice = async (invoice) => {
               <th>Cant.</th>
               <th>Precio</th>
               <th>Desc.</th>
-              <th>ITBIS</th>
+              <th>{taxLabel}</th>
               <th>Total</th>
             </tr>
           </thead>
@@ -2481,7 +2607,7 @@ const emitElectronicInvoice = async (invoice) => {
           </p>
 
           <p>
-            <span>ITBIS ({taxRate}%)</span>
+            <span>{taxLabel} ({taxRate}%)</span>
             <strong>{money.format(totals.tax)}</strong>
           </p>
 

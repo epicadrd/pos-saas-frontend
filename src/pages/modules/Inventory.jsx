@@ -23,6 +23,7 @@ import {
 import { api } from "../../api/axios";
 import { useAuth } from "../../context/AuthContext";
 import * as XLSX from "xlsx";
+import { isDominicanTenant } from "../../utils/taxConfig";
 
 const emptyForm = {
   name: "",
@@ -198,7 +199,10 @@ const movementBadgeClass = {
 };
 
 export default function Inventory() {
-  const { user } = useAuth();
+  const { user, tenant } = useAuth();
+  const isDO = isDominicanTenant(tenant);
+  const locale = isDO ? "es-DO" : "en-US";
+  const currency = isDO ? "DOP" : "USD";
    
   const [products, setProducts] = useState([]);
   const [importModalOpen, setImportModalOpen] = useState(false);
@@ -234,6 +238,7 @@ const [inventorySummary, setInventorySummary] = useState({
 
   const [movementsModalOpen, setMovementsModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [selectedInventoryProduct, setSelectedInventoryProduct] = useState(null);
   const [movements, setMovements] = useState([]);
   const [loadingMovements, setLoadingMovements] = useState(false);
 
@@ -249,10 +254,26 @@ const [inventorySummary, setInventorySummary] = useState({
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState("");
 
-  const money = new Intl.NumberFormat("es-DO", {
-    style: "currency",
-    currency: "DOP",
-  });
+ const money = useMemo(
+  () =>
+    new Intl.NumberFormat(locale, {
+      style: "currency",
+      currency,
+    }),
+  [locale, currency]
+);
+
+const formatDate = (value) => {
+  if (!value) return "-";
+
+  return new Intl.DateTimeFormat(locale, {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(new Date(value));
+};
 
 const stats = useMemo(() => {
   return {
@@ -870,104 +891,340 @@ const removeProductImage = () => {
 
         </div>
 
-        <div className="inventory-table-wrap">
-          <table className="inventory-table">
-            <thead>
-              <tr>
-                <th>Producto / Servicio</th>
-                <th>SKU</th>
-                <th>Código barras</th>
-                <th>Categoría</th>
-                <th>Precio</th>
-                <th>Costo</th>
-                <th>Stock</th>
-                <th>Estado</th>
-                <th></th>
-              </tr>
-            </thead>
+        <div className="inventory-table-wrap inventory-desktop-list">
+  <table className="inventory-table">
+    <thead>
+      <tr>
+        <th>Producto / Servicio</th>
+        <th>SKU</th>
+        <th>Código barras</th>
+        <th>Categoría</th>
+        <th>Precio</th>
+        <th>Costo</th>
+        <th>Stock</th>
+        <th>Estado</th>
+        <th></th>
+      </tr>
+    </thead>
 
-            <tbody>
-              {loading ? (
-                <tr><td colSpan="9" className="table-empty">Cargando...</td></tr>
-              ) : products.length === 0 ? (
-                <tr><td colSpan="9" className="table-empty">No hay registros.</td></tr>
+    <tbody>
+      {loading ? (
+        <tr><td colSpan="9" className="table-empty">Cargando...</td></tr>
+      ) : products.length === 0 ? (
+        <tr><td colSpan="9" className="table-empty">No hay registros.</td></tr>
+      ) : (
+        products.map((product) => {
+          const isService = product.productType === "service";
+          const controlsStock = !isService && product.trackStock !== false;
+          const isLowStock =
+            controlsStock &&
+            Number(product.stock || 0) <= Number(product.minStock || 0);
+
+          return (
+            <tr key={product.id}>
+              <td>
+                <div className="product-cell">
+                  <div className="product-icon">
+                    {isService ? <ClipboardList size={18} /> : <Package size={18} />}
+                  </div>
+                  <div>
+                    <strong>{product.name}</strong>
+                    <span>{product.description || (isService ? "Servicio" : "Producto")}</span>
+                  </div>
+                </div>
+              </td>
+
+              <td>{product.sku || "-"}</td>
+              <td>{product.barcode || "-"}</td>
+              <td>{product.category || "-"}</td>
+              <td>{money.format(Number(product.salePrice || 0))}</td>
+              <td>{money.format(Number(product.costPrice || 0))}</td>
+              <td>{controlsStock ? `${product.stock} ${product.unit}` : "No aplica"}</td>
+              <td>
+                {productStatus === "inactive" ? (
+                  <span className="badge warning">Inactivo</span>
+                ) : isService ? (
+                  <span className="badge neutral">Servicio</span>
+                ) : !controlsStock ? (
+                  <span className="badge neutral">Sin control</span>
+                ) : (
+                  <span className={isLowStock ? "badge danger" : "badge ok"}>
+                    {isLowStock ? "Stock bajo" : "Disponible"}
+                  </span>
+                )}
+              </td>
+
+              <td>
+                <div className="table-actions">
+                  {productStatus === "active" && controlsStock && (
+                    <button onClick={() => openMovementModal(product)} title="Movimiento">
+                      <PackagePlus size={17} />
+                    </button>
+                  )}
+
+                  <button onClick={() => openMovementsModal(product)} title="Historial">
+                    <History size={17} />
+                  </button>
+
+                  {productStatus === "active" ? (
+                    <>
+                      <button onClick={() => openEditModal(product)} title="Editar">
+                        <Edit size={17} />
+                      </button>
+                      <button className="danger-btn" onClick={() => openDeleteModal(product)} title="Desactivar">
+                        <Trash2 size={17} />
+                      </button>
+                    </>
+                  ) : (
+                    <button className="reactivate-btn" onClick={() => handleReactivate(product)} title="Reactivar">
+                      <RotateCcw size={16} /> Reactivar
+                    </button>
+                  )}
+                </div>
+              </td>
+            </tr>
+          );
+        })
+      )}
+    </tbody>
+  </table>
+</div>
+
+<div className="inventory-mobile-list">
+  {loading ? (
+    <div className="inventory-mobile-empty">Cargando productos...</div>
+  ) : products.length ? (
+    products.map((product) => {
+      const isService = product.productType === "service";
+      const controlsStock = !isService && product.trackStock !== false;
+      const isLowStock =
+        controlsStock &&
+        Number(product.stock || 0) <= Number(product.minStock || 0);
+
+      return (
+        <button
+          type="button"
+          key={product.id}
+          className="inventory-mobile-card"
+          onClick={() => setSelectedInventoryProduct(product)}
+        >
+          <div className="inventory-mobile-top">
+            <div className="inventory-mobile-product-main">
+              <div className="product-icon">
+                {isService ? <ClipboardList size={18} /> : <Package size={18} />}
+              </div>
+
+              <div>
+                <span>{isService ? "Servicio" : "Producto"}</span>
+                <strong>{product.name}</strong>
+              </div>
+            </div>
+
+            {productStatus === "inactive" ? (
+              <span className="badge warning">Inactivo</span>
+            ) : isService ? (
+              <span className="badge neutral">Servicio</span>
+            ) : !controlsStock ? (
+              <span className="badge neutral">Sin control</span>
+            ) : (
+              <span className={isLowStock ? "badge danger" : "badge ok"}>
+                {isLowStock ? "Stock bajo" : "Disponible"}
+              </span>
+            )}
+          </div>
+
+          <div className="inventory-mobile-description">
+            {product.description || product.category || "Sin descripción"}
+          </div>
+
+          <div className="inventory-mobile-money-grid">
+            <div>
+              <span>Precio</span>
+              <strong>{money.format(Number(product.salePrice || 0))}</strong>
+            </div>
+
+            <div>
+              <span>Stock</span>
+              <strong>{controlsStock ? `${product.stock} ${product.unit}` : "No aplica"}</strong>
+            </div>
+          </div>
+
+          <div className="inventory-mobile-footer">
+            <span>SKU {product.sku || "-"}</span>
+            <strong>Ver detalle</strong>
+          </div>
+        </button>
+      );
+    })
+  ) : (
+    <div className="inventory-mobile-empty">No hay registros.</div>
+  )}
+</div>
+
+{selectedInventoryProduct && (
+  <div
+    className="inventory-detail-overlay"
+    onClick={() => setSelectedInventoryProduct(null)}
+  >
+    <div
+      className="inventory-detail-modal"
+      onClick={(e) => e.stopPropagation()}
+    >
+      {(() => {
+        const product = selectedInventoryProduct;
+        const isService = product.productType === "service";
+        const controlsStock = !isService && product.trackStock !== false;
+        const isLowStock =
+          controlsStock &&
+          Number(product.stock || 0) <= Number(product.minStock || 0);
+
+        return (
+          <>
+            <div className="inventory-detail-header">
+              <div>
+                <span>Detalle del registro</span>
+                <h3>{product.name}</h3>
+              </div>
+
+              <button type="button" onClick={() => setSelectedInventoryProduct(null)}>
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="inventory-detail-status">
+              {productStatus === "inactive" ? (
+                <span className="badge warning">Inactivo</span>
+              ) : isService ? (
+                <span className="badge neutral">Servicio</span>
+              ) : !controlsStock ? (
+                <span className="badge neutral">Sin control</span>
               ) : (
-                products.map((product) => {
-                  const isService = product.productType === "service";
-                  const controlsStock = !isService && product.trackStock !== false;
-                  const isLowStock =
-                    controlsStock &&
-                    Number(product.stock || 0) <= Number(product.minStock || 0);
-
-                  return (
-                    <tr key={product.id}>
-                      <td>
-                        <div className="product-cell">
-                          <div className="product-icon">
-                            {isService ? <ClipboardList size={18} /> : <Package size={18} />}
-                          </div>
-                          <div>
-                            <strong>{product.name}</strong>
-                            <span>{product.description || (isService ? "Servicio" : "Producto")}</span>
-                          </div>
-                        </div>
-                      </td>
-
-                      <td>{product.sku || "-"}</td>
-                      <td>{product.barcode || "-"}</td>
-                      <td>{product.category || "-"}</td>
-                      <td>{money.format(Number(product.salePrice || 0))}</td>
-                      <td>{money.format(Number(product.costPrice || 0))}</td>
-                      <td>{controlsStock ? `${product.stock} ${product.unit}` : "No aplica"}</td>
-                      <td>
-                        {productStatus === "inactive" ? (
-                          <span className="badge warning">Inactivo</span>
-                        ) : isService ? (
-                          <span className="badge neutral">Servicio</span>
-                        ) : !controlsStock ? (
-                          <span className="badge neutral">Sin control</span>
-                        ) : (
-                          <span className={isLowStock ? "badge danger" : "badge ok"}>
-                            {isLowStock ? "Stock bajo" : "Disponible"}
-                          </span>
-                        )}
-                      </td>
-
-                      <td>
-                        <div className="table-actions">
-                          {productStatus === "active" && controlsStock && (
-                            <button onClick={() => openMovementModal(product)} title="Movimiento">
-                              <PackagePlus size={17} />
-                            </button>
-                          )}
-
-                          <button onClick={() => openMovementsModal(product)} title="Historial">
-                            <History size={17} />
-                          </button>
-
-                          {productStatus === "active" ? (
-                            <>
-                              <button onClick={() => openEditModal(product)} title="Editar">
-                                <Edit size={17} />
-                              </button>
-                              <button className="danger-btn" onClick={() => openDeleteModal(product)} title="Desactivar">
-                                <Trash2 size={17} />
-                              </button>
-                            </>
-                          ) : (
-                            <button className="reactivate-btn" onClick={() => handleReactivate(product)} title="Reactivar">
-                              <RotateCcw size={16} /> Reactivar
-                            </button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })
+                <span className={isLowStock ? "badge danger" : "badge ok"}>
+                  {isLowStock ? "Stock bajo" : "Disponible"}
+                </span>
               )}
-            </tbody>
-          </table>
-        </div>
+            </div>
+
+            <div className="inventory-detail-list">
+              <div>
+                <span>Tipo</span>
+                <strong>{isService ? "Servicio" : "Producto"}</strong>
+              </div>
+
+              <div>
+                <span>Descripción</span>
+                <strong>{product.description || "-"}</strong>
+              </div>
+
+              <div>
+                <span>SKU</span>
+                <strong>{product.sku || "-"}</strong>
+              </div>
+
+              <div>
+                <span>Código barras</span>
+                <strong>{product.barcode || "-"}</strong>
+              </div>
+
+              <div>
+                <span>Categoría</span>
+                <strong>{product.category || "-"}</strong>
+              </div>
+
+              <div>
+                <span>Precio venta</span>
+                <strong>{money.format(Number(product.salePrice || 0))}</strong>
+              </div>
+
+              <div>
+                <span>Costo</span>
+                <strong>{money.format(Number(product.costPrice || 0))}</strong>
+              </div>
+
+              <div>
+                <span>Stock</span>
+                <strong>{controlsStock ? `${product.stock} ${product.unit}` : "No aplica"}</strong>
+              </div>
+
+              <div>
+                <span>Stock mínimo</span>
+                <strong>{controlsStock ? `${product.minStock || 0} ${product.unit}` : "No aplica"}</strong>
+              </div>
+            </div>
+
+            <div className="inventory-detail-actions">
+              {productStatus === "active" && controlsStock && (
+                <button
+                  type="button"
+                  className="inventory-action-btn inventory-primary-action"
+                  onClick={() => {
+                    openMovementModal(product);
+                    setSelectedInventoryProduct(null);
+                  }}
+                >
+                  <PackagePlus size={16} />
+                  Movimiento
+                </button>
+              )}
+
+              <button
+                type="button"
+                className="inventory-action-btn"
+                onClick={() => {
+                  openMovementsModal(product);
+                  setSelectedInventoryProduct(null);
+                }}
+              >
+                <History size={16} />
+                Historial
+              </button>
+
+              {productStatus === "active" ? (
+                <>
+                  <button
+                    type="button"
+                    className="inventory-action-btn"
+                    onClick={() => {
+                      openEditModal(product);
+                      setSelectedInventoryProduct(null);
+                    }}
+                  >
+                    <Edit size={16} />
+                    Editar
+                  </button>
+
+                  <button
+                    type="button"
+                    className="inventory-danger-action"
+                    onClick={() => {
+                      openDeleteModal(product);
+                      setSelectedInventoryProduct(null);
+                    }}
+                  >
+                    <Trash2 size={16} />
+                    Desactivar
+                  </button>
+                </>
+              ) : (
+                <button
+                  type="button"
+                  className="inventory-action-btn inventory-primary-action"
+                  onClick={() => {
+                    handleReactivate(product);
+                    setSelectedInventoryProduct(null);
+                  }}
+                >
+                  <RotateCcw size={16} />
+                  Reactivar
+                </button>
+              )}
+            </div>
+          </>
+        );
+      })()}
+    </div>
+  </div>
+)}
       </section>
 
       {modalOpen && (
@@ -1210,34 +1467,97 @@ const removeProductImage = () => {
               ) : movements.length === 0 ? (
                 <div className="table-empty">Este registro no tiene movimientos.</div>
               ) : (
-                <table className="movements-table">
-                  <thead>
-                    <tr>
-                      <th>Usuario</th>
-                      <th>Tipo</th>
-                      <th>Cantidad</th>
-                      <th>Anterior</th>
-                      <th>Nuevo</th>
-                      <th>Referencia</th>
-                      <th>Motivo</th>
-                      <th>Fecha</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {movements.map((movement) => (
-                      <tr key={movement.id}>
-                        <td>{movement.user?.name || "Sistema"}</td>
-                        <td><span className={movementBadgeClass[movement.type] || "badge warning"}>{movementLabels[movement.type] || movement.type}</span></td>
-                        <td>{movement.quantity}</td>
-                        <td>{movement.previousStock}</td>
-                        <td>{movement.newStock}</td>
-                        <td>{movement.referenceNumber || movement.referenceType || "-"}</td>
-                        <td>{movement.reason}</td>
-                        <td>{new Date(movement.createdAt).toLocaleString("es-DO")}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                <>
+  <table className="movements-table movements-desktop-table">
+    <thead>
+      <tr>
+        <th>Usuario</th>
+        <th>Tipo</th>
+        <th>Cantidad</th>
+        <th>Anterior</th>
+        <th>Nuevo</th>
+        <th>Referencia</th>
+        <th>Motivo</th>
+        <th>Fecha</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      {movements.map((movement) => (
+        <tr key={movement.id}>
+          <td>{movement.user?.name || "Sistema"}</td>
+          <td>
+            <span className={movementBadgeClass[movement.type] || "badge warning"}>
+              {movementLabels[movement.type] || movement.type}
+            </span>
+          </td>
+          <td>{movement.quantity}</td>
+          <td>{movement.previousStock}</td>
+          <td>{movement.newStock}</td>
+          <td>{movement.referenceNumber || movement.referenceType || "-"}</td>
+          <td>{movement.reason}</td>
+          formatDate(movement.createdAt)
+        </tr>
+      ))}
+    </tbody>
+  </table>
+
+  <div className="movements-mobile-list">
+    {movements.map((movement) => (
+      <div className="movement-mobile-card" key={movement.id}>
+        <div className="movement-mobile-top">
+          <div>
+            <span>Movimiento</span>
+            <strong>
+              {movementLabels[movement.type] || movement.type}
+            </strong>
+          </div>
+
+          <span className={movementBadgeClass[movement.type] || "badge warning"}>
+            {movementLabels[movement.type] || movement.type}
+          </span>
+        </div>
+
+        <div className="movement-mobile-grid">
+          <div>
+            <span>Usuario</span>
+            <strong>{movement.user?.name || "Sistema"}</strong>
+          </div>
+
+          <div>
+            <span>Cantidad</span>
+            <strong>{movement.quantity}</strong>
+          </div>
+
+          <div>
+            <span>Stock anterior</span>
+            <strong>{movement.previousStock}</strong>
+          </div>
+
+          <div>
+            <span>Stock nuevo</span>
+            <strong>{movement.newStock}</strong>
+          </div>
+
+          <div>
+            <span>Referencia</span>
+            <strong>{movement.referenceNumber || movement.referenceType || "-"}</strong>
+          </div>
+
+          <div>
+            <span>Fecha</span>
+            <strong>formatDate(movement.createdAt)</strong>
+          </div>
+        </div>
+
+        <div className="movement-mobile-reason">
+          <span>Motivo</span>
+          <strong>{movement.reason || "-"}</strong>
+        </div>
+      </div>
+    ))}
+  </div>
+</>
               )}
             </div>
           </div>

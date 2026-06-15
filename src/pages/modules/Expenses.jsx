@@ -11,6 +11,11 @@ import {
   FileSearch,
 } from "lucide-react";
 import { api } from "../../api/axios";
+import { useAuth } from "../../context/AuthContext";
+import {
+  getTaxLabel,
+  isDominicanTenant,
+} from "../../utils/taxConfig";
 import { useConfirm } from "../../components/ConfirmProvider";
 import DatePicker from "react-datepicker";
 import { es } from "date-fns/locale";
@@ -51,11 +56,6 @@ const paymentMethods = {
   other: "Otro",
 };
 
-const formatMoney = (value) =>
-  new Intl.NumberFormat("es-DO", {
-    style: "currency",
-    currency: "DOP",
-  }).format(Number(value || 0));
 
   const formatDateForDB = (date) => {
   if (!date) return "";
@@ -68,6 +68,20 @@ const formatMoney = (value) =>
 };
 
 export default function Expenses() {
+    const { tenant } = useAuth();
+
+  const isDO = isDominicanTenant(tenant);
+  const locale = isDO ? "es-DO" : "en-US";
+  const currency = isDO ? "DOP" : "USD";
+
+  const taxLabel = getTaxLabel(tenant);
+
+  const formatMoney = (value) =>
+    new Intl.NumberFormat(locale, {
+      style: "currency",
+      currency,
+    }).format(Number(value || 0));
+    
   const { confirm } = useConfirm();
   const [expenses, setExpenses] = useState([]);
   const [detailExpense, setDetailExpense] = useState(null);
@@ -344,7 +358,7 @@ const openCreate = () => {
                     <td>
                       {new Date(
                         `${expense.expenseDate}T00:00:00`
-                      ).toLocaleDateString("es-DO")}
+                      ).toLocaleDateString(locale)}
                     </td>
 
                     <td>{expense.ncf || "—"}</td>
@@ -424,7 +438,7 @@ const openCreate = () => {
                 <strong>
                   {new Date(
                     `${detailExpense.expenseDate}T00:00:00`
-                  ).toLocaleDateString("es-DO")}
+                  ).toLocaleDateString(locale)}
                 </strong>
               </div>
 
@@ -464,7 +478,7 @@ const openCreate = () => {
               </div>
 
               <div>
-                <span>Total de ITBIS</span>
+                <span>Total de {taxLabel}</span>
                 <strong>{formatMoney(detailExpense.tax)}</strong>
               </div>
 
@@ -533,7 +547,7 @@ const openCreate = () => {
                     }));
                   }}
                   dateFormat="d/M/yyyy"
-                  locale={es}
+                  locale={isDO ? es : undefined}
                   className="expense-datepicker"
                   required
                 />
@@ -597,7 +611,7 @@ const openCreate = () => {
 
 
               <label>
-                Total de ITBIS
+                Total de {taxLabel}
                 <input
                   type="number"
                   step="0.01"
@@ -676,7 +690,7 @@ const openCreate = () => {
                   <span>RNC emisor</span>
                   <span>e-NCF</span>
                   <span>Fecha</span>
-                  <span>ITBIS</span>
+                  <span>{taxLabel}</span>
                   <span>Total</span>
                 </div>
               </div>

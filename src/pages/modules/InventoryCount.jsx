@@ -538,107 +538,187 @@ export default function InventoryCount() {
                 </button>
               </div>
 
-              <div className="inventory-count-table-wrap">
-                <table className="inventory-count-table">
-                  <thead>
-                    <tr>
-                      <th>Producto</th>
-                      <th>SKU</th>
-                      <th>Sistema</th>
-                      <th>Conteo físico</th>
-                      <th>Diferencia</th>
-                      <th>Notas</th>
-                    </tr>
-                  </thead>
+              <div className="inventory-count-table-wrap inventory-count-desktop-list">
+  <table className="inventory-count-table">
+    <thead>
+      <tr>
+        <th>Producto</th>
+        <th>SKU</th>
+        <th>Sistema</th>
+        <th>Conteo físico</th>
+        <th>Diferencia</th>
+        <th>Notas</th>
+      </tr>
+    </thead>
 
-                  <tbody>
-                    {filteredItems.length === 0 ? (
-                      <tr>
-                        <td colSpan="6" className="inventory-count-table-empty">
-                          No hay productos con esos filtros.
-                        </td>
-                      </tr>
-                    ) : (
-                      filteredItems.map((item) => {
-                        const product = item.product || {};
-                        const countedStock = toIntOrEmpty(item.countedStock);
-                        const difference =
-                          countedStock === ""
-                            ? null
-                            : countedStock - Number(item.systemStock || 0);
+    <tbody>
+      {filteredItems.length === 0 ? (
+        <tr>
+          <td colSpan="6" className="inventory-count-table-empty">
+            No hay productos con esos filtros.
+          </td>
+        </tr>
+      ) : (
+        filteredItems.map((item) => {
+          const product = item.product || {};
+          const countedStock = toIntOrEmpty(item.countedStock);
+          const difference =
+            countedStock === ""
+              ? null
+              : countedStock - Number(item.systemStock || 0);
 
-                        return (
-                          <tr key={item.id}>
-                            <td>
-                              <div className="inventory-count-product">
-                                <strong>{product.name}</strong>
-                                <span>{product.category || "Sin categoría"}</span>
-                              </div>
-                            </td>
+          return (
+            <tr key={item.id}>
+              <td>
+                <div className="inventory-count-product">
+                  <strong>{product.name}</strong>
+                  <span>{product.category || "Sin categoría"}</span>
+                </div>
+              </td>
 
-                            <td>{product.sku || "-"}</td>
+              <td>{product.sku || "-"}</td>
 
-                            <td>
-                              <strong>{item.systemStock}</strong>{" "}
-                              <span className="muted">{product.unit || "unidad"}</span>
-                            </td>
+              <td>
+                <strong>{item.systemStock}</strong>{" "}
+                <span className="muted">{product.unit || "unidad"}</span>
+              </td>
 
-                            <td>
-                              <input
-                                type="number"
-                                min="0"
-                                disabled={disabled}
-                                value={item.countedStock}
-                                onChange={(e) =>
-                                  updateItem(item.id, "countedStock", e.target.value)
-                                }
-                                className="inventory-count-input"
-                                placeholder="0"
-                              />
-                            </td>
+              <td>
+                <input
+                  type="number"
+                  min="0"
+                  disabled={disabled}
+                  value={item.countedStock}
+                  onChange={(e) =>
+                    updateItem(item.id, "countedStock", e.target.value)
+                  }
+                  className="inventory-count-input"
+                  placeholder="0"
+                />
+              </td>
 
-                            <td>
-                              {difference === null ? (
-                                <span className="inventory-count-pill pending">
-                                  Pendiente
-                                </span>
-                              ) : difference === 0 ? (
-                                <span className="inventory-count-pill ok">
-                                  Exacto
-                                </span>
-                              ) : (
-                                <span
-                                  className={
-                                    difference > 0
-                                      ? "inventory-count-pill positive"
-                                      : "inventory-count-pill negative"
-                                  }
-                                >
-                                  {difference > 0 ? "+" : ""}
-                                  {difference}
-                                </span>
-                              )}
-                            </td>
+              <td>
+                {difference === null ? (
+                  <span className="inventory-count-pill pending">Pendiente</span>
+                ) : difference === 0 ? (
+                  <span className="inventory-count-pill ok">Exacto</span>
+                ) : (
+                  <span
+                    className={
+                      difference > 0
+                        ? "inventory-count-pill positive"
+                        : "inventory-count-pill negative"
+                    }
+                  >
+                    {difference > 0 ? "+" : ""}
+                    {difference}
+                  </span>
+                )}
+              </td>
 
-                            <td>
-                              <input
-                                type="text"
-                                disabled={disabled}
-                                value={item.notes}
-                                onChange={(e) =>
-                                  updateItem(item.id, "notes", e.target.value)
-                                }
-                                className="inventory-count-note-input"
-                                placeholder="Opcional"
-                              />
-                            </td>
-                          </tr>
-                        );
-                      })
-                    )}
-                  </tbody>
-                </table>
-              </div>
+              <td>
+                <input
+                  type="text"
+                  disabled={disabled}
+                  value={item.notes}
+                  onChange={(e) =>
+                    updateItem(item.id, "notes", e.target.value)
+                  }
+                  className="inventory-count-note-input"
+                  placeholder="Opcional"
+                />
+              </td>
+            </tr>
+          );
+        })
+      )}
+    </tbody>
+  </table>
+</div>
+
+<div className="inventory-count-mobile-list">
+  {filteredItems.length === 0 ? (
+    <div className="inventory-count-mobile-empty">
+      No hay productos con esos filtros.
+    </div>
+  ) : (
+    filteredItems.map((item) => {
+      const product = item.product || {};
+      const countedStock = toIntOrEmpty(item.countedStock);
+      const difference =
+        countedStock === ""
+          ? null
+          : countedStock - Number(item.systemStock || 0);
+
+      return (
+        <div className="inventory-count-mobile-card" key={item.id}>
+          <div className="inventory-count-mobile-top">
+            <div>
+              <span>Producto</span>
+              <strong>{product.name}</strong>
+            </div>
+
+            {difference === null ? (
+              <span className="inventory-count-pill pending">Pendiente</span>
+            ) : difference === 0 ? (
+              <span className="inventory-count-pill ok">Exacto</span>
+            ) : (
+              <span
+                className={
+                  difference > 0
+                    ? "inventory-count-pill positive"
+                    : "inventory-count-pill negative"
+                }
+              >
+                {difference > 0 ? "+" : ""}
+                {difference}
+              </span>
+            )}
+          </div>
+
+          <div className="inventory-count-mobile-meta">
+            <span>{product.category || "Sin categoría"}</span>
+            <strong>SKU {product.sku || "-"}</strong>
+          </div>
+
+          <div className="inventory-count-mobile-grid">
+            <div>
+              <span>Stock sistema</span>
+              <strong>
+                {item.systemStock} {product.unit || "unidad"}
+              </strong>
+            </div>
+
+            <label>
+              <span>Conteo físico</span>
+              <input
+                type="number"
+                min="0"
+                disabled={disabled}
+                value={item.countedStock}
+                onChange={(e) =>
+                  updateItem(item.id, "countedStock", e.target.value)
+                }
+                placeholder="0"
+              />
+            </label>
+          </div>
+
+          <label className="inventory-count-mobile-notes">
+            <span>Notas</span>
+            <input
+              type="text"
+              disabled={disabled}
+              value={item.notes}
+              onChange={(e) => updateItem(item.id, "notes", e.target.value)}
+              placeholder="Opcional"
+            />
+          </label>
+        </div>
+      );
+    })
+  )}
+</div>
 
               <div className="inventory-count-footer-actions">
                 <button

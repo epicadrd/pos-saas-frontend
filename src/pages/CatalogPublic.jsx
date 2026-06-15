@@ -12,10 +12,18 @@ export default function CatalogPublic() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const money = new Intl.NumberFormat("es-DO", {
-    style: "currency",
-    currency: "DOP",
-  });
+  const isDO = (business?.country || "DO") === "DO";
+  const locale = isDO ? "es-DO" : "en-US";
+  const currency = isDO ? "DOP" : "USD";
+
+  const money = useMemo(
+    () =>
+      new Intl.NumberFormat(locale, {
+        style: "currency",
+        currency,
+      }),
+    [locale, currency]
+  );
 
   useEffect(() => {
     const loadCatalog = async () => {

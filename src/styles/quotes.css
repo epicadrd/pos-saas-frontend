@@ -355,3 +355,472 @@
   align-self: center;
   justify-self: center;
 }
+
+.quote-mobile-list,
+.quote-mobile-items {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .quote-page {
+    padding: 0 14px 28px;
+  }
+
+  .quote-header {
+    border-radius: 28px;
+    padding: 22px;
+    display: grid;
+    gap: 18px;
+  }
+
+  .quote-header h2 {
+    font-size: 32px;
+    line-height: 1.05;
+    letter-spacing: -0.04em;
+  }
+
+  .quote-header p {
+    font-size: 15px;
+    line-height: 1.5;
+  }
+
+  .quote-header .primary-btn {
+    width: 100%;
+    min-height: 54px;
+    border-radius: 18px;
+    justify-content: center;
+  }
+
+  .quote-stats {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .quote-stat-card {
+    border-radius: 24px;
+    padding: 18px;
+  }
+
+  .quote-panel {
+    border-radius: 28px;
+  }
+
+  .quote-toolbar {
+    padding: 20px;
+    display: grid;
+    gap: 16px;
+  }
+
+  .quote-toolbar h3 {
+    font-size: 22px;
+  }
+
+  .quote-toolbar-actions {
+    display: grid;
+    gap: 12px;
+  }
+
+  .quote-filter,
+  .quote-search {
+    width: 100%;
+    height: 54px;
+    border-radius: 18px;
+  }
+
+  .quote-desktop-list {
+    display: none;
+  }
+
+  .quote-mobile-list {
+    display: grid;
+    gap: 14px;
+    padding: 18px;
+    background: #f8fafc;
+  }
+
+  .quote-mobile-card {
+    width: 100%;
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
+    border-radius: 26px;
+    padding: 18px;
+    text-align: left;
+    box-shadow: 0 18px 42px rgba(15, 23, 42, 0.08);
+  }
+
+  .quote-mobile-top,
+  .quote-mobile-footer {
+    display: flex;
+    justify-content: space-between;
+    gap: 14px;
+    align-items: flex-start;
+  }
+
+  .quote-mobile-card span,
+  .quote-detail-header span,
+  .quote-detail-list span,
+  .quote-mobile-item-grid label {
+    display: block;
+    font-size: 11px;
+    font-weight: 900;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .quote-mobile-top strong {
+    display: block;
+    margin-top: 5px;
+    font-size: 17px;
+    color: #111827;
+  }
+
+  .quote-mobile-client {
+    margin-top: 18px;
+  }
+
+  .quote-mobile-client strong {
+    display: block;
+    margin-top: 5px;
+    font-size: 20px;
+    color: #111827;
+  }
+
+  .quote-mobile-money-grid {
+    margin-top: 18px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .quote-mobile-money-grid div {
+    background: #f8fafc;
+    border: 1px solid #edf2f7;
+    border-radius: 20px;
+    padding: 14px;
+  }
+
+  .quote-mobile-money-grid strong {
+    display: block;
+    margin-top: 5px;
+    font-size: 17px;
+    color: #111827;
+  }
+
+  .quote-mobile-footer {
+    margin-top: 18px;
+    padding-top: 14px;
+    border-top: 1px solid #eef2f7;
+    align-items: center;
+  }
+
+  .quote-mobile-footer strong {
+    color: #00bfae;
+    font-size: 13px;
+    font-weight: 900;
+  }
+
+  .quote-mobile-empty {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 26px;
+    padding: 34px 20px;
+    text-align: center;
+    color: #94a3b8;
+    font-weight: 800;
+  }
+
+  .quote-detail-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: rgba(15, 23, 42, 0.42);
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 14px;
+  }
+
+  .quote-detail-modal {
+    width: 100%;
+    max-height: 88vh;
+    overflow-y: auto;
+    background: #ffffff;
+    border-radius: 30px;
+    padding: 20px;
+    box-shadow: 0 -20px 80px rgba(15, 23, 42, 0.25);
+  }
+
+  .quote-detail-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    align-items: flex-start;
+  }
+
+  .quote-detail-header h3 {
+    margin: 6px 0 0;
+    font-size: 22px;
+    line-height: 1.1;
+    color: #111827;
+  }
+
+  .quote-detail-header button {
+    width: 42px;
+    height: 42px;
+    border: 0;
+    border-radius: 16px;
+    background: #f1f5f9;
+    color: #111827;
+    display: grid;
+    place-items: center;
+  }
+
+  .quote-detail-status {
+    margin-top: 14px;
+  }
+
+  .quote-detail-list {
+    margin-top: 18px;
+    display: grid;
+    gap: 10px;
+  }
+
+  .quote-detail-list div {
+    display: flex;
+    justify-content: space-between;
+    gap: 18px;
+    align-items: center;
+    background: #f8fafc;
+    border: 1px solid #eef2f7;
+    border-radius: 18px;
+    padding: 14px;
+  }
+
+  .quote-detail-list strong {
+    text-align: right;
+    color: #111827;
+    font-size: 15px;
+  }
+
+  .quote-detail-actions {
+    margin-top: 18px;
+    display: grid;
+    gap: 10px;
+  }
+
+  .quote-detail-actions button {
+    width: 100%;
+    min-height: 50px;
+    border-radius: 16px;
+    justify-content: center;
+  }
+
+  .quote-action-btn {
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
+    color: #111827;
+    font-weight: 900;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .quote-primary-action {
+    background: #00bfae;
+    color: #ffffff;
+    border-color: #00bfae;
+  }
+
+  .quote-danger-action {
+    border: 0;
+    background: #fee2e2;
+    color: #991b1b;
+    font-weight: 900;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .modal-overlay {
+    padding: 0;
+    align-items: stretch;
+  }
+
+  .quote-modal {
+    max-width: none;
+    max-height: 100vh;
+    min-height: 100vh;
+    border-radius: 0;
+  }
+
+  .modal-header {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: #ffffff;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  .quote-form {
+    padding: 18px;
+  }
+
+  .quote-form-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .quote-form .form-row input,
+  .quote-form .form-row select,
+  .quote-form .form-row textarea {
+    min-height: 54px;
+    border-radius: 18px;
+  }
+
+  .quote-items-box {
+    border-radius: 26px;
+  }
+
+  .items-header {
+    padding: 18px;
+    display: grid;
+    gap: 14px;
+  }
+
+  .items-header button {
+    width: 100%;
+    min-height: 52px;
+    border-radius: 18px;
+    justify-content: center;
+  }
+
+  .quote-items-list {
+    display: none;
+  }
+
+  .quote-mobile-items {
+    display: grid;
+    gap: 14px;
+    padding: 16px;
+  }
+
+  .quote-mobile-item-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 24px;
+    padding: 16px;
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.06);
+  }
+
+  .quote-mobile-item-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+
+  .quote-mobile-item-head h4 {
+    margin: 0;
+    font-size: 17px;
+    color: #111827;
+  }
+
+  .quote-mobile-item-head button {
+    width: 42px;
+    height: 42px;
+    border: 0;
+    border-radius: 14px;
+    background: #fee2e2;
+    color: #991b1b;
+    display: grid;
+    place-items: center;
+  }
+
+  .quote-mobile-item-grid {
+    display: grid;
+    gap: 12px;
+  }
+
+  .quote-mobile-item-grid label {
+    display: grid;
+    gap: 7px;
+  }
+
+  .quote-mobile-item-grid input,
+  .quote-mobile-item-grid select {
+    width: 100%;
+    min-height: 52px;
+    border-radius: 16px;
+    border: 1px solid #dbe4ef;
+    padding: 0 14px;
+    font-size: 15px;
+    background: #ffffff;
+    color: #111827;
+  }
+
+  .quote-mobile-item-row-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .quote-mobile-item-total {
+    margin-top: 14px;
+    padding: 14px;
+    border-radius: 18px;
+    background: #f8fafc;
+    display: grid;
+    gap: 8px;
+  }
+
+  .quote-mobile-item-total p {
+    margin: 0;
+    display: flex;
+    justify-content: space-between;
+    gap: 14px;
+    color: #475569;
+  }
+
+  .quote-mobile-item-total p.big {
+    padding-top: 8px;
+    border-top: 1px solid #e2e8f0;
+    color: #111827;
+  }
+
+  .quote-mobile-item-total strong {
+    color: #111827;
+  }
+
+  .quote-mobile-item-total .big strong {
+    color: #00bfae;
+    font-size: 18px;
+  }
+
+  .quote-summary {
+    width: 100%;
+    border-radius: 24px;
+  }
+
+  .modal-actions {
+    position: sticky;
+    bottom: 0;
+    z-index: 20;
+    margin: 18px -18px -18px;
+    padding: 14px;
+    background: rgba(248, 250, 252, 0.95);
+    backdrop-filter: blur(16px);
+    border-top: 1px solid #e2e8f0;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .modal-actions button {
+    width: 100%;
+    min-height: 54px;
+    border-radius: 18px;
+    justify-content: center;
+  }
+}

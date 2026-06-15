@@ -1296,3 +1296,213 @@
     flex-direction: column;
   }
 }
+
+.cash-closures-mobile,
+.cash-report-sales-mobile {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .cash-closures-desktop,
+  .cash-report-sales-desktop {
+    display: none;
+  }
+
+  .pos-page {
+    padding: 0 14px 28px;
+  }
+
+  .pos-header {
+    border-radius: 28px;
+    padding: 22px;
+    display: grid;
+    gap: 12px;
+  }
+
+  .pos-header h2 {
+    font-size: 32px;
+    line-height: 1.05;
+    letter-spacing: -0.04em;
+  }
+
+  .pos-summary-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .pos-summary-card {
+    border-radius: 24px;
+    padding: 18px;
+  }
+
+  .pos-panel {
+    border-radius: 28px;
+    padding: 18px;
+  }
+
+  .pos-filters {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .pos-filters input,
+  .pos-filters select,
+  .pos-filters button {
+    width: 100%;
+    min-height: 54px;
+    border-radius: 18px;
+  }
+
+  .cash-closures-mobile {
+    display: grid;
+    gap: 14px;
+  }
+
+  .cash-closure-card {
+    width: 100%;
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
+    border-radius: 26px;
+    padding: 18px;
+    text-align: left;
+    box-shadow: 0 18px 42px rgba(15, 23, 42, 0.08);
+  }
+
+  .cash-closure-top,
+  .cash-closure-footer,
+  .cash-report-sale-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 14px;
+    align-items: flex-start;
+  }
+
+  .cash-closure-card span,
+  .cash-report-sale-card span {
+    display: block;
+    font-size: 11px;
+    font-weight: 900;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .cash-closure-top strong,
+  .cash-report-sale-top strong {
+    display: block;
+    margin-top: 5px;
+    font-size: 17px;
+    color: #111827;
+  }
+
+  .cash-closure-top small,
+  .cash-report-sale-top small {
+    color: #64748b;
+    font-weight: 800;
+    text-align: right;
+  }
+
+  .cash-closure-user {
+    margin-top: 18px;
+  }
+
+  .cash-closure-user strong {
+    display: block;
+    margin-top: 5px;
+    font-size: 20px;
+    color: #111827;
+  }
+
+  .cash-closure-grid,
+  .cash-report-sale-grid {
+    margin-top: 18px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .cash-closure-grid div,
+  .cash-report-sale-grid div {
+    background: #f8fafc;
+    border: 1px solid #edf2f7;
+    border-radius: 20px;
+    padding: 14px;
+  }
+
+  .cash-closure-grid strong,
+  .cash-report-sale-grid strong {
+    display: block;
+    margin-top: 5px;
+    font-size: 16px;
+    color: #111827;
+  }
+
+  .cash-closure-footer {
+    margin-top: 18px;
+    padding-top: 14px;
+    border-top: 1px solid #eef2f7;
+    align-items: center;
+  }
+
+  .cash-closure-footer strong {
+    color: #00bfae;
+    font-size: 13px;
+    font-weight: 900;
+  }
+
+  .pos-modal-backdrop {
+    padding: 0;
+    align-items: stretch;
+  }
+
+  .pos-report-modal {
+    width: 100%;
+    max-width: none;
+    max-height: 100vh;
+    min-height: 100vh;
+    border-radius: 0;
+    padding: 18px;
+  }
+
+  .pos-sale-detail-header {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: #ffffff;
+    margin: -18px -18px 16px;
+    padding: 18px;
+  }
+
+  .cash-report-title h2 {
+    font-size: 24px;
+    line-height: 1.1;
+  }
+
+  .pos-sale-detail-info {
+    grid-template-columns: 1fr;
+  }
+
+  .cash-report-sales-mobile {
+    display: grid;
+    gap: 14px;
+    margin-top: 18px;
+  }
+
+  .cash-report-sale-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 24px;
+    padding: 16px;
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+  }
+
+  .pos-report-modal > .primary-btn {
+    position: sticky;
+    bottom: 0;
+    width: 100%;
+    min-height: 54px;
+    border-radius: 18px;
+    margin-top: 18px;
+  }
+}

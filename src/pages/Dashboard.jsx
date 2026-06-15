@@ -19,13 +19,9 @@ import {
 import { Link } from "react-router-dom";
 import { api } from "../api/axios";
 import { useAuth } from "../context/AuthContext";
+import { isDominicanTenant } from "../utils/taxConfig";
 import { getFiscalNumber } from "../utils/fiscalNumber";
 
-const formatMoney = (value) =>
-  new Intl.NumberFormat("es-DO", {
-    style: "currency",
-    currency: "DOP",
-  }).format(Number(value || 0));
 
 const statusLabel = {
   draft: "Borrador",
@@ -36,7 +32,17 @@ const statusLabel = {
 };
 
 export default function Dashboard() {
-  const { user } = useAuth();
+  const { user, tenant } = useAuth();
+
+const isDO = isDominicanTenant(tenant);
+const locale = isDO ? "es-DO" : "en-US";
+const currency = isDO ? "DOP" : "USD";
+
+const formatMoney = (value) =>
+  new Intl.NumberFormat(locale, {
+    style: "currency",
+    currency,
+  }).format(Number(value || 0));
 
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -232,10 +238,10 @@ export default function Dashboard() {
                           />
                         </div>
                         <span>
-                          {new Date(`${item.date}T00:00:00`).toLocaleDateString(
-                            "es-DO",
-                            { day: "2-digit", month: "short" }
-                          )}
+                          {new Date(`${item.date}T00:00:00`).toLocaleDateString(locale, {
+                            day: "2-digit",
+                            month: "short",
+                          })}
                         </span>
                       </div>
                     );
@@ -413,11 +419,13 @@ export default function Dashboard() {
                   </div>
 
                   <small>
-                    {new Date(log.createdAt).toLocaleDateString("es-DO", {
-                      day: "2-digit",
-                      month: "short",
-                      year: "numeric",
-                    })}
+                    {new Date(log.createdAt).toLocaleDateString(
+                      locale,
+                      {
+                        day: "2-digit",
+                        month: "short",
+                      }
+                    )}
                   </small>
                 </div>
               ))

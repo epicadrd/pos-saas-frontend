@@ -4,6 +4,11 @@ import { api } from "../../api/axios";
 import PosReceipt from "../../components/PosReceipt";
 import { useAuth } from "../../context/AuthContext";
 import "../../styles/pos.css";
+import {
+  getTaxRate,
+  getTaxLabel,
+  isDominicanTenant,
+} from "../../utils/taxConfig";
 
 export default function POS() {
   const { tenant } = useAuth();
@@ -26,10 +31,19 @@ export default function POS() {
   const [lastSale, setLastSale] = useState(null);
 
 
-  const money = new Intl.NumberFormat("es-DO", {
-    style: "currency",
-    currency: "DOP",
-  });
+  const isDO = isDominicanTenant(tenant);
+
+const money = useMemo(
+  () =>
+    new Intl.NumberFormat(
+      isDO ? "es-DO" : "en-US",
+      {
+        style: "currency",
+        currency: isDO ? "DOP" : "USD",
+      }
+    ),
+  [isDO]
+);
 
   const loadSessionSummary = async (sessionId) => {
     if (!sessionId) return;
@@ -77,7 +91,13 @@ export default function POS() {
   }, [cart]);
 
   const taxEnabled = tenant?.invoiceTaxEnabled !== false;
-  const taxRate = Number(tenant?.invoiceTaxRate || 18);
+  const taxRate = getTaxRate(tenant);
+  const taxLabel = getTaxLabel(tenant);
+  const usTaxBreakdown = {
+  stateRate: Number(tenant?.usStateTaxRate || 0),
+  countyRate: Number(tenant?.usCountyTaxRate || 0),
+  cityRate: Number(tenant?.usCityTaxRate || 0),
+};
   const safeOrderDiscount = Math.min(Number(discountTotal || 0), Math.max(subtotal - lineDiscountTotal, 0));
   const totalDiscount = lineDiscountTotal + safeOrderDiscount;
   const taxableSubtotal = Math.max(subtotal - totalDiscount,0);
@@ -217,7 +237,11 @@ export default function POS() {
       return;
     }
 
-    if (receiptType === "credit_fiscal" && (!customerRnc.trim() || !customerName.trim())) {
+    if (
+      isDO &&
+      receiptType === "credit_fiscal" &&
+      (!customerRnc.trim() || !customerName.trim())
+    ) {
       alert("El RNC y la razón social del cliente son obligatorios para crédito fiscal");
       return;
     }
@@ -228,9 +252,13 @@ export default function POS() {
         paymentMethod,
         amountPaid: paymentMethod === "cash" ? amountPaid : total,
         discountTotal: safeOrderDiscount,
-        receiptType,
-        customerRnc: receiptType === "credit_fiscal" ? customerRnc.trim() : "",
-        customerName: receiptType === "credit_fiscal" ? customerName.trim() : "",
+        receiptType: isDO ? receiptType : "consumer_final",
+        customerRnc: isDO && receiptType === "credit_fiscal" ? customerRnc.trim() : "",
+        customerName: isDO
+          ? receiptType === "credit_fiscal"
+            ? customerName.trim()
+            : ""
+          : customerName.trim(),
         items: cart.map((item) => ({
           productId: item.id,
           quantity: item.quantity,
@@ -438,40 +466,105 @@ export default function POS() {
             Descuentos: <strong>{money.format(totalDiscount)}</strong>
           </div>
 
-          <div className="ticket-change">
-            ITBIS ({taxRate}%): <strong>{money.format(taxTotal)}</strong>
-          </div>
+          {isDO ? (
+  <div className="ticket-change">
+    {taxLabel} ({taxRate}%): <strong>{money.format(taxTotal)}</strong>
+  </div>
+) : (
+  <>
+    <div className="ticket-change">
+      State Tax ({usTaxBreakdown.stateRate}%):
+      <strong>
+        {money.format(
+          taxableSubtotal * (usTaxBreakdown.stateRate / 100)
+        )}
+      </strong>
+    </div>
+
+    <div className="ticket-change">
+      County Tax ({usTaxBreakdown.countyRate}%):
+      <strong>
+        {money.format(
+          taxableSubtotal * (usTaxBreakdown.countyRate / 100)
+        )}
+      </strong>
+    </div>
+
+    <div className="ticket-change">
+      City Tax ({usTaxBreakdown.cityRate}%):
+      <strong>
+        {money.format(
+          taxableSubtotal * (usTaxBreakdown.cityRate / 100)
+        )}
+      </strong>
+    </div>
+
+    <div className="ticket-change">
+      Total Taxes ({taxRate}%):
+      <strong>{money.format(taxTotal)}</strong>
+    </div>
+  </>
+)}
 
           <div className="ticket-total">
             <span>Total</span>
             <strong>{money.format(total)}</strong>
           </div>
 
-          <label>Tipo de factura</label>
-          <select
-            value={receiptType}
-            onChange={(e) => {
-              setReceiptType(e.target.value);
-              if (e.target.value === "consumer_final") {
-                setCustomerRnc("");
-                setCustomerName("");
-              }
-            }}
-          >
-            <option value="consumer_final">Factura de consumo fiscal electrónica</option>
-            <option value="credit_fiscal">Factura de crédito fiscal electrónica</option>
-          </select>
+          {isDO && (
+  <>
+    <label>Tipo de factura</label>
+    <select
+      value={receiptType}
+      onChange={(e) => {
+        setReceiptType(e.target.value);
 
-          {receiptType === "credit_fiscal" && (
+        if (e.target.value === "consumer_final") {
+          setCustomerRnc("");
+          setCustomerName("");
+        }
+      }}
+    >
+      <option value="consumer_final">
+        Factura de consumo fiscal electrónica
+      </option>
+
+      <option value="credit_fiscal">
+        Factura de crédito fiscal electrónica
+      </option>
+    </select>
+
+    {receiptType === "credit_fiscal" && (
+      <>
+        <label>RNC del cliente</label>
+        <input
+          value={customerRnc}
+          onChange={(e) => setCustomerRnc(e.target.value)}
+          placeholder="RNC del cliente"
+        />
+
+        <label>Razón social del cliente</label>
+        <input
+          value={customerName}
+          onChange={(e) => setCustomerName(e.target.value)}
+          placeholder="Razón social del cliente"
+        />
+      </>
+    )}
+  </>
+)}
+
+          {!isDO && (
             <>
-              <label>RNC del cliente</label>
+              <label>Nombre del cliente (opcional)</label>
               <input
-                value={customerRnc}
-                onChange={(e) => setCustomerRnc(e.target.value)}
-                placeholder="RNC del cliente"
+                value={customerName}
+                onChange={(e) => setCustomerName(e.target.value)}
+                placeholder="Nombre del cliente"
               />
             </>
           )}
+
 
           <label>Método de pago</label>
           <select value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)}>
@@ -481,13 +574,6 @@ export default function POS() {
             <option value="check">Cheque</option>
             <option value="mixed">Mixto</option>
           </select>
-
-          <label>Razón social del cliente</label>
-            <input
-              value={customerName}
-              onChange={(e) => setCustomerName(e.target.value)}
-              placeholder="Razón social del cliente"
-            />
 
           {paymentMethod === "cash" && (
             <>

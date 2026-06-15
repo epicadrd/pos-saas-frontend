@@ -12,13 +12,10 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../../api/axios";
+import { useAuth } from "../../context/AuthContext";
+import { isDominicanTenant } from "../../utils/taxConfig";
 import { useConfirm } from "../../components/ConfirmProvider";
 
-const formatMoney = (value) =>
-  new Intl.NumberFormat("es-DO", {
-    style: "currency",
-    currency: "DOP",
-  }).format(Number(value || 0));
 
 const statusLabels = {
   draft: "Borrador",
@@ -29,6 +26,17 @@ const statusLabels = {
 };
 
 export default function AccountsPayable() {
+    const { tenant } = useAuth();
+
+  const isDO = isDominicanTenant(tenant);
+  const locale = isDO ? "es-DO" : "en-US";
+  const currency = isDO ? "DOP" : "USD";
+
+  const formatMoney = (value) =>
+    new Intl.NumberFormat(locale, {
+      style: "currency",
+      currency,
+    }).format(Number(value || 0));
   const navigate = useNavigate();
   const { confirm } = useConfirm();
   const [loading, setLoading] = useState(true);
@@ -290,8 +298,17 @@ if (!ok) return;
                       </small>
                     </td>
 
-                    <td>{order.orderDate || "—"}</td>
-                    <td>{order.dueDate || "—"}</td>
+                    <td>
+                    {order.orderDate
+                      ? new Date(order.orderDate).toLocaleDateString(locale)
+                      : "—"}
+                  </td>
+
+                  <td>
+                    {order.dueDate
+                      ? new Date(order.dueDate).toLocaleDateString(locale)
+                      : "—"}
+                  </td>
                     <td>{formatMoney(order.total)}</td>
 
                     <td>
@@ -426,12 +443,20 @@ if (!ok) return;
 
         <div>
           <span>Fecha</span>
-          <strong>{selectedPayment.orderDate || "—"}</strong>
+          <strong>
+            {selectedPayment.orderDate
+              ? new Date(selectedPayment.orderDate).toLocaleDateString(locale)
+              : "—"}
+          </strong>
         </div>
 
         <div>
           <span>Vence</span>
-          <strong>{selectedPayment.dueDate || "—"}</strong>
+          <strong>
+            {selectedPayment.dueDate
+              ? new Date(selectedPayment.dueDate).toLocaleDateString(locale)
+              : "—"}
+          </strong>
         </div>
 
         <div>

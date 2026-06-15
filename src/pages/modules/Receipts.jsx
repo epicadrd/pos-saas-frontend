@@ -13,6 +13,8 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { useConfirm } from "../../components/ConfirmProvider";
 import { getFiscalNumber } from "../../utils/fiscalNumber";
+import { isDominicanTenant } from "../../utils/taxConfig";
+import { useAuth } from "../../context/AuthContext";
 
 const emptyReceipt = {
   invoiceId: "",
@@ -27,6 +29,8 @@ const emptyReceipt = {
 
 export default function Receipts() {
   const { confirm } = useConfirm();
+  const { tenant } = useAuth();
+const isDO = isDominicanTenant(tenant);
   const [receipts, setReceipts] = useState([]);
   const [invoices, setInvoices] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
@@ -34,22 +38,26 @@ export default function Receipts() {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-
-  const money = new Intl.NumberFormat("es-DO", {
-    style: "currency",
-    currency: "DOP",
-  });
+  const [selectedReceipt, setSelectedReceipt] = useState(null);
+  const money = useMemo(
+  () =>
+    new Intl.NumberFormat(
+      isDO ? "es-DO" : "en-US",
+      {
+        style: "currency",
+        currency: isDO ? "DOP" : "USD",
+      }
+    ),
+  [isDO]
+);
 
   const formatReceiptDate = (value) => {
   if (!value) return "-";
 
-  const dateOnly = String(value).split("T")[0];
-  const [year, month, day] = dateOnly.split("-");
-
-  if (!year || !month || !day) return "-";
-
-  return `${day}/${month}/${year}`;
-  };
+  return new Date(value).toLocaleDateString(
+    isDO ? "es-DO" : "en-US"
+  );
+};
 
   const filteredReceipts = receipts.filter((receipt) => {
     const text = `${receipt.receiptNumber} ${receipt.customerName} ${receipt.reference || ""}`.toLowerCase();
@@ -278,7 +286,7 @@ export default function Receipts() {
         <body>
           <div class="header">
             <div>
-              <h1>RECIBO DE PAGO</h1>
+              <h1>${isDO ? "RECIBO DE PAGO" : "PAYMENT RECEIPT"}</h1>
               <p>${receipt.receiptNumber}</p>
             </div>
             <div>
@@ -292,7 +300,11 @@ export default function Receipts() {
             <strong>Concepto:</strong> ${receipt.concept}<br/>
             <strong>Método:</strong> ${getPaymentMethodLabel(receipt.paymentMethod)}<br/>
             <strong>Referencia:</strong> ${receipt.reference || "-"}<br/>
-            <strong>Factura:</strong> ${getFiscalNumber(receipt.Invoice)}
+            ${
+              isDO
+                ? `<strong>Factura:</strong> ${getFiscalNumber(receipt.Invoice)}`
+                : ""
+            }
           </div>
 
           <div class="amount">
@@ -395,82 +407,225 @@ export default function Receipts() {
             />
           </div>
         </div>
+<div className="receipt-table-wrap receipt-desktop-list">
+  <table className="receipt-table">
+    <thead>
+      <tr>
+        <th>Recibo</th>
+        <th>Cliente</th>
+        {isDO && <th>Factura</th>}
+        <th>Método</th>
+        <th>Referencia</th>
+        <th>Monto</th>
+        <th>Fecha</th>
+        <th>Creado por</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
 
-        <div className="receipt-table-wrap">
-          <table className="receipt-table">
-            <thead>
-              <tr>
-                <th>Recibo</th>
-                <th>Cliente</th>
-                <th>Factura</th>
-                <th>Método</th>
-                <th>Referencia</th>
-                <th>Monto</th>
-                <th>Fecha</th>
-                <th>Creado por</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
+    <tbody>
+      {loading ? (
+        <tr>
+          <td colSpan="9" className="table-empty">
+            Cargando recibos...
+          </td>
+        </tr>
+      ) : filteredReceipts.length === 0 ? (
+        <tr>
+          <td colSpan="9" className="table-empty">
+            No hay recibos registrados.
+          </td>
+        </tr>
+      ) : (
+        filteredReceipts.map((receipt) => (
+          <tr key={receipt.id}>
+            <td>
+              <div className="receipt-number-cell">
+                <div className="receipt-icon">
+                  <ReceiptText size={18} />
+                </div>
+                <strong>{receipt.receiptNumber}</strong>
+              </div>
+            </td>
 
-            <tbody>
-              {loading ? (
-                <tr>
-                  <td colSpan="9" className="table-empty">
-                    Cargando recibos...
-                  </td>
-                </tr>
-              ) : filteredReceipts.length === 0 ? (
-                <tr>
-                  <td colSpan="9" className="table-empty">
-                    No hay recibos registrados.
-                  </td>
-                </tr>
-              ) : (
-                filteredReceipts.map((receipt) => (
-                  <tr key={receipt.id}>
-                    <td>
-                      <div className="receipt-number-cell">
-                        <div className="receipt-icon">
-                          <ReceiptText size={18} />
-                        </div>
-                        <strong>{receipt.receiptNumber}</strong>
-                      </div>
-                    </td>
+            <td>{receipt.customerName}</td>
+            {isDO && <td>{getFiscalNumber(receipt.Invoice)}</td>}
+            <td>{getPaymentMethodLabel(receipt.paymentMethod)}</td>
+            <td>{receipt.reference || "-"}</td>
+            <td>
+              <strong>{money.format(Number(receipt.amount || 0))}</strong>
+            </td>
+            <td>{formatReceiptDate(receipt.receiptDate || receipt.createdAt)}</td>
+            <td>{receipt.creator?.name || "Sistema"}</td>
 
-                    <td>{receipt.customerName}</td>
-                    <td>{getFiscalNumber(receipt.Invoice)}</td>
-                    <td>{getPaymentMethodLabel(receipt.paymentMethod)}</td>
-                    <td>{receipt.reference || "-"}</td>
-                    <td>
-                      <strong>{money.format(Number(receipt.amount || 0))}</strong>
-                    </td>
+            <td>
+              <div className="table-actions">
+                <button onClick={() => handlePrint(receipt)}>
+                  <Printer size={17} />
+                </button>
 
-                    <td>
-                      {formatReceiptDate(receipt.receiptDate || receipt.createdAt)}
-                    </td>
+                <button
+                  className="danger-btn"
+                  onClick={() => handleDelete(receipt)}
+                >
+                  <Trash2 size={17} />
+                </button>
+              </div>
+            </td>
+          </tr>
+        ))
+      )}
+    </tbody>
+  </table>
+</div>
 
-                    <td>{receipt.creator?.name || "Sistema"}</td>
+<div className="receipt-mobile-list">
+  {loading ? (
+    <div className="receipt-mobile-empty">Cargando recibos...</div>
+  ) : filteredReceipts.length ? (
+    filteredReceipts.map((receipt) => (
+      <button
+        type="button"
+        key={receipt.id}
+        className="receipt-mobile-card"
+        onClick={() => setSelectedReceipt(receipt)}
+      >
+        <div className="receipt-mobile-top">
+          <div>
+            <span>Recibo</span>
+            <strong>{receipt.receiptNumber}</strong>
+          </div>
 
-                    <td>
-                      <div className="table-actions">
-                        <button onClick={() => handlePrint(receipt)}>
-                          <Printer size={17} />
-                        </button>
-
-                        <button
-                          className="danger-btn"
-                          onClick={() => handleDelete(receipt)}
-                        >
-                          <Trash2 size={17} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+          <small>{formatReceiptDate(receipt.receiptDate || receipt.createdAt)}</small>
         </div>
+
+        <div className="receipt-mobile-client">
+          <span>Cliente</span>
+          <strong>{receipt.customerName || "Sin cliente"}</strong>
+        </div>
+
+        <div className="receipt-mobile-money-grid">
+          <div>
+            <span>Monto</span>
+            <strong>{money.format(Number(receipt.amount || 0))}</strong>
+          </div>
+
+          <div>
+            <span>Método</span>
+            <strong>{getPaymentMethodLabel(receipt.paymentMethod)}</strong>
+          </div>
+        </div>
+
+        {isDO ? (
+          <span>Factura {getFiscalNumber(receipt.Invoice)}</span>
+        ) : (
+          <span>{getPaymentMethodLabel(receipt.paymentMethod)}</span>
+        )}
+      </button>
+    ))
+  ) : (
+    <div className="receipt-mobile-empty">No hay recibos registrados.</div>
+  )}
+</div>
+
+{selectedReceipt && (
+  <div
+    className="receipt-detail-overlay"
+    onClick={() => setSelectedReceipt(null)}
+  >
+    <div
+      className="receipt-detail-modal"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <div className="receipt-detail-header">
+        <div>
+          <span>Detalle del recibo</span>
+          <h3>{selectedReceipt.receiptNumber}</h3>
+        </div>
+
+        <button type="button" onClick={() => setSelectedReceipt(null)}>
+          <X size={20} />
+        </button>
+      </div>
+
+      <div className="receipt-detail-list">
+        <div>
+          <span>Cliente</span>
+          <strong>{selectedReceipt.customerName || "Sin cliente"}</strong>
+        </div>
+
+        {isDO && (
+          <div>
+            <span>Factura</span>
+            <strong>{getFiscalNumber(selectedReceipt.Invoice)}</strong>
+          </div>
+        )}
+
+        <div>
+          <span>Concepto</span>
+          <strong>{selectedReceipt.concept || "-"}</strong>
+        </div>
+
+        <div>
+          <span>Método</span>
+          <strong>{getPaymentMethodLabel(selectedReceipt.paymentMethod)}</strong>
+        </div>
+
+        <div>
+          <span>Referencia</span>
+          <strong>{selectedReceipt.reference || "-"}</strong>
+        </div>
+
+        <div>
+          <span>Monto</span>
+          <strong>{money.format(Number(selectedReceipt.amount || 0))}</strong>
+        </div>
+
+        <div>
+          <span>Fecha</span>
+          <strong>
+            {formatReceiptDate(selectedReceipt.receiptDate || selectedReceipt.createdAt)}
+          </strong>
+        </div>
+
+        <div>
+          <span>Creado por</span>
+          <strong>{selectedReceipt.creator?.name || "Sistema"}</strong>
+        </div>
+
+        {selectedReceipt.notes && (
+          <div>
+            <span>Notas</span>
+            <strong>{selectedReceipt.notes}</strong>
+          </div>
+        )}
+      </div>
+
+      <div className="receipt-detail-actions">
+        <button
+          type="button"
+          className="receipt-action-btn receipt-primary-action"
+          onClick={() => handlePrint(selectedReceipt)}
+        >
+          <Printer size={16} />
+          Imprimir
+        </button>
+
+        <button
+          type="button"
+          className="receipt-danger-action"
+          onClick={() => {
+            handleDelete(selectedReceipt);
+            setSelectedReceipt(null);
+          }}
+        >
+          <Trash2 size={16} />
+          Eliminar
+        </button>
+      </div>
+    </div>
+  </div>
+)}
       </section>
 
       {modalOpen && (
@@ -489,6 +644,7 @@ export default function Receipts() {
 
             <form onSubmit={handleSave} className="receipt-form">
               <div className="receipt-form-grid">
+                {isDO && (
                 <div className="form-row full">
                   <label>Factura pendiente</label>
                   <select
@@ -505,6 +661,7 @@ export default function Receipts() {
                     ))}
                   </select>
                 </div>
+                )}
 
                 <div className="form-row">
                   <label>Cliente *</label>
@@ -538,7 +695,7 @@ export default function Receipts() {
                         receiptDate: date,
                       })
                     }
-                    dateFormat="dd/MM/yyyy"
+                    dateFormat={isDO ? "dd/MM/yyyy" : "MM/dd/yyyy"}
                     className="date-picker-input"
                   />
                 </div>

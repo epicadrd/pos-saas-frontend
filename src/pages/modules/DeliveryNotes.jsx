@@ -14,6 +14,11 @@ import {
 import { useNavigate } from "react-router-dom";
 import { api } from "../../api/axios";
 import { useAuth } from "../../context/AuthContext";
+import {
+  getTaxLabel,
+  getTaxRate,
+  isDominicanTenant,
+} from "../../utils/taxConfig";
 import { useConfirm } from "../../components/ConfirmProvider";
 
 const emptyForm = {
@@ -66,17 +71,40 @@ export default function DeliveryNotes() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  const money = new Intl.NumberFormat("es-DO", {
-    style: "currency",
-    currency: "DOP",
-  });
+  const isDO = isDominicanTenant(tenant);
+  const locale = isDO ? "es-DO" : "en-US";
+  const currency = isDO ? "DOP" : "USD";
 
-  const color = tenant?.primaryColor || "#00bfae";
-  const logo = tenant?.logoDataUrl || "";
 
-  const taxRate = Number(tenant?.invoiceTaxRate || 18);
-  const taxEnabled = tenant?.invoiceTaxEnabled !== false;
-  const taxMode = tenant?.invoiceTaxMode || "global";
+
+const money = useMemo(
+  () =>
+    new Intl.NumberFormat(locale, {
+      style: "currency",
+      currency,
+    }),
+  [locale, currency]
+);
+
+
+const color = tenant?.primaryColor || "#00bfae";
+const logo = tenant?.logoDataUrl || "";
+
+const taxLabel = getTaxLabel(tenant);
+const taxRate = getTaxRate(tenant);
+const taxEnabled = Number(taxRate || 0) > 0;
+const taxMode = tenant?.invoiceTaxMode || "global";
+const formatDateOnly = (value) => {
+  if (!value) return "-";
+
+  return new Intl.DateTimeFormat(locale, {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).format(new Date(value));
+};
+
+
 
   const filteredDeliveryNotes = deliveryNotes.filter((note) => {
     const text = `${note.deliveryNoteNumber} ${note.customerName} ${
@@ -424,10 +452,10 @@ export default function DeliveryNotes() {
             <strong>Cédula/ID:</strong> ${note.driverId || "-"}<br/>
             <strong>Vehículo/Placa:</strong> ${note.vehiclePlate || "-"}<br/>
             <strong>Fecha emisión:</strong> ${
-              note.issueDate ? new Date(note.issueDate).toLocaleDateString("es-DO") : "-"
+              formatDateOnly(note.issueDate)
             }<br/>
             <strong>Fecha entrega:</strong> ${
-              note.deliveryDate ? new Date(note.deliveryDate).toLocaleDateString("es-DO") : "-"
+              formatDateOnly(note.deliveryDate || note.issueDate)
             }
           </div>
 
@@ -623,12 +651,7 @@ export default function DeliveryNotes() {
 
                     <td>{note.customerName}</td>
                     <td>{note.customerPurchaseOrder}</td>
-
-                    <td>
-                      {note.deliveryDate
-                        ? new Date(note.deliveryDate).toLocaleDateString("es-DO")
-                        : "-"}
-                    </td>
+                    <td>{formatDateOnly(note.deliveryDate || note.issueDate)}</td>
 
                     <td>{money.format(Number(note.total || 0))}</td>
 
@@ -961,7 +984,7 @@ export default function DeliveryNotes() {
                 </div>
 
                 <div>
-                  <span>ITBIS</span>
+                  <span>{taxLabel}</span>
                   <strong>{money.format(totals.tax)}</strong>
                 </div>
 

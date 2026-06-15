@@ -38,7 +38,7 @@ export default function Billing() {
     STATUS_LABELS[tenant?.subscriptionStatus] || "Sin estado";
 
 const renewalDate = tenant?.subscriptionCurrentPeriodEnd
-  ? new Date(tenant.subscriptionCurrentPeriodEnd).toLocaleDateString("es-DO", {
+  ? new Date(tenant.subscriptionCurrentPeriodEnd).toLocaleDateString(tenant?.country === "US" ? "en-US" : "es-DO", {
       year: "numeric",
       month: "long",
       day: "numeric",
@@ -47,7 +47,7 @@ const renewalDate = tenant?.subscriptionCurrentPeriodEnd
   : "No disponible";
 
   const cancelDate = tenant?.subscriptionCancelAt
-  ? new Date(tenant.subscriptionCancelAt).toLocaleDateString("es-DO", {
+  ? new Date(tenant.subscriptionCancelAt).toLocaleDateString(tenant?.country === "US" ? "en-US" : "es-DO", {
       year: "numeric",
       month: "long",
       day: "numeric",

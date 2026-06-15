@@ -1,19 +1,30 @@
 import { useEffect, useMemo, useState } from "react";
 import { Copy, ExternalLink, ImagePlus, Package, RefreshCcw, Search } from "lucide-react";
 import { api } from "../../api/axios";
+import { useAuth } from "../../context/AuthContext";
+import { isDominicanTenant } from "../../utils/taxConfig";
 import "../../styles/product-catalog.css";
 
 export default function ProductCatalog() {
+  const { tenant } = useAuth();
+  const isDO = isDominicanTenant(tenant);
+  const locale = isDO ? "es-DO" : "en-US";
+  const currency = isDO ? "DOP" : "USD";
+
   const [settings, setSettings] = useState(null);
   const [products, setProducts] = useState([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
 
-  const money = new Intl.NumberFormat("es-DO", {
-    style: "currency",
-    currency: "DOP",
-  });
+  const money = useMemo(
+    () =>
+      new Intl.NumberFormat(locale, {
+        style: "currency",
+        currency,
+      }),
+    [locale, currency]
+  );
 
   const loadData = async () => {
     try {
@@ -43,7 +54,6 @@ export default function ProductCatalog() {
 
     return products.filter((product) => {
       if (product.showInCatalog === false) return false;
-
       if (!term) return true;
 
       return (

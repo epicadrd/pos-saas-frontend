@@ -824,3 +824,11 @@
     justify-content: center;
   }
 }
+
+.quote-item-row small {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #64748b;
+}

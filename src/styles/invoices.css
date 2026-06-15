@@ -20,7 +20,7 @@
   letter-spacing: 0.22em;
   font-size: 12px;
   font-weight: 900;
-  color: #00bfae;
+  color: var(--invoice-color, #00bfae);
 }
 
 .invoice-header h2 {
@@ -151,7 +151,7 @@
   height: 42px;
   border-radius: 15px;
   background: #eef2ff;
-  color: #00bfae;
+  color: var(--invoice-color, #00bfae);
   display: grid;
   place-items: center;
 }
@@ -214,7 +214,7 @@
   border: none;
   border-radius: 14px;
   padding: 0 16px;
-  background: #00bfae;
+  background: var(--invoice-color, #00bfae);
   color: white;
   font-weight: 900;
   cursor: pointer;
@@ -326,4 +326,87 @@
   .invoice-form-grid {
     grid-template-columns: 1fr;
   }
+}
+
+/* COLOR DINÁMICO FACTURACIÓN */
+.qb-list-page,
+.qb-invoice-page {
+  --invoice-color: var(--invoice-color, #00bfae);
+}
+
+.qb-primary-btn {
+  background: var(--invoice-color, #00bfae) !important;
+  border-color: var(--invoice-color, #00bfae) !important;
+}
+
+.qb-tabs .active {
+  color: var(--invoice-color, #00bfae) !important;
+  border-bottom-color: var(--invoice-color, #00bfae) !important;
+}
+
+.qb-company h2 {
+  color: var(--invoice-color, #00bfae) !important;
+}
+
+.qb-company a,
+.qb-side-panel a,
+.qb-client-select,
+.qb-client-btn,
+.qb-items-head button,
+.qb-footer-bar > button,
+.qb-actions-menu button:hover,
+.qb-modal-head span {
+  color: var(--invoice-color, #00bfae) !important;
+}
+
+.qb-client-select,
+.qb-client-btn,
+.qb-items-head button {
+  border-color: var(--invoice-color, #00bfae) !important;
+}
+
+.qb-form-grid input:focus,
+.qb-client-right input:focus,
+.qb-client-right select:focus,
+.qb-items-table input:focus,
+.qb-items-table select:focus,
+.qb-bottom-area textarea:focus,
+.qb-totals input:focus,
+.qb-customer-grid input:focus,
+.qb-customer-grid textarea:focus {
+  border-color: var(--invoice-color, #00bfae) !important;
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--invoice-color, #00bfae) 16%, transparent) !important;
+}
+
+.qb-logo-box {
+  color: var(--invoice-color, #00bfae) !important;
+}
+
+.qb-preview-header {
+  border-bottom-color: var(--invoice-color, #00bfae) !important;
+}
+
+.qb-preview-header h2 {
+  color: var(--invoice-color, #00bfae) !important;
+}
+
+.qb-partial {
+  color: var(--invoice-color, #00bfae) !important;
+}
+
+.qb-invoice-preview-modal .qb-preview-header {
+  border-bottom-color: var(--invoice-color, #00bfae) !important;
+}
+
+.qb-invoice-preview-modal .qb-preview-header h2 {
+  color: var(--invoice-color, #00bfae) !important;
+}
+
+.qb-invoice-preview-modal .qb-modal-head span {
+  color: var(--invoice-color, #00bfae) !important;
+}
+
+.qb-invoice-preview-modal .qb-primary-btn {
+  background: var(--invoice-color, #00bfae) !important;
+  border-color: var(--invoice-color, #00bfae) !important;
 }

@@ -281,7 +281,7 @@ export default function Quotes() {
     }
 
     if (!items.length) {
-      alert("Debes agregar al menos un producto");
+      alert("Debes agregar al menos un producto o servicio");
       return;
     }
 
@@ -1127,13 +1127,13 @@ export default function Quotes() {
               <div className="quote-items-box">
                 <div className="items-header">
                   <div>
-                    <h4>Productos</h4>
-                    <p>Agrega productos desde tu inventario. No descuenta stock.</p>
+                    <h4>Productos y servicios</h4>
+                     <p>Productos o servicios.</p>
                   </div>
 
                   <button type="button" onClick={addEmptyItem}>
                     <Plus size={17} />
-                    Agregar producto
+                    Agregar línea
                   </button>
                 </div>
 
@@ -1156,67 +1156,122 @@ export default function Quotes() {
 
         return (
           <div className="quote-item-row" key={index}>
-            <select
-              value={item.productId}
-              onChange={(e) => handleItemChange(index, "productId", e.target.value)}
-            >
-              <option value="">Seleccionar producto</option>
-              {products.map((product) => (
-                <option key={product.id} value={product.id}>
-                  {product.name} - Stock: {product.stock}
-                </option>
-              ))}
-            </select>
+  <div>
+    <small>Producto o servicio</small>
 
-            <input
-              type="number"
-              min="1"
-              value={item.quantity}
-              onChange={(e) => handleItemChange(index, "quantity", e.target.value)}
-              placeholder="Cant."
-            />
+    <input
+      type="text"
+      list={`quote-products-${index}`}
+      value={item.productName || ""}
+      onChange={(e) => {
+        const value = e.target.value;
 
-            <input
-              type="number"
-              step="0.01"
-              value={item.price}
-              onChange={(e) => handleItemChange(index, "price", e.target.value)}
-              placeholder="Precio"
-            />
+        const selectedProduct = products.find(
+          (product) =>
+            product.name.trim().toLowerCase() ===
+            value.trim().toLowerCase()
+        );
 
-            <input
-              type="number"
-              step="0.01"
-              min="0"
-              max="100"
-              value={item.discount}
-              onChange={(e) => handleItemChange(index, "discount", e.target.value)}
-              placeholder="Desc. %"
-            />
+        if (selectedProduct) {
+          handleItemChange(index, "productId", selectedProduct.id);
+        } else {
+          const copy = [...items];
 
-            <select
-              value={item.isTaxable === false ? "false" : "true"}
-              onChange={(e) => handleItemChange(index, "isTaxable", e.target.value)}
-            >
-              <option value="true">
-                {isDO ? "Con ITBIS" : "Taxable"}
-              </option>
+          copy[index] = {
+            ...copy[index],
+            productId: "",
+            productName: value,
+          };
 
-              <option value="false">
-                {isDO ? "Sin ITBIS" : "Non-Taxable"}
-              </option>
-            </select>
+          setItems(copy);
+        }
+      }}
+      placeholder="Producto o servicio"
+    />
 
-            <strong>{money.format(total)}</strong>
+    <datalist id={`quote-products-${index}`}>
+      {products.map((product) => (
+        <option key={product.id} value={product.name} />
+      ))}
+    </datalist>
+  </div>
 
-            <button
-              type="button"
-              className="remove-item-btn"
-              onClick={() => removeItem(index)}
-            >
-              <Trash2 size={16} />
-            </button>
-          </div>
+  <div>
+    <small>Cantidad</small>
+
+    <input
+      type="number"
+      min="1"
+      value={item.quantity}
+      onChange={(e) =>
+        handleItemChange(index, "quantity", e.target.value)
+      }
+      placeholder="Cantidad"
+    />
+  </div>
+
+  <div>
+    <small>Precio</small>
+
+    <input
+      type="number"
+      step="0.01"
+      value={item.price}
+      onChange={(e) =>
+        handleItemChange(index, "price", e.target.value)
+      }
+      placeholder="Precio"
+    />
+  </div>
+
+  <div>
+    <small>Descuento %</small>
+
+    <input
+      type="number"
+      step="0.01"
+      min="0"
+      max="100"
+      value={item.discount}
+      onChange={(e) =>
+        handleItemChange(index, "discount", e.target.value)
+      }
+      placeholder="Descuento %"
+    />
+  </div>
+
+  <div>
+    <small>Impuesto</small>
+
+    <select
+      value={item.isTaxable === false ? "false" : "true"}
+      onChange={(e) =>
+        handleItemChange(index, "isTaxable", e.target.value)
+      }
+    >
+      <option value="true">
+        {isDO ? "Con ITBIS" : "Taxable"}
+      </option>
+
+      <option value="false">
+        {isDO ? "Sin ITBIS" : "Non-Taxable"}
+      </option>
+    </select>
+  </div>
+
+  <div>
+    <small>Total</small>
+    <strong>{money.format(total)}</strong>
+  </div>
+
+  <button
+    type="button"
+    className="remove-item-btn"
+    onClick={() => removeItem(index)}
+  >
+    <Trash2 size={16} />
+  </button>
+</div>
         );
       })}
     </div>
@@ -1244,20 +1299,44 @@ export default function Quotes() {
 
             <div className="quote-mobile-item-grid">
               <label>
-                Producto
-                <select
-                  value={item.productId}
-                  onChange={(e) => handleItemChange(index, "productId", e.target.value)}
-                >
-                  <option value="">Seleccionar producto</option>
-                  {products.map((product) => (
-                    <option key={product.id} value={product.id}>
-                      {product.name} - Stock: {product.stock}
-                    </option>
-                  ))}
-                </select>
-              </label>
+  Producto o servicio
 
+  <input
+    type="text"
+    list={`quote-products-mobile-${index}`}
+    value={item.productName || ""}
+    onChange={(e) => {
+      const value = e.target.value;
+
+      const selectedProduct = products.find(
+        (product) =>
+          product.name.trim().toLowerCase() ===
+          value.trim().toLowerCase()
+      );
+
+      if (selectedProduct) {
+        handleItemChange(index, "productId", selectedProduct.id);
+      } else {
+        const copy = [...items];
+
+        copy[index] = {
+          ...copy[index],
+          productId: "",
+          productName: value,
+        };
+
+        setItems(copy);
+      }
+    }}
+    placeholder="Producto o servicio"
+  />
+
+  <datalist id={`quote-products-mobile-${index}`}>
+    {products.map((product) => (
+      <option key={product.id} value={product.name} />
+    ))}
+  </datalist>
+</label>
               <div className="quote-mobile-item-row-2">
                 <label>
                   Cantidad

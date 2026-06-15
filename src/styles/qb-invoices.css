@@ -748,8 +748,8 @@ flex-shrink: 0;
 }
 
 .qb-preview-table th {
-  background: #f8fafc;
-  color: #334155;
+  background: var(--invoice-color, #00bfae);
+  color: #fff;
 }
 
 .qb-preview-totals {

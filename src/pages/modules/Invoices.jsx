@@ -294,6 +294,7 @@ const getTaxAmount = (rate, base = totals.subtotal) => {
       ...items,
       {
         productId: "",
+        productName: "",
         description: "",
         quantity: 1,
         unit: "UND",
@@ -314,7 +315,8 @@ const getTaxAmount = (rate, base = totals.subtotal) => {
       copy[index] = {
         ...copy[index],
         productId: product?.id || "",
-        description: product?.description || product?.name || "",
+        productName: product?.name || "",
+        description: product?.description || "",
         quantity: 1,
         unit: product?.unit || "UND",
         price: Number(product?.salePrice || product?.price || 0),
@@ -402,9 +404,10 @@ const getTaxAmount = (rate, base = totals.subtotal) => {
     }
 
     const cleanItems = items
-      .filter((item) => item.productId && Number(item.quantity) > 0)
+      .filter((item) => (item.productId || item.productName || item.description) && Number(item.quantity) > 0)
       .map((item) => ({
         productId: item.productId,
+        productName: item.productName || item.description || "",
         quantity: Number(item.quantity),
         price: Number(item.price),
         discount: Number(item.discount || 0),
@@ -532,7 +535,8 @@ const getTaxAmount = (rate, base = totals.subtotal) => {
 
     setItems(
       (invoice.items || []).map((item) => ({
-        productId: item.productId,
+        productId: item.productId || "",
+        productName: item.productName || item.product?.name || item.description || "",
         description: item.description || "",
         quantity: item.quantity,
         price: Number(item.unitPrice ?? item.price ?? 0),
@@ -739,7 +743,7 @@ const emitElectronicInvoice = async (invoice) => {
 
                         return `
                           <tr>
-                            <td>${item.description || item.product?.name || "-"}</td>
+                            <td>${item.productName || item.product?.name || item.description || "-"}</td>
                             <td>${values.quantity}</td>
                             <td>${money.format(values.price)}</td>
                             <td>${money.format(values.discount)}</td>
@@ -897,7 +901,7 @@ const emitElectronicInvoice = async (invoice) => {
 
                         return `
                           <tr>
-                            <td>${product?.name || item.description || "-"}</td>
+                            <td>${item.productName || product?.name || item.description || "-"}</td>
                             <td>${values.quantity}</td>
                             <td>${money.format(values.price)}</td>
                             <td>${money.format(values.discount)}</td>
@@ -1012,7 +1016,10 @@ const emitElectronicInvoice = async (invoice) => {
 
   if (view === "list") {
     return (
-      <div className="qb-list-page">
+      <div
+        className="qb-list-page"
+        style={{ "--invoice-color": invoiceColor }}
+      >
         <div className="qb-list-header">
           <div>
             <h1>Facturas</h1>
@@ -1310,7 +1317,10 @@ const emitElectronicInvoice = async (invoice) => {
   }
 
   return (
-    <div className="qb-invoice-page">
+    <div
+        className="qb-invoice-page"
+        style={{ "--invoice-color": invoiceColor }}
+      >
       <div className="qb-topbar">
         <div>
           <button
@@ -1686,11 +1696,18 @@ const emitElectronicInvoice = async (invoice) => {
           <main className="qb-document">
             <section className="qb-company">
               <div>
-                <h2>{isDO ? "FACTURA" : "INVOICE"}</h2>
+                <h2 style={{ color: invoiceColor }}>
+                  {isDO ? "FACTURA" : "INVOICE"}
+                </h2>
                 <strong>{tenant?.businessName || "Mi empresa"}</strong>
                 <p>{tenant?.address || "Dirección no configurada"}</p>
                 {isDO && <p>RNC/Cédula: {tenant?.rnc || "No configurado"}</p>}
-                <a onClick={() => setCompanyModalOpen(true)}>Editar empresa</a>
+                <a
+                  onClick={() => setCompanyModalOpen(true)}
+                  style={{ color: invoiceColor }}
+                >
+                  Editar empresa
+                </a>
               </div>
 
               <div className="qb-company-contact">
@@ -1707,8 +1724,10 @@ const emitElectronicInvoice = async (invoice) => {
                   <img src={invoiceLogo} alt="Logo empresa" />
                 ) : (
                   <>
-                    <span>Mi</span>
-                    <small>EMPRESA</small>
+                    <span style={{ color: invoiceColor }}>Mi</span>
+                    <small style={{ color: invoiceColor }}>
+                      EMPRESA
+                    </small>
                   </>
                 )}
               </div>
@@ -1890,7 +1909,13 @@ const emitElectronicInvoice = async (invoice) => {
             <section className="qb-items-card">
   <div className="qb-items-head">
     <h3>Productos y servicios</h3>
-    <button onClick={addLine}>
+    <button
+        onClick={addLine}
+        style={{
+          color: invoiceColor,
+          borderColor: invoiceColor,
+        }}
+      >
       <Plus size={16} />
       Agregar línea
     </button>
@@ -1949,38 +1974,52 @@ const emitElectronicInvoice = async (invoice) => {
                 <td>{index + 1}</td>
 
                 <td>
-                  <select
-                    value={item.productId}
-                    onChange={(e) =>
-                      updateItem(index, "productId", e.target.value)
-                    }
-                  >
-                    <option value="">Selecciona producto/servicio</option>
+                    <input
+                        type="text"
+                        list={`invoice-products-${index}`}
+                        value={item.productName ?? ""}
+                        onChange={(e) => {
+                          const value = e.target.value;
 
-                    {products.map((product) => {
-                      const service =
-                        product.productType === "service" ||
-                        product.trackStock === false;
+                          const selectedProduct = products.find(
+                            (product) =>
+                              product.name.trim().toLowerCase() ===
+                              value.trim().toLowerCase()
+                          );
 
-                      return (
-                        <option key={product.id} value={product.id}>
-                          {product.name}{" "}
-                          {service ? "(Servicio)" : `(Stock: ${product.stock})`}
-                        </option>
-                      );
-                    })}
-                  </select>
+                          if (selectedProduct) {
+                            updateItem(index, "productId", selectedProduct.id);
+                          } else {
+                            const copy = [...items];
 
-                  {product && (
-                    <small className={isService ? "service-label" : ""}>
-                      {isService
-                        ? "Servicio"
-                        : stockError
-                        ? `Stock insuficiente: ${product.stock}`
-                        : `Disponible: ${product.stock}`}
-                    </small>
-                  )}
-                </td>
+                            copy[index] = {
+                              ...copy[index],
+                              productId: "",
+                              productName: value,
+                            };
+
+                            setItems(copy);
+                          }
+                        }}
+                        placeholder="Producto o servicio"
+                      />
+
+                    <datalist id={`invoice-products-${index}`}>
+                      {products.map((product) => (
+                        <option key={product.id} value={product.name} />
+                      ))}
+                    </datalist>
+
+                    {product && (
+                      <small className={isService ? "service-label" : ""}>
+                        {isService
+                          ? "Servicio"
+                          : stockError
+                          ? `Stock insuficiente: ${product.stock}`
+                          : `Disponible: ${product.stock}`}
+                      </small>
+                    )}
+                  </td>
 
                 <td>
                   <input
@@ -2108,27 +2147,41 @@ const emitElectronicInvoice = async (invoice) => {
             <div className="qb-mobile-item-grid">
               <label>
                 Producto / servicio
-                <select
-                  value={item.productId}
-                  onChange={(e) =>
-                    updateItem(index, "productId", e.target.value)
-                  }
-                >
-                  <option value="">Selecciona producto/servicio</option>
+                <input
+                  type="text"
+                  list={`invoice-products-mobile-${index}`}
+                  value={item.productName ?? ""}
+                  onChange={(e) => {
+                    const value = e.target.value;
 
-                  {products.map((product) => {
-                    const service =
-                      product.productType === "service" ||
-                      product.trackStock === false;
-
-                    return (
-                      <option key={product.id} value={product.id}>
-                        {product.name}{" "}
-                        {service ? "(Servicio)" : `(Stock: ${product.stock})`}
-                      </option>
+                    const selectedProduct = products.find(
+                      (product) =>
+                        product.name.trim().toLowerCase() ===
+                        value.trim().toLowerCase()
                     );
-                  })}
-                </select>
+
+                    if (selectedProduct) {
+                      updateItem(index, "productId", selectedProduct.id);
+                    } else {
+                      const copy = [...items];
+
+                      copy[index] = {
+                        ...copy[index],
+                        productId: "",
+                        productName: value,
+                      };
+
+                      setItems(copy);
+                    }
+                  }}
+                  placeholder="Producto o servicio"
+                />
+
+                <datalist id={`invoice-products-mobile-${index}`}>
+                  {products.map((product) => (
+                    <option key={product.id} value={product.name} />
+                  ))}
+                </datalist>
               </label>
 
               {product && (
@@ -2512,8 +2565,14 @@ const emitElectronicInvoice = async (invoice) => {
 
 
       {previewModalOpen && (
-  <div className="qb-modal-overlay">
-    <div className="qb-invoice-preview-modal">
+  <div
+    className="qb-modal-overlay"
+    style={{ "--invoice-color": invoiceColor }}
+  >
+    <div
+      className="qb-invoice-preview-modal"
+      style={{ "--invoice-color": invoiceColor }}
+    >
       <div className="qb-modal-head">
         <div>
           <span>Vista previa</span>
@@ -2528,7 +2587,9 @@ const emitElectronicInvoice = async (invoice) => {
       <div className="qb-preview-body">
         <div className="qb-preview-header">
           <div>
-            <h2>{isDO ? getFiscalInvoiceTitle(form.invoiceType) : "INVOICE"}</h2>
+            <h2 style={{ color: invoiceColor }}>
+              {isDO ? getFiscalInvoiceTitle(form.invoiceType) : "INVOICE"}
+            </h2>
 
               {isDO && (
                 <p><strong>e-NCF:</strong> se generará al emitir</p>
@@ -2555,7 +2616,10 @@ const emitElectronicInvoice = async (invoice) => {
           <strong>Vencimiento:</strong> {form.dueDate || "-"}
         </div>
 
-        <table className="qb-preview-table">
+        <table
+          className="qb-preview-table"
+          style={{ "--invoice-color": invoiceColor }}
+        >
           <thead>
             <tr>
               <th>Producto / Servicio</th>
@@ -2632,13 +2696,15 @@ const emitElectronicInvoice = async (invoice) => {
         </button>
 
         <button
-          className="qb-primary-btn"
-          disabled={saving}
-          onClick={() => {
-            setPreviewModalOpen(false);
-            saveInvoice("issued");
-          }}
-        >
+            type="button"
+            className="qb-primary-btn"
+            style={{
+              backgroundColor: invoiceColor,
+              borderColor: invoiceColor,
+            }}
+            disabled={saving || hasStockError}
+            onClick={() => saveInvoice("issued")}
+          >
           <FileText size={16} />
           Sí, emitir factura
         </button>

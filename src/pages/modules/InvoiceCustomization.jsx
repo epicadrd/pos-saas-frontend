@@ -7,6 +7,11 @@ import { useAuth } from "../../context/AuthContext";
 export default function InvoiceCustomization() {
   const navigate = useNavigate();
   const { tenant, setTenant } = useAuth();
+  const isDO = (tenant?.country || "DO") === "DO";
+  const money = new Intl.NumberFormat(isDO ? "es-DO" : "en-US", {
+    style: "currency",
+    currency: isDO ? "DOP" : "USD",
+  });
 
   const [form, setForm] = useState({
     logoDataUrl: "",
@@ -125,7 +130,10 @@ export default function InvoiceCustomization() {
           </div>
         </div>
 
-        <div className="qb-invoice-preview-card">
+        <div
+            className="qb-invoice-preview-card"
+            style={{ "--invoice-color": form.primaryColor }}
+          >
           <div
             className="qb-preview-header"
             style={{ borderColor: form.primaryColor }}
@@ -163,14 +171,14 @@ export default function InvoiceCustomization() {
               <tr>
                 <td>Producto de ejemplo</td>
                 <td>1</td>
-                <td>RD$ 1,180.00</td>
+                <td>{money.format(1180)}</td>
               </tr>
             </tbody>
           </table>
 
           <div className="qb-preview-total">
             <span>Total</span>
-            <strong style={{ color: form.primaryColor }}>RD$ 1,180.00</strong>
+            <strong style={{ color: form.primaryColor }}>{money.format(1180)}</strong>
           </div>
         </div>
       </div>

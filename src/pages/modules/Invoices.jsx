@@ -4,6 +4,7 @@ import {
   Ban,
   ChevronDown,
   FileText,
+  Loader2,
   Mail,
   MoreVertical,
   Phone,
@@ -405,6 +406,11 @@ const getTaxAmount = (rate, base = totals.subtotal) => {
       return;
     }
 
+    if (isDO && form.invoiceType === "credit_fiscal" && !form.customerRnc.trim()) {
+      alert("Para emitir una factura de crédito fiscal debes agregar el RNC/Cédula del cliente.");
+      return;
+    }
+
     const cleanItems = items
       .filter((item) => (item.productId || item.productName || item.description) && Number(item.quantity) > 0)
       .map((item) => ({
@@ -429,6 +435,10 @@ const getTaxAmount = (rate, base = totals.subtotal) => {
 
     try {
       setSaving(true);
+
+        if (status !== "draft") {
+          setPreviewModalOpen(false);
+      }
 
       if (editingInvoiceId && status === "draft") {
         await api.put(`/invoices/${editingInvoiceId}/draft`, {
@@ -2559,153 +2569,172 @@ const emitElectronicInvoice = async (invoice) => {
 
 
       {previewModalOpen && (
-  <div
-    className="qb-modal-overlay"
-    style={{ "--invoice-color": invoiceColor }}
-  >
-    <div
-      className="qb-invoice-preview-modal"
-      style={{ "--invoice-color": invoiceColor }}
-    >
-      <div className="qb-modal-head">
-        <div>
-          <span>{t("invoices.preview.title")}</span>
-          <h3>{t("invoices.preview.confirmTitle")}</h3>
-        </div>
-
-        <button onClick={() => setPreviewModalOpen(false)}>
-          <X size={20} />
-        </button>
-      </div>
-
-      <div className="qb-preview-body">
-        <div className="qb-preview-header">
-          <div>
-            <h2 style={{ color: invoiceColor }}>
-              {isDO ? getFiscalInvoiceTitle(form.invoiceType) : "INVOICE"}
-            </h2>
-
-              {isDO && (
-                <p><strong>e-NCF:</strong> {t("invoices.preview.willGenerate")}</p>
-              )}
-          </div>
-
-          <div>
-            <strong>{tenant?.businessName || t("invoices.company.myCompany")}</strong>
-            <p>{tenant?.address || t("invoices.company.addressNotSet")}</p>
-            {isDO && (
-              <p>RNC/Cédula: {tenant?.rnc || "-"}</p>
-            )}
-            <p>{tenant?.email || ""}</p>
-            <p>{tenant?.phone || ""}</p>
-          </div>
-        </div>
-
-        <div className="qb-preview-client">
-          <strong>{t("invoices.fields.customer")}:</strong> {form.customerName || "-"} <br />
-          {isDO && (<><strong>RNC/Cédula:</strong> {form.customerRnc || "-"} <br /></>)}
-          <strong>{t("invoices.fields.phone")}:</strong> {form.customerPhone || "-"} <br />
-          <strong>{t("invoices.fields.emailShort")}:</strong> {form.customerEmail || "-"} <br />
-          <strong>{t("invoices.fields.date")}:</strong> {form.invoiceDate || "-"} <br />
-          <strong>{t("invoices.fields.due")}: </strong> {form.dueDate || "-"}
-        </div>
-
-        <table
-          className="qb-preview-table"
-          style={{ "--invoice-color": invoiceColor }}
-        >
-          <thead>
-            <tr>
-              <th>{t("invoices.items.productService")}</th>
-              <th>{t("invoices.items.qtyShort")}</th>
-              <th>{t("invoices.items.price")}</th>
-              <th>{t("invoices.items.discountShort")}</th>
-              <th>{t("invoices.fields.taxes")}</th>
-              <th>{t("invoices.fields.total")}</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {items.map((item, index) => {
-              const product = products.find(
-                (p) => String(p.id) === String(item.productId)
-              );
-
-              const lineSubtotal = Math.max(
-                Number(item.quantity || 0) * Number(item.price || 0) -
-                  Number(item.discount || 0),
-                0
-              );
-
-              const isTaxable =
-                taxEnabled &&
-                (taxMode === "global" ? true : item.isTaxable !== false);
-
-              const lineTax = isTaxable ? lineSubtotal * (taxRate / 100) : 0;
-              const lineTotal = lineSubtotal + lineTax;
-
-              return (
-                <tr key={index}>
-                  <td>{product?.name || item.description || "-"}</td>
-                  <td>{item.quantity || 0}</td>
-                  <td>{money.format(Number(item.price || 0))}</td>
-                  <td>{money.format(Number(item.discount || 0))}</td>
-                  <td>{money.format(lineTax)}</td>
-                  <td>{money.format(lineTotal)}</td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-
-        <div className="qb-preview-totals">
-          <p>
-            <span>{t("invoices.fields.subtotal")}</span>
-            <strong>{money.format(totals.subtotal)}</strong>
-          </p>
-
-          <p>
-            <span>{taxLabel} ({taxRate}%)</span>
-            <strong>{money.format(totals.tax)}</strong>
-          </p>
-
-          <p className="big">
-            <span>{t("invoices.fields.total")}</span>
-            <strong>{money.format(totals.total)}</strong>
-          </p>
-
-          <p>
-            <span>{t("invoices.fields.balance")}</span>
-            <strong>{money.format(totals.balance)}</strong>
-          </p>
-        </div>
-      </div>
-
-      <div className="qb-modal-actions">
-        <button
-          className="qb-secondary-btn"
-          onClick={() => setPreviewModalOpen(false)}
-        >
-          {t("invoices.actions.backToEdit")}
-        </button>
-
-        <button
-            type="button"
-            className="qb-primary-btn"
-            style={{
-              backgroundColor: invoiceColor,
-              borderColor: invoiceColor,
-            }}
-            disabled={saving || hasStockError}
-            onClick={() => saveInvoice("issued")}
+          <div
+            className="qb-modal-overlay"
+            style={{ "--invoice-color": invoiceColor }}
           >
-          <FileText size={16} />
-          {t("invoices.actions.yesIssueInvoice")}
-        </button>
-      </div>
-    </div>
-  </div>
-)}
+            <div
+              className="qb-invoice-preview-modal"
+              style={{ "--invoice-color": invoiceColor }}
+            >
+              <div className="qb-modal-head">
+                <div>
+                  <span>{t("invoices.preview.title")}</span>
+                  <h3>{t("invoices.preview.confirmTitle")}</h3>
+                </div>
+
+                <button onClick={() => setPreviewModalOpen(false)}>
+                  <X size={20} />
+                </button>
+              </div>
+
+              <div className="qb-preview-body">
+                <div className="qb-preview-header">
+                  <div>
+                    <h2 style={{ color: invoiceColor }}>
+                      {isDO ? getFiscalInvoiceTitle(form.invoiceType) : "INVOICE"}
+                    </h2>
+
+                      {isDO && (
+                        <p><strong>e-NCF:</strong> {t("invoices.preview.willGenerate")}</p>
+                      )}
+                  </div>
+
+                  <div>
+                    <strong>{tenant?.businessName || t("invoices.company.myCompany")}</strong>
+                    <p>{tenant?.address || t("invoices.company.addressNotSet")}</p>
+                    {isDO && (
+                      <p>RNC/Cédula: {tenant?.rnc || "-"}</p>
+                    )}
+                    <p>{tenant?.email || ""}</p>
+                    <p>{tenant?.phone || ""}</p>
+                  </div>
+                </div>
+
+                <div className="qb-preview-client">
+                  <strong>{t("invoices.fields.customer")}:</strong> {form.customerName || "-"} <br />
+                  {isDO && (<><strong>RNC/Cédula:</strong> {form.customerRnc || "-"} <br /></>)}
+                  <strong>{t("invoices.fields.phone")}:</strong> {form.customerPhone || "-"} <br />
+                  <strong>{t("invoices.fields.emailShort")}:</strong> {form.customerEmail || "-"} <br />
+                  <strong>{t("invoices.fields.date")}:</strong> {form.invoiceDate || "-"} <br />
+                  <strong>{t("invoices.fields.due")}: </strong> {form.dueDate || "-"}
+                </div>
+
+                <table
+                  className="qb-preview-table"
+                  style={{ "--invoice-color": invoiceColor }}
+                >
+                  <thead>
+                    <tr>
+                      <th>{t("invoices.items.productService")}</th>
+                      <th>{t("invoices.items.qtyShort")}</th>
+                      <th>{t("invoices.items.price")}</th>
+                      <th>{t("invoices.items.discountShort")}</th>
+                      <th>{t("invoices.fields.taxes")}</th>
+                      <th>{t("invoices.fields.total")}</th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    {items.map((item, index) => {
+                      const product = products.find(
+                        (p) => String(p.id) === String(item.productId)
+                      );
+
+                      const lineSubtotal = Math.max(
+                        Number(item.quantity || 0) * Number(item.price || 0) -
+                          Number(item.discount || 0),
+                        0
+                      );
+
+                      const isTaxable =
+                        taxEnabled &&
+                        (taxMode === "global" ? true : item.isTaxable !== false);
+
+                      const lineTax = isTaxable ? lineSubtotal * (taxRate / 100) : 0;
+                      const lineTotal = lineSubtotal + lineTax;
+
+                      return (
+                        <tr key={index}>
+                          <td>{product?.name || item.description || "-"}</td>
+                          <td>{item.quantity || 0}</td>
+                          <td>{money.format(Number(item.price || 0))}</td>
+                          <td>{money.format(Number(item.discount || 0))}</td>
+                          <td>{money.format(lineTax)}</td>
+                          <td>{money.format(lineTotal)}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+
+                <div className="qb-preview-totals">
+                  <p>
+                    <span>{t("invoices.fields.subtotal")}</span>
+                    <strong>{money.format(totals.subtotal)}</strong>
+                  </p>
+
+                  <p>
+                    <span>{taxLabel} ({taxRate}%)</span>
+                    <strong>{money.format(totals.tax)}</strong>
+                  </p>
+
+                  <p className="big">
+                    <span>{t("invoices.fields.total")}</span>
+                    <strong>{money.format(totals.total)}</strong>
+                  </p>
+
+                  <p>
+                    <span>{t("invoices.fields.balance")}</span>
+                    <strong>{money.format(totals.balance)}</strong>
+                  </p>
+                </div>
+              </div>
+
+              <div className="qb-modal-actions">
+                <button
+                  className="qb-secondary-btn"
+                  onClick={() => setPreviewModalOpen(false)}
+                >
+                  {t("invoices.actions.backToEdit")}
+                </button>
+
+                <button
+                    type="button"
+                    className="qb-primary-btn"
+                    style={{
+                      backgroundColor: invoiceColor,
+                      borderColor: invoiceColor,
+                    }}
+                    disabled={saving || hasStockError}
+                    onClick={() => saveInvoice("issued")}
+                  >
+                  {saving ? <Loader2 size={16} className="qb-spin" /> : <FileText size={16} />}
+                  {saving ? "Emitiendo factura..." : t("invoices.actions.yesIssueInvoice")}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+        {saving && (
+          <div className="qb-saving-overlay">
+            <div className="qb-saving-box">
+              <div className="qb-saving-loader">
+                <Loader2 size={34} className="qb-spin" />
+              </div>
+
+              <strong>
+                {isDO ? "Emitiendo factura..." : "Generando factura..."}
+              </strong>
+
+              <p>
+                {isDO
+                  ? "Estamos generando la factura y enviando el e-CF."
+                  : "Estamos procesando la factura. Esto puede tardar unos segundos."}
+              </p>
+            </div>
+          </div>
+        )}
     </div>
   );
 }

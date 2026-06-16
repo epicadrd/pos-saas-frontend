@@ -676,12 +676,48 @@ const emitElectronicInvoice = async (invoice) => {
       "Enviado",
   };
 };
+
+const printHtml = (html) => {
+  const iframe = document.createElement("iframe");
+
+  iframe.style.position = "fixed";
+  iframe.style.right = "0";
+  iframe.style.bottom = "0";
+  iframe.style.width = "0";
+  iframe.style.height = "0";
+  iframe.style.border = "0";
+
+  document.body.appendChild(iframe);
+
+  const iframeWindow = iframe.contentWindow;
+  const iframeDocument = iframeWindow.document;
+
+  iframeDocument.open();
+  iframeDocument.write(html);
+  iframeDocument.close();
+
+  iframe.onload = () => {
+    iframeWindow.focus();
+    iframeWindow.print();
+
+    iframeWindow.onafterprint = () => {
+      document.body.removeChild(iframe);
+    };
+
+    setTimeout(() => {
+      if (document.body.contains(iframe)) {
+        document.body.removeChild(iframe);
+      }
+    }, 3000);
+  };
+};
+
   const handlePrintInvoice = async (invoice) => {
     const invoiceItems = invoice.items || [];
     const qrDataUrl = await QRCode.toDataURL(buildInvoiceQrValue(invoice), {
       width: 150,
       margin: 1,
-    });
+  });
 
     const html = `
       <html>
@@ -820,16 +856,10 @@ const emitElectronicInvoice = async (invoice) => {
       </html>
     `;
 
-    const printWindow = window.open("", "_blank");
-    if (!printWindow) return;
+  printHtml(html);
+};
 
-    printWindow.document.write(html);
-    printWindow.document.close();
-    printWindow.focus();
-    printWindow.print();
-  };
-
-  const handlePrintDraft = async () => {
+const handlePrintDraft = async () => {
   const qrDataUrl = await QRCode.toDataURL(
     `${window.location.origin}/public/invoice/${invoiceNumberPreview}`,
     {

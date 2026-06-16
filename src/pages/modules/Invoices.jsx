@@ -58,6 +58,7 @@ export default function Invoices() {
   const [invoices, setInvoices] = useState([]);
   const [products, setProducts] = useState([]);
   const [customers, setCustomers] = useState([]);
+  
 
   const [loading, setLoading] = useState(true);
 
@@ -88,6 +89,7 @@ export default function Invoices() {
   const [selectedDraft, setSelectedDraft] = useState(null);
   const adminMenuRef = useRef(null);
   const actionsMenuRef = useRef(null);
+  const customerSuggestionsRef = useRef(null);
 
   const [companyModalOpen, setCompanyModalOpen] = useState(false);
   const [companyForm, setCompanyForm] = useState({
@@ -260,6 +262,12 @@ const getTaxAmount = (rate, base = totals.subtotal) => {
 
   useEffect(() => {
   const handleClickOutside = (event) => {
+    if (
+      customerSuggestionsRef.current &&
+      !customerSuggestionsRef.current.contains(event.target)
+    ) {
+      setShowCustomerSuggestions(false);
+    }
     if (
       adminMenuRef.current &&
       !adminMenuRef.current.contains(event.target)
@@ -1758,7 +1766,7 @@ const emitElectronicInvoice = async (invoice) => {
                 </select>
 
                 <div className="qb-form-grid">
-                  <label className="qb-customer-search-wrap">
+                  <label className="qb-customer-search-wrap" ref={customerSuggestionsRef}>
                     {t("invoices.fields.customerRequired")}
                     <input
                       value={form.customerName}

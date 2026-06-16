@@ -5,6 +5,7 @@ import { AuthProvider } from "./context/AuthContext.jsx";
 import ToastProvider from "./components/ToastProvider.jsx";
 import ConfirmProvider from "./components/ConfirmProvider.jsx";
 import "./index.css";
+import "./i18n";
 import App from "./App.jsx";
 
 createRoot(document.getElementById("root")).render(

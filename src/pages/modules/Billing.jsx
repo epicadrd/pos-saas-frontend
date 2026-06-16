@@ -5,55 +5,48 @@ import {
   ShieldCheck,
   Settings,
   Crown,
-  AlertCircle,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../../context/AuthContext";
 import { api } from "../../api/axios";
 import "../../styles/Billing.css";
 
-const PLAN_LABELS = {
-  emprendedor: "Emprendedor",
-  pyme: "PyME",
-  empresarial: "Empresarial",
-};
-
-const STATUS_LABELS = {
-  active: "Activa",
-  trialing: "En prueba",
-  past_due: "Pago pendiente",
-  canceled: "Cancelada",
-  inactive: "Inactiva",
-};
-
 export default function Billing() {
-  const { tenant, refreshSession } = useAuth();
+  const { tenant } = useAuth();
+  const { t, i18n } = useTranslation();
 
   const [loading, setLoading] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState("");
 
-  const planName = PLAN_LABELS[tenant?.plan] || "Sin plan";
+  const locale = i18n.language === "en" || tenant?.country === "US" ? "en-US" : "es-DO";
+
+  const planName =
+    t(`billing.plans.${tenant?.plan}`, {
+      defaultValue: t("billing.plans.none"),
+    });
 
   const statusName =
-    STATUS_LABELS[tenant?.subscriptionStatus] || "Sin estado";
+    t(`billing.status.${tenant?.subscriptionStatus}`, {
+      defaultValue: t("billing.status.none"),
+    });
 
-const renewalDate = tenant?.subscriptionCurrentPeriodEnd
-  ? new Date(tenant.subscriptionCurrentPeriodEnd).toLocaleDateString(tenant?.country === "US" ? "en-US" : "es-DO", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      timeZone: "UTC",
-    })
-  : "No disponible";
+  const renewalDate = tenant?.subscriptionCurrentPeriodEnd
+    ? new Date(tenant.subscriptionCurrentPeriodEnd).toLocaleDateString(locale, {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        timeZone: "UTC",
+      })
+    : t("billing.notAvailable");
 
   const cancelDate = tenant?.subscriptionCancelAt
-  ? new Date(tenant.subscriptionCancelAt).toLocaleDateString(tenant?.country === "US" ? "en-US" : "es-DO", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      timeZone: "UTC",
-    })
-  : null;
+    ? new Date(tenant.subscriptionCancelAt).toLocaleDateString(locale, {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        timeZone: "UTC",
+      })
+    : null;
 
   const openBillingPortal = async () => {
     try {
@@ -61,36 +54,19 @@ const renewalDate = tenant?.subscriptionCurrentPeriodEnd
       setLoading(true);
 
       const { data } = await api.post("/billing/portal");
-
       window.location.href = data.url;
     } catch (error) {
-      setError(
-        error.response?.data?.message ||
-          "No pudimos abrir el portal de facturación."
-      );
+      setError(error.response?.data?.message || t("billing.errors.portal"));
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleRefresh = async () => {
-    try {
-      setRefreshing(true);
-      await refreshSession();
-    } finally {
-      setRefreshing(false);
     }
   };
 
   return (
     <div className="billing-page">
       <div className="billing-hero">
-        <h1>Plan y suscripción</h1>
-
-        <p>
-          Administra tu suscripción, método de pago y estado de facturación
-          desde tu portal seguro conectado con Stripe.
-        </p>
+        <h1>{t("billing.title")}</h1>
+        <p>{t("billing.description")}</p>
       </div>
 
       {error && <div className="auth-error">{error}</div>}
@@ -104,15 +80,14 @@ const renewalDate = tenant?.subscriptionCurrentPeriodEnd
               </div>
 
               <div>
-                <h3>Plan actual</h3>
-                <p>Tu plan activo actualmente</p>
+                <h3>{t("billing.currentPlan.title")}</h3>
+                <p>{t("billing.currentPlan.description")}</p>
               </div>
             </div>
           </div>
 
           <div className="billing-plan">
             <strong>{planName}</strong>
-
             <div className="billing-badge">{statusName}</div>
           </div>
         </div>
@@ -125,8 +100,8 @@ const renewalDate = tenant?.subscriptionCurrentPeriodEnd
               </div>
 
               <div>
-                <h3>Próxima renovación</h3>
-                <p>Fecha estimada de renovación</p>
+                <h3>{t("billing.renewal.title")}</h3>
+                <p>{t("billing.renewal.description")}</p>
               </div>
             </div>
           </div>
@@ -142,8 +117,8 @@ const renewalDate = tenant?.subscriptionCurrentPeriodEnd
               </div>
 
               <div>
-                <h3>Estado de suscripción</h3>
-                <p>Información de facturación</p>
+                <h3>{t("billing.subscriptionStatus.title")}</h3>
+                <p>{t("billing.subscriptionStatus.description")}</p>
               </div>
             </div>
           </div>
@@ -156,7 +131,7 @@ const renewalDate = tenant?.subscriptionCurrentPeriodEnd
 
             <div className="billing-info-item">
               <CreditCard size={18} />
-              <span>Stripe conectado</span>
+              <span>{t("billing.stripeConnected")}</span>
             </div>
           </div>
         </div>
@@ -171,25 +146,22 @@ const renewalDate = tenant?.subscriptionCurrentPeriodEnd
               </div>
 
               <div>
-                <h3>Administrar pagos</h3>
-
-                <p>
-                  Actualiza tu tarjeta, descarga facturas o cambia tu plan
-                  directamente desde Stripe.
-                </p>
+                <h3>{t("billing.managePayments.title")}</h3>
+                <p>{t("billing.managePayments.description")}</p>
               </div>
             </div>
           </div>
 
-            {cancelDate && (
+          {cancelDate && (
             <div className="billing-cancel-notice">
-                <strong>Suscripción programada para cancelarse</strong>
-                <span>
-                Tu suscripción seguirá activa hasta el {cancelDate}. Después de esa fecha,
-                el acceso al sistema será suspendido.
-                </span>
+              <strong>{t("billing.cancelNotice.title")}</strong>
+              <span>
+                {t("billing.cancelNotice.description", {
+                  date: cancelDate,
+                })}
+              </span>
             </div>
-            )}
+          )}
 
           <div className="billing-actions">
             <button
@@ -198,10 +170,9 @@ const renewalDate = tenant?.subscriptionCurrentPeriodEnd
               disabled={loading}
             >
               <Settings size={18} />
-
               {loading
-                ? "Abriendo portal..."
-                : "Abrir portal de Stripe"}
+                ? t("billing.buttons.openingPortal")
+                : t("billing.buttons.openPortal")}
             </button>
           </div>
         </div>

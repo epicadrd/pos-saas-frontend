@@ -17,32 +17,33 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { api } from "../api/axios";
 import { useAuth } from "../context/AuthContext";
 import { isDominicanTenant } from "../utils/taxConfig";
 import { getFiscalNumber } from "../utils/fiscalNumber";
 
-
-const statusLabel = {
-  draft: "Borrador",
-  issued: "Emitida",
-  partial: "Parcial",
-  paid: "Pagada",
-  cancelled: "Anulada",
-};
-
 export default function Dashboard() {
   const { user, tenant } = useAuth();
+  const { t } = useTranslation();
 
-const isDO = isDominicanTenant(tenant);
-const locale = isDO ? "es-DO" : "en-US";
-const currency = isDO ? "DOP" : "USD";
+  const isDO = isDominicanTenant(tenant);
+  const locale = isDO ? "es-DO" : "en-US";
+  const currency = isDO ? "DOP" : "USD";
 
-const formatMoney = (value) =>
-  new Intl.NumberFormat(locale, {
-    style: "currency",
-    currency,
-  }).format(Number(value || 0));
+  const formatMoney = (value) =>
+    new Intl.NumberFormat(locale, {
+      style: "currency",
+      currency,
+    }).format(Number(value || 0));
+
+  const statusLabel = {
+    draft: t("dashboard.status.draft"),
+    issued: t("dashboard.status.issued"),
+    partial: t("dashboard.status.partial"),
+    paid: t("dashboard.status.paid"),
+    cancelled: t("dashboard.status.cancelled"),
+  };
 
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -57,7 +58,7 @@ const formatMoney = (value) =>
       setData(res.data);
     } catch (error) {
       console.error("Error cargando dashboard:", error);
-      alert(error.response?.data?.message || "No se pudo cargar el dashboard");
+      alert(error.response?.data?.message || t("dashboard.errors.load"));
     } finally {
       setLoading(false);
     }
@@ -76,74 +77,79 @@ const formatMoney = (value) =>
 
   const allModules = [
     {
-      title: "Facturación",
-      text: "Crear, emitir y controlar facturas.",
+      key: "invoices",
+      title: t("dashboard.modules.invoices.title"),
+      text: t("dashboard.modules.invoices.text"),
       icon: FileText,
       url: "/dashboard/facturacion",
       value: summary.invoicesCount || 0,
-      label: "facturas",
+      label: t("dashboard.modules.invoices.label"),
     },
     {
-      title: "Inventario",
-      text: "Productos, stock y movimientos.",
+      key: "inventory",
+      title: t("dashboard.modules.inventory.title"),
+      text: t("dashboard.modules.inventory.text"),
       icon: Package,
       url: "/dashboard/inventario",
       value: summary.productsCount || 0,
-      label: "productos",
+      label: t("dashboard.modules.inventory.label"),
     },
     {
-      title: "Cotizaciones",
-      text: "Propuestas pendientes y aprobadas.",
+      key: "quotes",
+      title: t("dashboard.modules.quotes.title"),
+      text: t("dashboard.modules.quotes.text"),
       icon: ClipboardList,
       url: "/dashboard/cotizaciones",
       value: summary.quotesPending || 0,
-      label: "pendientes",
+      label: t("dashboard.modules.quotes.label"),
     },
     {
-      title: "Conduces",
-      text: "Entregas abiertas y documentos.",
+      key: "deliveryNotes",
+      title: t("dashboard.modules.deliveryNotes.title"),
+      text: t("dashboard.modules.deliveryNotes.text"),
       icon: Truck,
       url: "/dashboard/conduces",
       value: summary.deliveryNotesOpen || 0,
-      label: "abiertos",
+      label: t("dashboard.modules.deliveryNotes.label"),
     },
     {
-      title: "Recibos",
-      text: "Pagos, abonos y comprobantes.",
+      key: "receipts",
+      title: t("dashboard.modules.receipts.title"),
+      text: t("dashboard.modules.receipts.text"),
       icon: ReceiptText,
       url: "/dashboard/recibos",
       value: summary.receiptsCount || 0,
-      label: "recibos",
+      label: t("dashboard.modules.receipts.label"),
     },
     {
-      title: "Orden de compra",
-      text: "Compras pendientes a suplidores.",
+      key: "purchaseOrders",
+      title: t("dashboard.modules.purchaseOrders.title"),
+      text: t("dashboard.modules.purchaseOrders.text"),
       icon: CreditCard,
       url: "/dashboard/ordenes-compra",
       value: summary.purchaseOrdersOpen || 0,
-      label: "abiertas",
+      label: t("dashboard.modules.purchaseOrders.label"),
     },
     {
-      title: "Actividad",
-      text: "Auditoría de cambios del sistema.",
+      key: "activity",
+      title: t("dashboard.modules.activity.title"),
+      text: t("dashboard.modules.activity.text"),
       icon: Activity,
       url: "/dashboard/activity-log",
       value: data?.recentActivities?.length || 0,
-      label: "recientes",
+      label: t("dashboard.modules.activity.label"),
     },
   ];
 
   const modules = isEmployee
-    ? allModules.filter((item) =>
-        ["Facturación", "Cotizaciones"].includes(item.title)
-      )
+    ? allModules.filter((item) => ["invoices", "quotes"].includes(item.key))
     : allModules;
 
   if (loading) {
     return (
       <div className="dash-loading">
         <RefreshCcw className="dash-spin" />
-        <strong>Cargando datos reales del negocio...</strong>
+        <strong>{t("dashboard.loading")}</strong>
       </div>
     );
   }
@@ -152,18 +158,18 @@ const formatMoney = (value) =>
     <div className="dash-page">
       <section className="dash-hero">
         <div>
-          <span>Dashboard principal</span>
-          <h2>Control real de tu negocio.</h2>
+          <span>{t("dashboard.hero.eyebrow")}</span>
+          <h2>{t("dashboard.hero.title")}</h2>
           <p>
             {isEmployee
-              ? "Accede rápidamente a las áreas disponibles para tu usuario."
-              : "Visualiza ventas, cobros, balances, inventario bajo, facturas recientes y actividad del sistema desde un solo lugar."}
+              ? t("dashboard.hero.employeeDescription")
+              : t("dashboard.hero.description")}
           </p>
         </div>
 
         <button className="dash-refresh-btn" onClick={loadDashboard}>
           <RefreshCcw size={18} />
-          Actualizar
+          {t("dashboard.actions.refresh")}
         </button>
       </section>
 
@@ -174,36 +180,38 @@ const formatMoney = (value) =>
               <div className="dash-stat-icon">
                 <DollarSign />
               </div>
-              <span>Ventas hoy</span>
+              <span>{t("dashboard.stats.salesToday")}</span>
               <strong>{formatMoney(summary.salesToday)}</strong>
-              <small>Facturas emitidas hoy</small>
+              <small>{t("dashboard.stats.salesTodayHint")}</small>
             </div>
 
             <div className="dash-stat-card">
               <div className="dash-stat-icon">
                 <TrendingUp />
               </div>
-              <span>Ventas del mes</span>
+              <span>{t("dashboard.stats.salesMonth")}</span>
               <strong>{formatMoney(summary.salesMonth)}</strong>
-              <small>Total facturado este mes</small>
+              <small>{t("dashboard.stats.salesMonthHint")}</small>
             </div>
 
             <div className="dash-stat-card">
               <div className="dash-stat-icon">
                 <Wallet />
               </div>
-              <span>Cobrado este mes</span>
+              <span>{t("dashboard.stats.collectedMonth")}</span>
               <strong>{formatMoney(summary.collectedMonth)}</strong>
-              <small>Recibos pagados</small>
+              <small>{t("dashboard.stats.collectedMonthHint")}</small>
             </div>
 
             <div className="dash-stat-card danger">
               <div className="dash-stat-icon">
                 <AlertTriangle />
               </div>
-              <span>Balance pendiente</span>
+              <span>{t("dashboard.stats.pendingBalance")}</span>
               <strong>{formatMoney(summary.pendingBalance)}</strong>
-              <small>{summary.pendingInvoices || 0} Cuentas por cobrar</small>
+              <small>
+                {summary.pendingInvoices || 0} {t("dashboard.stats.accountsReceivable")}
+              </small>
             </div>
           </section>
 
@@ -211,15 +219,15 @@ const formatMoney = (value) =>
             <div className="dash-panel sales-panel">
               <div className="dash-panel-header">
                 <div>
-                  <h3>Ventas últimos 7 días</h3>
-                  <p>Movimiento reciente de facturación</p>
+                  <h3>{t("dashboard.salesTrend.title")}</h3>
+                  <p>{t("dashboard.salesTrend.description")}</p>
                 </div>
               </div>
 
               <div className="dash-chart">
                 {(data?.salesTrend || []).length === 0 ? (
                   <div className="dash-empty-mini">
-                    Aún no hay ventas recientes.
+                    {t("dashboard.salesTrend.empty")}
                   </div>
                 ) : (
                   data.salesTrend.map((item) => {
@@ -253,33 +261,33 @@ const formatMoney = (value) =>
             <div className="dash-panel">
               <div className="dash-panel-header">
                 <div>
-                  <h3>Resumen operativo</h3>
-                  <p>Indicadores clave del sistema</p>
+                  <h3>{t("dashboard.operationalSummary.title")}</h3>
+                  <p>{t("dashboard.operationalSummary.description")}</p>
                 </div>
               </div>
 
               <div className="dash-kpi-list">
                 <div>
                   <Users size={18} />
-                  <span>Clientes activos</span>
+                  <span>{t("dashboard.operationalSummary.activeCustomers")}</span>
                   <strong>{summary.customersCount || 0}</strong>
                 </div>
 
                 <div>
                   <Package size={18} />
-                  <span>Productos activos</span>
+                  <span>{t("dashboard.operationalSummary.activeProducts")}</span>
                   <strong>{summary.productsCount || 0}</strong>
                 </div>
 
                 <div>
                   <AlertTriangle size={18} />
-                  <span>Inventario bajo</span>
+                  <span>{t("dashboard.operationalSummary.lowStock")}</span>
                   <strong>{summary.lowStockCount || 0}</strong>
                 </div>
 
                 <div>
                   <ReceiptText size={18} />
-                  <span>Cobrado hoy</span>
+                  <span>{t("dashboard.operationalSummary.collectedToday")}</span>
                   <strong>{formatMoney(summary.collectedToday)}</strong>
                 </div>
               </div>
@@ -290,19 +298,19 @@ const formatMoney = (value) =>
             <div className="dash-panel">
               <div className="dash-panel-header">
                 <div>
-                  <h3>Facturas recientes</h3>
-                  <p>Últimas facturas creadas</p>
+                  <h3>{t("dashboard.recentInvoices.title")}</h3>
+                  <p>{t("dashboard.recentInvoices.description")}</p>
                 </div>
 
                 <Link to="/dashboard/facturacion">
-                  Ver todas <ArrowRight size={16} />
+                  {t("dashboard.actions.viewAll")} <ArrowRight size={16} />
                 </Link>
               </div>
 
               <div className="dash-table-list">
                 {(data?.recentInvoices || []).length === 0 ? (
                   <div className="dash-empty-mini">
-                    No hay facturas todavía.
+                    {t("dashboard.recentInvoices.empty")}
                   </div>
                 ) : (
                   data.recentInvoices.map((invoice) => (
@@ -327,12 +335,12 @@ const formatMoney = (value) =>
             <div className="dash-panel">
               <div className="dash-panel-header">
                 <div>
-                  <h3>Inventario bajo</h3>
-                  <p>Productos que requieren atención</p>
+                  <h3>{t("dashboard.lowStock.title")}</h3>
+                  <p>{t("dashboard.lowStock.description")}</p>
                 </div>
 
                 <Link to="/dashboard/inventario">
-                  Ver inventario <ArrowRight size={16} />
+                  {t("dashboard.actions.viewInventory")} <ArrowRight size={16} />
                 </Link>
               </div>
 
@@ -340,19 +348,21 @@ const formatMoney = (value) =>
                 {(data?.lowStockProducts || []).length === 0 ? (
                   <div className="dash-success-mini">
                     <CheckCircle2 size={18} />
-                    Todo el inventario está saludable.
+                    {t("dashboard.lowStock.empty")}
                   </div>
                 ) : (
                   data.lowStockProducts.map((product) => (
                     <div className="dash-list-row" key={product.id}>
                       <div>
                         <strong>{product.name}</strong>
-                        <span>{product.sku || "Sin SKU"}</span>
+                        <span>{product.sku || t("dashboard.lowStock.noSku")}</span>
                       </div>
 
                       <div className="dash-row-right">
                         <strong>{product.stock}</strong>
-                        <small>Mín: {product.minStock}</small>
+                        <small>
+                          {t("dashboard.lowStock.min")}: {product.minStock}
+                        </small>
                       </div>
                     </div>
                   ))
@@ -368,7 +378,7 @@ const formatMoney = (value) =>
           const Icon = item.icon;
 
           return (
-            <Link to={item.url} key={item.title} className="dash-module-card">
+            <Link to={item.url} key={item.key} className="dash-module-card">
               <div className="dash-module-top">
                 <div className="dash-module-icon">
                   <Icon size={24} />
@@ -391,19 +401,19 @@ const formatMoney = (value) =>
         <section className="dash-panel dash-activity-panel">
           <div className="dash-panel-header">
             <div>
-              <h3>Actividad reciente</h3>
-              <p>Últimos movimientos registrados</p>
+              <h3>{t("dashboard.activity.title")}</h3>
+              <p>{t("dashboard.activity.description")}</p>
             </div>
 
             <Link to="/dashboard/activity-log">
-              Ver actividad <ArrowRight size={16} />
+              {t("dashboard.actions.viewActivity")} <ArrowRight size={16} />
             </Link>
           </div>
 
           <div className="dash-activity-list">
             {(data?.recentActivities || []).length === 0 ? (
               <div className="dash-empty-mini">
-                No hay actividad registrada.
+                {t("dashboard.activity.empty")}
               </div>
             ) : (
               data.recentActivities.map((log) => (
@@ -413,19 +423,16 @@ const formatMoney = (value) =>
                   <div>
                     <strong>{log.description}</strong>
                     <span>
-                      {log.user?.name || log.user?.email || "Sistema"} ·{" "}
+                      {log.user?.name || log.user?.email || t("dashboard.activity.system")} ·{" "}
                       {log.module}
                     </span>
                   </div>
 
                   <small>
-                    {new Date(log.createdAt).toLocaleDateString(
-                      locale,
-                      {
-                        day: "2-digit",
-                        month: "short",
-                      }
-                    )}
+                    {new Date(log.createdAt).toLocaleDateString(locale, {
+                      day: "2-digit",
+                      month: "short",
+                    })}
                   </small>
                 </div>
               ))

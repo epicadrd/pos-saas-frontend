@@ -1,0 +1,487 @@
+{
+  "sidebar": {
+    "dashboard": "Dashboard",
+    "billing": "Billing",
+    "invoices": "Invoices",
+    "quotes": "Quotes",
+    "receipts": "Receipts",
+    "inventoryManagement": "Inventory management",
+    "inventory": "Inventory",
+    "inventoryCount": "Inventory count",
+    "catalog": "Catalog",
+    "posCash": "POS / Cash register",
+    "pos": "Point of sale",
+    "cashRegisters": "Cash registers",
+    "cashClosings": "Cash closings",
+    "posSales": "POS sales",
+    "operations": "Operations",
+    "accounting": "Accounting",
+    "administration": "Administration",
+    "logout": "Log out"
+  },
+  "dashboard": {
+    "loading": "Loading real business data...",
+    "errors": {
+      "load": "Could not load dashboard"
+    },
+    "hero": {
+      "eyebrow": "Main dashboard",
+      "title": "Real control of your business.",
+      "description": "View sales, collections, balances, low stock, recent invoices, and system activity from one place.",
+      "employeeDescription": "Quickly access the areas available for your user."
+    },
+    "actions": {
+      "refresh": "Refresh",
+      "viewAll": "View all",
+      "viewInventory": "View inventory",
+      "viewActivity": "View activity"
+    },
+    "stats": {
+      "salesToday": "Sales today",
+      "salesTodayHint": "Invoices issued today",
+      "salesMonth": "Monthly sales",
+      "salesMonthHint": "Total billed this month",
+      "collectedMonth": "Collected this month",
+      "collectedMonthHint": "Paid receipts",
+      "pendingBalance": "Pending balance",
+      "accountsReceivable": "Accounts receivable"
+    },
+    "salesTrend": {
+      "title": "Sales last 7 days",
+      "description": "Recent billing movement",
+      "empty": "There are no recent sales yet."
+    },
+    "operationalSummary": {
+      "title": "Operational summary",
+      "description": "Key system indicators",
+      "activeCustomers": "Active customers",
+      "activeProducts": "Active products",
+      "lowStock": "Low stock",
+      "collectedToday": "Collected today"
+    },
+    "recentInvoices": {
+      "title": "Recent invoices",
+      "description": "Latest invoices created",
+      "empty": "There are no invoices yet."
+    },
+    "lowStock": {
+      "title": "Low stock",
+      "description": "Products that require attention",
+      "empty": "All inventory is healthy.",
+      "noSku": "No SKU",
+      "min": "Min"
+    },
+    "activity": {
+      "title": "Recent activity",
+      "description": "Latest registered movements",
+      "empty": "There is no registered activity.",
+      "system": "System"
+    },
+    "status": {
+      "draft": "Draft",
+      "issued": "Issued",
+      "partial": "Partial",
+      "paid": "Paid",
+      "cancelled": "Cancelled"
+    },
+    "modules": {
+      "invoices": {
+        "title": "Billing",
+        "text": "Create, issue, and manage invoices.",
+        "label": "invoices"
+      },
+      "inventory": {
+        "title": "Inventory",
+        "text": "Products, stock, and movements.",
+        "label": "products"
+      },
+      "quotes": {
+        "title": "Quotes",
+        "text": "Pending and approved proposals.",
+        "label": "pending"
+      },
+      "deliveryNotes": {
+        "title": "Delivery notes",
+        "text": "Open deliveries and documents.",
+        "label": "open"
+      },
+      "receipts": {
+        "title": "Receipts",
+        "text": "Payments, deposits, and vouchers.",
+        "label": "receipts"
+      },
+      "purchaseOrders": {
+        "title": "Purchase order",
+        "text": "Pending purchases from suppliers.",
+        "label": "open"
+      },
+      "activity": {
+        "title": "Activity",
+        "text": "System change audit.",
+        "label": "recent"
+      }
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Account settings",
+    "description": "Manage your company’s general, legal and tax information.",
+    "loading": "Loading settings...",
+    "language": {
+      "title": "System language",
+      "description": "Select the language you want to use in Corex.",
+      "label": "Language",
+      "save": "Save language",
+      "saving": "Saving...",
+      "help": "Your selection is saved to your account and will be applied when you sign in again."
+    },
+    "buttons": {
+      "save": "Save",
+      "saving": "Saving...",
+      "cancel": "Cancel",
+      "edit": "Edit"
+    },
+    "sections": {
+      "company": {
+        "title": "Company information",
+        "description": "This information may be used for billing purposes."
+      },
+      "legal": {
+        "title": "Legal information",
+        "description": "This is the information your company uses for tax purposes."
+      },
+      "client": {
+        "title": "Customer contact information",
+        "description": "This is how customers get in touch with you."
+      }
+    },
+    "fields": {
+      "businessName": "Name",
+      "address": "Address",
+      "email": "Email",
+      "phone": "Phone",
+      "website": "Website",
+      "industry": "Industry",
+      "legalName": "Legal company name",
+      "rnc": "RNC / TAX ID",
+      "companyType": "Company type",
+      "legalAddress": "Legal address",
+      "clientEmail": "Customer email",
+      "clientAddress": "Customer address",
+      "taxes": "Taxes"
+    },
+    "help": {
+      "legalName": "Your registered business name. It is used in tax forms.",
+      "rnc": "Company tax identification.",
+      "companyType": "Example: Limited liability company, sole proprietor, etc.",
+      "legalAddress": "Legal address used for tax purposes."
+    },
+    "errors": {
+      "load": "Could not load settings",
+      "save": "Could not save settings",
+      "language": "Could not save language"
+    },
+    "languageSwitch": {
+      "title": "Switching language...",
+      "description": "Preparing Corex for you"
+    }
+  },
+
+
+  "billing": {
+  "title": "Plan and subscription",
+  "description": "Manage your subscription, payment method, and billing status from your secure Stripe-connected portal.",
+  "notAvailable": "Not available",
+  "stripeConnected": "Stripe connected",
+
+  "plans": {
+    "emprendedor": "Starter",
+    "pyme": "SMB",
+    "empresarial": "Business",
+    "none": "No plan"
+  },
+
+  "status": {
+    "active": "Active",
+    "trialing": "Trialing",
+    "past_due": "Payment pending",
+    "canceled": "Canceled",
+    "inactive": "Inactive",
+    "none": "No status"
+  },
+
+  "currentPlan": {
+    "title": "Current plan",
+    "description": "Your currently active plan"
+  },
+
+  "renewal": {
+    "title": "Next renewal",
+    "description": "Estimated renewal date"
+  },
+
+  "subscriptionStatus": {
+    "title": "Subscription status",
+    "description": "Billing information"
+  },
+
+  "managePayments": {
+    "title": "Manage payments",
+    "description": "Update your card, download invoices, or change your plan directly from Stripe."
+  },
+
+  "cancelNotice": {
+    "title": "Subscription scheduled for cancellation",
+    "description": "Your subscription will remain active until {{date}}. After that date, system access will be suspended."
+  },
+
+  "buttons": {
+    "openPortal": "Open Stripe portal",
+    "openingPortal": "Opening portal..."
+  },
+
+  "errors": {
+    "portal": "We couldn't open the billing portal."
+  }
+},
+
+  "layout": {
+    "billing": "Billing",
+    "invoices": "Invoices",
+    "quotes": "Quotes",
+    "receipts": "Receipts",
+    "inventoryManagement": "Inventory Management",
+    "inventory": "Inventory",
+    "inventoryCount": "Inventory Count",
+    "catalog": "Catalog",
+    "posCash": "POS / Cash Register",
+    "pos": "Point of Sale",
+    "cashRegisters": "Cash Registers",
+    "cashClosings": "Cash Closings",
+    "posSales": "POS Sales",
+    "operations": "Operations",
+    "deliveryNotes": "Delivery Notes",
+    "purchaseOrders": "Purchase Orders",
+    "suppliers": "Suppliers",
+    "accounting": "Accounting",
+    "accountingSummary": "Accounting Summary",
+    "accountsReceivable": "Accounts Receivable",
+    "accountsPayable": "Accounts Payable",
+    "expenses": "Expenses",
+    "reports": "Reports",
+    "administration": "Administration",
+    "users": "Users",
+    "activityLog": "Activity Log",
+    "logout": "Log out",
+    "search": "Search module...",
+    "searchEmpty": "No matching module found.",
+    "notifications": "Notifications",
+    "noNotifications": "No alerts for now.",
+    "lowStock": "Low Stock",
+    "settings": "Settings",
+    "accountSettings": "Account Settings",
+    "accountSettingsDesc": "Company legal and tax information",
+    "billingSettings": "Plan and Subscription",
+    "billingSettingsDesc": "Manage payments and current plan",
+    "usersDesc": "Manage team access",
+    "adminPanel": "Admin Panel",
+    "business": "Business",
+    "user": "User",
+    "openSidebar": "Open sidebar",
+    "closeSidebar": "Close sidebar"
+  },
+  "invoices": {
+  "list": {
+    "title": "Invoices",
+    "description": "Manage your invoices, balances, and billed inventory."
+  },
+  "actions": {
+    "paymentHistory": "Payment History",
+    "drafts": "Drafts",
+    "newInvoice": "New Invoice",
+    "print": "Print",
+    "printOrDownload": "Print or Download",
+    "markPaid": "Mark as Paid",
+    "cancelInvoice": "Cancel",
+    "viewDetail": "View Details",
+    "manage": "Manage",
+    "editCompany": "Edit Company",
+    "customization": "Customization",
+    "invoicePreferences": "Invoice Preferences",
+    "numbering": "Numbering",
+    "fiscalReceipts": "Fiscal Receipts",
+    "saveDraft": "Save Draft",
+    "issueInvoice": "Issue Invoice",
+    "issue": "Issue",
+    "edit": "Edit",
+    "editDraft": "Edit Draft",
+    "delete": "Delete",
+    "backToEdit": "Back to edit",
+    "cancel": "Cancel",
+    "save": "Save",
+    "yesIssueInvoice": "Yes, issue invoice"
+  },
+  "common": {
+    "invoice": "Invoice",
+    "draft": "Draft",
+    "pending": "Pending",
+    "pendingENcf": "Pending e-NCF",
+    "system": "System",
+    "noCustomer": "No Customer",
+    "noNumber": "No Number",
+    "yes": "Yes",
+    "no": "No",
+    "noPhone": "No phone",
+    "noRnc": "No Tax ID",
+    "notSet": "Not set"
+  },
+  "status": {
+    "issued": "Issued",
+    "draft": "Draft",
+    "paid": "Paid",
+    "partial": "Partial",
+    "cancelled": "Cancelled",
+    "none": "No Status"
+  },
+  "fields": {
+    "taxes": "Taxes",
+    "customer": "Customer",
+    "subtotal": "Subtotal",
+    "total": "Total",
+    "paid": "Paid",
+    "balance": "Balance Due",
+    "status": "Status",
+    "createdBy": "Created By",
+    "actions": "Actions",
+    "invoiceNumber": "Invoice Number",
+    "invoiceType": "Invoice Type",
+    "terms": "Terms",
+    "invoiceDate": "Invoice Date",
+    "dueDate": "Due Date",
+    "email": "Email",
+    "phone": "Phone",
+    "rncId": "Tax ID",
+    "address": "Address",
+    "notes": "Notes",
+    "companyNameRequired": "Company name *",
+    "customerNameRequired": "Name *",
+    "customerRequired": "Customer *",
+    "date": "Date",
+    "due": "Due",
+    "emailShort": "Email",
+    "nameRequired": "Name *",
+    "rncIdSpaced": "Tax ID"
+  },
+  "customer": {
+    "addOrSelect": "Add or Select Customer",
+    "addNew": "Add New Customer",
+    "newCustomer": "New Customer",
+    "addCustomer": "Add Customer",
+    "name": "Name",
+    "address": "Customer Address",
+    "noRnc": "No Tax ID",
+    "noPhone": "No Phone"
+  },
+  "company": {
+    "defaultName": "My Company",
+    "company": "Company",
+    "address": "Company Address",
+    "addressNotConfigured": "Address not configured",
+    "notConfigured": "Not configured",
+    "phoneNotConfigured": "Phone not configured",
+    "logoAlt": "Company logo",
+    "addressNotSet": "Address not set",
+    "myCompany": "My company",
+    "phoneNotSet": "Phone not set",
+    "title": "Company"
+  },
+  "invoiceTypes": {
+    "consumerFinal": "Final Consumer",
+    "creditFiscal": "Fiscal Credit",
+    "consumerFinalFiscal": "FINAL CONSUMER INVOICE",
+    "creditFiscalShort": "Fiscal credit"
+  },
+  "terms": {
+    "payment30": "Net 30",
+    "immediate": "Immediate Payment",
+    "payment15": "Net 15"
+  },
+  "items": {
+    "title": "Products and Services",
+    "addLine": "Add Line",
+    "addProductOrService": "Add Product or Service",
+    "productService": "Product / Service",
+    "description": "Description",
+    "quantity": "Quantity",
+    "unit": "Unit",
+    "price": "Price",
+    "discount": "Discount",
+    "appliesTax": "Apply {{taxLabel}}",
+    "service": "Service",
+    "insufficientStock": "Insufficient stock: {{stock}}",
+    "available": "Available: {{stock}}",
+    "productNumber": "Product #{{number}}",
+    "discountShort": "Disc.",
+    "qtyShort": "Qty"
+  },
+  "messages": {
+    "loading": "Loading invoices...",
+    "empty": "No invoices found.",
+    "noDrafts": "No drafts found.",
+    "noCustomersFound": "No customers found.",
+    "editingDraft": "Editing Draft",
+    "customerRequired": "You must select or enter a customer.",
+    "customerNameRequired": "Customer name is required",
+    "itemsRequired": "Add at least one product or service.",
+    "stockError": "Some products have insufficient stock.",
+    "addItemsToBuild": "Add products or services to build the invoice.",
+    "loadError": "Error loading invoices",
+    "loadProductsError": "Error loading products:",
+    "loadCustomersError": "Error loading customers:",
+    "saveError": "Error saving invoice",
+    "createCustomerError": "Error creating customer",
+    "cancelError": "Error cancelling invoice",
+    "deleteDraftError": "Error deleting draft",
+    "issueDraftError": "Error issuing draft",
+    "markPaidError": "Error marking invoice as paid",
+    "companyNameRequired": "Company name is required",
+    "companyUpdated": "Company updated successfully",
+    "updateCompanyError": "Error updating company"
+  },
+  "detail": {
+    "title": "Invoice Details",
+    "draftTitle": "Draft Details"
+  },
+  "breadcrumb": {
+    "newInvoice": "Billing / Invoices / New Invoice"
+  },
+  "placeholders": {
+    "searchCustomer": "Search customer...",
+    "customerName": "Customer name",
+    "rncId": "Tax ID",
+    "productDescription": "Product description",
+    "notes": "Additional notes for this invoice...",
+    "companyAddress": "Company address",
+    "companyName": "Company name",
+    "customerAddress": "Customer address"
+  },
+  "print": {
+    "invoiceNumber": "Invoice #"
+  },
+  "confirm": {
+    "cancelTitle": "Cancel Invoice",
+    "cancelMessage": "Cancel {{number}}? Inventory will be restored.",
+    "deleteDraftTitle": "Delete Draft",
+    "deleteDraftMessage": "Delete this draft? This action cannot be undone.",
+    "issueTitle": "Issue Invoice",
+    "issueMessage": "Issue draft {{number}}?",
+    "markPaidTitle": "Mark Invoice as Paid",
+    "markPaidMessage": "Mark {{number}} as paid?"
+  },
+  "preview": {
+    "confirmTitle": "Confirm issue",
+    "title": "Invoice preview",
+    "willGenerate": "Will be generated when issued"
+  }
+}
+}

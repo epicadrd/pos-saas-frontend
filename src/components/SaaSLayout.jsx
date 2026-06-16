@@ -21,6 +21,7 @@ import { useEffect, useState, useRef } from "react";
 import { useAuth } from "../context/AuthContext";
 import { api } from "../api/axios";
 import { hasPlanFeature } from "../utils/plans";
+import { useTranslation } from "react-i18next";
 
 export default function SaaSLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -37,6 +38,7 @@ export default function SaaSLayout() {
 
   const [canUsePos, setCanUsePos] = useState(false);
   const { user, tenant, logout } = useAuth();
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   const canAccess = (item) => {
@@ -57,22 +59,22 @@ const hasVisibleItems = (items = []) => {
   const sidebarGroups = [
   {
     key: "billing",
-    label: "Facturación",
+    label: t("layout.billing"),
     icon: FileText,
     items: [
       {
         to: "/dashboard/facturacion",
-        label: "Facturas",
+        label: t("layout.invoices"),
         roles: ["master", "admin", "employee"],
       },
       {
         to: "/dashboard/cotizaciones",
-        label: "Cotizaciones",
+        label: t("layout.quotes"),
         roles: ["master", "admin", "employee"],
       },
       {
         to: "/dashboard/recibos",
-        label: "Recibos",
+        label: t("layout.receipts"),
         roles: ["master", "admin"],
       },
     ],
@@ -80,24 +82,24 @@ const hasVisibleItems = (items = []) => {
 
   {
     key: "inventory",
-    label: "Gestión de inventario",
+    label: t("layout.inventoryManagement"),
     icon: Package,
     items: [
       {
         to: "/dashboard/inventario",
-        label: "Inventario",
+        label: t("layout.inventory"),
         roles: ["master", "admin"],
         feature: "inventory",
       },
       {
         to: "/dashboard/conteo-inventario",
-        label: "Conteo de inventario",
+        label: t("layout.inventoryCount"),
         roles: ["master", "admin"],
         feature: "inventoryCount",
       },
       {
         to: "/dashboard/catalogo",
-        label: "Catálogo",
+        label: t("layout.catalog"),
         roles: ["master", "admin"],
         feature: "catalog",
       },
@@ -106,31 +108,31 @@ const hasVisibleItems = (items = []) => {
 
   {
     key: "pos",
-    label: "POS / Caja",
+    label: t("layout.posCash"),
     icon: ShoppingCart,
     items: [
       {
         to: "/dashboard/pos",
-        label: "Punto de venta",
+        label: t("layout.pos"),
         roles: ["master", "admin", "employee"],
         feature: "pos",
         requiresCashRegisterAccess: true,
       },
       {
         to: "/dashboard/pos/cajas",
-        label: "Cajas",
+        label: t("layout.cashRegisters"),
         roles: ["master"],
         feature: "pos",
       },
       {
         to: "/dashboard/pos/cierres",
-        label: "Cierres de caja",
+        label: t("layout.cashClosings"),
         roles: ["master", "admin"],
         feature: "pos",
       },
       {
         to: "/dashboard/pos/ventas",
-        label: "Ventas POS",
+        label: t("layout.posSales"),
         roles: ["master", "admin"],
         feature: "pos",
       },
@@ -139,24 +141,24 @@ const hasVisibleItems = (items = []) => {
 
   {
     key: "operations",
-    label: "Operaciones",
+    label: t("layout.operations"),
     icon: Truck,
     items: [
       {
         to: "/dashboard/conduces",
-        label: "Conduces",
+        label: t("layout.deliveryNotes"),
         roles: ["master", "admin"],
         feature: "deliveryNotes",
       },
       {
         to: "/dashboard/ordenes-compra",
-        label: "Órdenes de compra",
+        label: t("layout.purchaseOrders"),
         roles: ["master", "admin"],
         feature: "purchaseOrders",
       },
       {
         to: "/dashboard/proveedores",
-        label: "Proveedores",
+        label: t("layout.suppliers"),
         roles: ["master", "admin"],
         feature: "suppliers",
       },
@@ -165,32 +167,32 @@ const hasVisibleItems = (items = []) => {
 
   {
   key: "accounting",
-  label: "Contabilidad",
+  label: t("layout.accounting"),
   icon: CreditCard,
   items: [
     {
       to: "/dashboard/contabilidad",
-      label: "Resumen contable",
+      label: t("layout.accountingSummary"),
       roles: ["master", "admin"],
     },
     {
       to: "/dashboard/contabilidad/cuentas-por-cobrar",
-      label: "Cuentas por cobrar",
+      label: t("layout.accountsReceivable"),
       roles: ["master", "admin"],
     },
     {
       to: "/dashboard/contabilidad/cuentas-por-pagar",
-      label: "Cuentas por pagar",
+      label: t("layout.accountsPayable"),
       roles: ["master", "admin"],
     },
     {
       to: "/dashboard/contabilidad/gastos",
-      label: "Gastos",
+      label: t("layout.expenses"),
       roles: ["master", "admin"],
     },
     {
       to: "/dashboard/contabilidad/reportes",
-      label: "Reportes",
+      label: t("layout.reports"),
       roles: ["master", "admin"],
     },
   ],
@@ -198,17 +200,17 @@ const hasVisibleItems = (items = []) => {
 
   {
     key: "administration",
-    label: "Administración",
+    label: t("layout.administration"),
     icon: Users,
     items: [
       {
         to: "/dashboard/usuarios",
-        label: "Usuarios",
+        label: t("layout.users"),
         roles: ["master"],
       },
       {
         to: "/dashboard/activity-log",
-        label: "Registro de actividades",
+        label: t("layout.activityLog"),
         roles: ["master"],
         feature: "activityLog",
       },
@@ -218,138 +220,138 @@ const hasVisibleItems = (items = []) => {
 
   const moduleSearchItems = [
   {
-    label: "Cierres de caja",
-    group: "POS / Caja",
+    label: t("layout.cashClosings"),
+    group: t("layout.posCash"),
     path: "/dashboard/pos/cierres",
     roles: ["master", "admin"],
     feature: "pos",
   },
   {
-    label: "Punto de venta",
-    group: "POS / Caja",
+    label: t("layout.pos"),
+    group: t("layout.posCash"),
     path: "/dashboard/pos",
     roles: ["master", "admin", "employee"],
     feature: "pos",
     requiresCashRegisterAccess: true,
   },
   {
-    label: "Dashboard",
-    group: "Inicio",
+    label: t("sidebar.dashboard"),
+    group: t("layout.home"),
     path: "/dashboard",
     roles: ["master", "admin", "employee"],
   },
   {
-    label: "Facturas",
-    group: "Facturación",
+    label: t("layout.invoices"),
+    group: t("layout.billing"),
     path: "/dashboard/facturacion",
     roles: ["master", "admin", "employee"],
   },
   {
-    label: "Cotizaciones",
-    group: "Facturación",
+    label: t("layout.quotes"),
+    group: t("layout.billing"),
     path: "/dashboard/cotizaciones",
     roles: ["master", "admin", "employee"],
   },
   {
-    label: "Recibos",
-    group: "Facturación",
+    label: t("layout.receipts"),
+    group: t("layout.billing"),
     path: "/dashboard/recibos",
     roles: ["master", "admin"],
   },
   {
-    label: "Inventario",
-    group: "Inventario",
+    label: t("layout.inventory"),
+    group: t("layout.inventory"),
     path: "/dashboard/inventario",
     roles: ["master", "admin"],
     feature: "inventory",
   },
   {
-    label: "Conteo de inventario",
-    group: "Gestión de inventario",
+    label: t("layout.inventoryCount"),
+    group: t("layout.inventoryManagement"),
     path: "/dashboard/conteo-inventario",
     roles: ["master", "admin"],
     feature: "inventoryCount",
   },
   {
-    label: "Catálogo",
-    group: "Gestión de inventario",
+    label: t("layout.catalog"),
+    group: t("layout.inventoryManagement"),
     path: "/dashboard/catalogo",
     roles: ["master", "admin"],
     feature: "catalog",
   },
   {
-    label: "Conduces",
-    group: "Operaciones",
+    label: t("layout.deliveryNotes"),
+    group: t("layout.operations"),
     path: "/dashboard/conduces",
     roles: ["master", "admin"],
     feature: "deliveryNotes",
   },
   {
-    label: "Órdenes de compra",
-    group: "Operaciones",
+    label: t("layout.purchaseOrders"),
+    group: t("layout.operations"),
     path: "/dashboard/ordenes-compra",
     roles: ["master", "admin"],
     feature: "purchaseOrders",
   },
   {
-    label: "Proveedores",
-    group: "Operaciones",
+    label: t("layout.suppliers"),
+    group: t("layout.operations"),
     path: "/dashboard/proveedores",
     roles: ["master", "admin"],
     feature: "suppliers",
   },
   {
-    label: "Resumen contable",
-    group: "Contabilidad",
+    label: t("layout.accountingSummary"),
+    group: t("layout.accounting"),
     path: "/dashboard/contabilidad",
     roles: ["master", "admin"],
   },
   {
-    label: "Cuentas por cobrar",
-    group: "Contabilidad",
+    label: t("layout.accountsReceivable"),
+    group: t("layout.accounting"),
     path: "/dashboard/contabilidad/cuentas-por-cobrar",
     roles: ["master", "admin"],
   },
   {
-    label: "Cuentas por pagar",
-    group: "Contabilidad",
+    label: t("layout.accountsPayable"),
+    group: t("layout.accounting"),
     path: "/dashboard/contabilidad/cuentas-por-pagar",
     roles: ["master", "admin"],
   },
   {
-    label: "Gastos",
-    group: "Contabilidad",
+    label: t("layout.expenses"),
+    group: t("layout.accounting"),
     path: "/dashboard/contabilidad/gastos",
     roles: ["master", "admin"],
   },
   {
-    label: "Reportes",
-    group: "Contabilidad",
+    label: t("layout.reports"),
+    group: t("layout.accounting"),
     path: "/dashboard/contabilidad/reportes",
     roles: ["master", "admin"],
   },
   {
-    label: "Plan y suscripción",
-    group: "Configuración",
+    label: t("layout.billingSettings"),
+    group: t("layout.settings"),
     path: "/dashboard/facturacion/billing",
     roles: ["master"],
   },
   {
-    label: "Usuarios",
-    group: "Configuración",
+    label: t("layout.users"),
+    group: t("layout.settings"),
     path: "/dashboard/usuarios",
     roles: ["master"],
   },
   {
-    label: "Registro de actividades",
-    group: "Configuración",
+    label: t("layout.activityLog"),
+    group: t("layout.settings"),
     path: "/dashboard/activity-log",
     roles: ["master"],
     feature: "activityLog",
   },
   {
-    label: "Cuenta y configuración",
-    group: "Configuración",
+    label: t("layout.accountSettings"),
+    group: t("layout.settings"),
     path: "/dashboard/configuracion/cuenta",
     roles: ["master"],
   },
@@ -379,7 +381,7 @@ const hasVisibleItems = (items = []) => {
   const links = [
     {
       to: "/dashboard",
-      label: "Dashboard",
+      label: t("sidebar.dashboard"),
       icon: BarChart3,
       end: true,
       roles: ["master", "admin", "employee"],
@@ -486,8 +488,8 @@ const hasVisibleItems = (items = []) => {
             onClick={toggleSidebar}
             title={
               sidebarCollapsed
-                ? "Abrir barra de navegación lateral"
-                : "Cerrar barra de navegación lateral"
+                ? t("layout.openSidebar")
+                : t("layout.closeSidebar")
             }
           >
             {sidebarCollapsed ? (
@@ -517,7 +519,7 @@ const hasVisibleItems = (items = []) => {
             }
           >
             <BarChart3 size={20} />
-            <span>Dashboard</span>
+            <span>{t("sidebar.dashboard")}</span>
           </NavLink>
 
           <div ref={sidebarMenusRef}>
@@ -617,7 +619,7 @@ const hasVisibleItems = (items = []) => {
 
           <button onClick={handleLogout} className="logout-btn">
             <LogOut size={18} />
-            Cerrar sesión
+            {t("layout.logout")}
           </button>
         </div>
       </aside>
@@ -633,7 +635,7 @@ const hasVisibleItems = (items = []) => {
 
           <div>
             <h1>{tenant?.businessName || "Mi empresa"}</h1>
-            <p>Panel administrativo</p>
+            <p>{t("layout.adminPanel")}</p>
           </div>
 
           <div className="topbar-actions">
@@ -641,7 +643,7 @@ const hasVisibleItems = (items = []) => {
               <div className="search-box">
                 <Search size={18} />
                 <input
-                  placeholder="Buscar módulo..."
+                  placeholder={t("layout.search")}
                   value={searchTerm}
                   onFocus={() => setSearchOpen(true)}
                   onChange={(e) => {
@@ -664,7 +666,7 @@ const hasVisibleItems = (items = []) => {
                 <div className="search-suggestions">
                   {filteredModules.length === 0 ? (
                     <div className="search-empty">
-                      No encontramos ese módulo.
+                      {t("layout.searchEmpty")}
                     </div>
                   ) : (
                     filteredModules.map((item) => (
@@ -704,13 +706,13 @@ const hasVisibleItems = (items = []) => {
               {notificationsOpen && (
                 <div className="notification-dropdown">
                   <div className="notification-header">
-                    <strong>Notificaciones</strong>
+                    <strong>{t("layout.notifications")}</strong>
                     <span>{notifications.length}</span>
                   </div>
 
                   {notifications.length === 0 ? (
                     <div className="notification-empty">
-                      No hay alertas por ahora.
+                      {t("layout.noNotifications")}
                     </div>
                   ) : (
                     notifications.map((item, index) => (
@@ -723,7 +725,7 @@ const hasVisibleItems = (items = []) => {
                         </div>
 
                         <div>
-                          <strong>Stock bajo</strong>
+                          <strong>{t("layout.lowStock")}</strong>
                           <p>{item.message}</p>
                         </div>
                       </div>
@@ -743,7 +745,7 @@ const hasVisibleItems = (items = []) => {
                   onClick={() =>
                     setSettingsOpen(!settingsOpen)
                   }
-                  title="Configuración"
+                  title={t("layout.settings")}
                 >
                   <Settings size={20} />
                 </button>
@@ -751,8 +753,8 @@ const hasVisibleItems = (items = []) => {
                 {settingsOpen && (
                   <div className="settings-dropdown">
                     <div className="settings-header">
-                      <strong>Configuración</strong>
-                      <span>{user?.role || "Usuario"}</span>
+                      <strong>{t("layout.settings")}</strong>
+                      <span>{user?.role || t("layout.user")}</span>
                     </div>
 
                     <button
@@ -765,8 +767,8 @@ const hasVisibleItems = (items = []) => {
                         <Settings size={18} />
 
                         <div>
-                          <strong>Cuenta y configuración</strong>
-                          <span>Datos legales y fiscales de la empresa</span>
+                          <strong>{t("layout.accountSettings")}</strong>
+                          <span>{t("layout.accountSettingsDesc")}</span>
                         </div>
 
                         <ChevronDown size={16} />
@@ -782,8 +784,8 @@ const hasVisibleItems = (items = []) => {
                       <CreditCard size={18} />
 
                       <div>
-                        <strong>Plan y suscripción</strong>
-                        <span>Gestionar pagos y plan actual</span>
+                        <strong>{t("layout.billingSettings")}</strong>
+                        <span>{t("layout.billingSettingsDesc")}</span>
                       </div>
 
                       <ChevronDown size={16} />
@@ -799,8 +801,8 @@ const hasVisibleItems = (items = []) => {
                       <Users size={18} />
 
                       <div>
-                        <strong>Usuarios</strong>
-                        <span>Administrar accesos del equipo</span>
+                        <strong>{t("layout.users")}</strong>
+                        <span>{t("layout.usersDesc")}</span>
                       </div>
 
                       <ChevronDown size={16} />

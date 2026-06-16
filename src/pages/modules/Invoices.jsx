@@ -19,6 +19,7 @@ import { api } from "../../api/axios";
 import { useAuth } from "../../context/AuthContext";
 import { useSearchParams } from "react-router-dom";
 import { useConfirm } from "../../components/ConfirmProvider";
+import { useTranslation } from "react-i18next";
 import QRCode from "qrcode";
 import { getFiscalNumber } from "../../utils/fiscalNumber";
 import {
@@ -36,13 +37,14 @@ const emptyForm = {
   invoiceType: "consumer_final",
   status: "draft",
   amountPaid: "",
-  terms: "Pago en 30 días",
+  terms: "payment_30_days",
   invoiceDate: new Date().toISOString().slice(0, 10),
   dueDate: "",
   notes: "",
 };
 
 export default function Invoices() {
+  const { t } = useTranslation();
   
   const { confirm } = useConfirm();
   const [searchParams] = useSearchParams();
@@ -117,12 +119,12 @@ const getTaxAmount = (rate, base = totals.subtotal) => {
 };
 
   const invoiceTypeLabels = {
-  consumer_final: "FACTURA DE CONSUMO FISCAL",
-  credit_fiscal: "FACTURA DE CRÉDITO FISCAL",
+  consumer_final: t("invoices.invoiceTypes.consumerFinalFiscal"),
+  credit_fiscal: t("invoices.invoiceTypes.creditFiscal"),
 };
 
   const getInvoiceTypeLabel = (type) => {
-  if (!isDO) return "INVOICE";
+  if (!isDO) return t("invoices.common.invoice").toUpperCase();
 
   return invoiceTypeLabels[type] || invoiceTypeLabels.consumer_final;
 };
@@ -135,10 +137,10 @@ const getTaxAmount = (rate, base = totals.subtotal) => {
 
   const getFiscalInvoiceNumber = (invoice) => {
   if (!isDO) {
-    return invoice?.invoiceNumber || "Pending";
+    return invoice?.invoiceNumber || t("invoices.common.pending");
   }
 
-  return invoice?.eNcf || "e-NCF pendiente";
+  return invoice?.eNcf || t("invoices.common.pendingENcf");
 };
 
   const getFiscalInvoiceTitle = (invoiceType) => {
@@ -229,7 +231,7 @@ const getTaxAmount = (rate, base = totals.subtotal) => {
       }
     } catch (error) {
       console.error("Error cargando facturas:", error);
-      alert(error.response?.data?.message || "Error cargando facturas");
+      alert(error.response?.data?.message || t("invoices.messages.loadError"));
       setInvoices([]);
     } finally {
       setLoading(false);
@@ -355,7 +357,7 @@ const getTaxAmount = (rate, base = totals.subtotal) => {
 
   const saveCustomer = async () => {
     if (!newCustomer.name.trim()) {
-      alert("El nombre del cliente es obligatorio");
+      alert(t("invoices.fields.customerNameRequired"));
       return;
     }
 
@@ -381,7 +383,7 @@ const getTaxAmount = (rate, base = totals.subtotal) => {
 
       setCustomerModalOpen(false);
     } catch (error) {
-      alert(error.response?.data?.message || "Error creando cliente");
+      alert(error.response?.data?.message || t("invoices.messages.createCustomerError"));
     }
   };
 
@@ -399,7 +401,7 @@ const getTaxAmount = (rate, base = totals.subtotal) => {
 
   const saveInvoice = async (status = "issued") => {
     if (!form.customerName.trim()) {
-      alert("Debes seleccionar o escribir un cliente.");
+      alert(t("invoices.messages.customerRequired"));
       return;
     }
 
@@ -416,12 +418,12 @@ const getTaxAmount = (rate, base = totals.subtotal) => {
       }));
 
     if (!cleanItems.length) {
-      alert("Agrega al menos un producto o servicio.");
+      alert(t("invoices.messages.itemsRequired"));
       return;
     }
 
     if (status !== "draft" && hasStockError) {
-      alert("Hay productos con stock insuficiente.");
+      alert(t("invoices.messages.stockError"));
       return;
     }
 
@@ -489,7 +491,7 @@ const getTaxAmount = (rate, base = totals.subtotal) => {
       setView("create");
       addLine();
     } catch (error) {
-      alert(error.response?.data?.message || "Error guardando factura");
+      alert(error.response?.data?.message || t("invoices.messages.saveError"));
     } finally {
       setSaving(false);
     }
@@ -497,9 +499,9 @@ const getTaxAmount = (rate, base = totals.subtotal) => {
 
   const cancelInvoice = async (invoice) => {
     const ok = await confirm({
-      title: "Anular factura",
-      message: `¿Anular ${getFiscalNumber(invoice)}? Esto devolverá el inventario.`,
-      confirmText: "Anular",
+      title: t("invoices.confirm.cancelTitle"),
+      message: t("invoices.confirm.cancelMessage", { number: getFiscalNumber(invoice) }),
+      confirmText: t("invoices.actions.cancelInvoice"),
       variant: "danger",
     });
 
@@ -509,7 +511,7 @@ const getTaxAmount = (rate, base = totals.subtotal) => {
       await api.patch(`/invoices/${invoice.id}/cancel`);
       await loadData();
     } catch (error) {
-      alert(error.response?.data?.message || "Error anulando factura");
+      alert(error.response?.data?.message || t("invoices.messages.cancelError"));
     }
   };
 
@@ -529,7 +531,7 @@ const getTaxAmount = (rate, base = totals.subtotal) => {
       amountPaid: invoice.amountPaid || "",
       invoiceDate: invoice.invoiceDate || new Date().toISOString().slice(0, 10),
       dueDate: invoice.dueDate || "",
-      terms: invoice.terms || "Pago en 30 días",
+      terms: invoice.terms || "payment_30_days",
       notes: invoice.notes || "",
     });
 
@@ -550,9 +552,9 @@ const getTaxAmount = (rate, base = totals.subtotal) => {
 
   const deleteDraft = async (invoice) => {
     const ok = await confirm({
-      title: "Eliminar borrador",
-      message: "¿Eliminar este borrador? Esta acción no se puede deshacer.",
-      confirmText: "Eliminar",
+      title: t("invoices.confirm.deleteDraftTitle"),
+      message: t("invoices.confirm.deleteDraftMessage"),
+      confirmText: t("invoices.actions.delete"),
       variant: "danger",
     });
 
@@ -566,15 +568,15 @@ const getTaxAmount = (rate, base = totals.subtotal) => {
         resetInvoiceForm();
       }
     } catch (error) {
-      alert(error.response?.data?.message || "Error eliminando borrador");
+      alert(error.response?.data?.message || t("invoices.messages.deleteDraftError"));
     }
   };
 
   const issueDraft = async (invoice) => {
     const ok = await confirm({
-      title: "Emitir factura",
-      message: `¿Emitir el borrador ${invoice.invoiceNumber}?`,
-      confirmText: "Emitir",
+      title: t("invoices.confirm.issueTitle"),
+      message: t("invoices.confirm.issueMessage", { number: invoice.invoiceNumber }),
+      confirmText: t("invoices.actions.issue"),
       variant: "success",
     });
 
@@ -592,7 +594,7 @@ const getTaxAmount = (rate, base = totals.subtotal) => {
         setView("list");
       }
     } catch (error) {
-      alert(error.response?.data?.message || "Error emitiendo borrador");
+      alert(error.response?.data?.message || t("invoices.messages.issueDraftError"));
     }
   };
 
@@ -702,7 +704,7 @@ const emitElectronicInvoice = async (invoice) => {
             </div>
 
             <div>
-              <strong>${tenant?.businessName || "Mi empresa"}</strong><br/>
+              <strong>${tenant?.businessName || t("invoices.company.myCompany")}</strong><br/>
               ${tenant?.address || ""}<br/>
               ${isDO ? `RNC/Cédula: ${tenant?.rnc || "-" }<br/>` : ""}
               ${tenant?.email || ""}<br/>
@@ -711,25 +713,25 @@ const emitElectronicInvoice = async (invoice) => {
           </div>
 
           <div class="box">
-            <strong>Cliente:</strong> ${invoice.customerName || "-"}<br/>
+            <strong>${t("invoices.fields.customer")}:</strong> ${invoice.customerName || "-"}<br/>
             ${isDO ? `<strong>RNC/Cédula:</strong> ${invoice.customerRnc || "-"}<br/>` : ""}
-            <strong>Teléfono:</strong> ${invoice.customerPhone || "-"}<br/>
-            <strong>Email:</strong> ${invoice.customerEmail || "-"}<br/><br/>
+            <strong>${t("invoices.fields.phone")}:</strong> ${invoice.customerPhone || "-"}<br/>
+            <strong>${t("invoices.fields.emailShort")}:</strong> ${invoice.customerEmail || "-"}<br/><br/>
 
             <strong>Fecha de emisión:</strong> ${invoice.invoiceDate || "-"}<br/>
-            <strong>Fecha de vencimiento:</strong> ${invoice.dueDate || "-"}
+            <strong>${t("invoices.fields.dueDate")}:</strong> ${invoice.dueDate || "-"}
           </div>
 
           <table>
             <thead>
               <tr>
                 <th>Producto/Servicio</th>
-                <th>Cantidad</th>
-                <th>Precio</th>
-                <th>Descuento</th>
-                <th>Subtotal</th>
+                <th>${t("invoices.items.quantity")}</th>
+                <th>${t("invoices.items.price")}</th>
+                <th>${t("invoices.items.discount")}</th>
+                <th>${t("invoices.fields.subtotal")}</th>
                ${taxMode === "line" ? `<th>${taxLabel}</th>` : ""}
-                <th>Total</th>
+                <th>${t("invoices.fields.total")}</th>
               </tr>
             </thead>
 
@@ -770,7 +772,7 @@ const emitElectronicInvoice = async (invoice) => {
           </table>
 
           <div class="totals">
-            <div><span>Subtotal</span><strong>${money.format(Number(invoice.subtotal || 0))}</strong></div>
+            <div><span>${t("invoices.fields.subtotal")}</span><strong>${money.format(Number(invoice.subtotal || 0))}</strong></div>
             ${
               isDO
                 ? `<div><span>${taxLabel} (${taxRate}%)</span><strong>${money.format(Number(invoice.tax || 0))}</strong></div>`
@@ -781,9 +783,9 @@ const emitElectronicInvoice = async (invoice) => {
                   <div><span>Total Taxes (${taxRate}%)</span><strong>${money.format(Number(invoice.tax || 0))}</strong></div>
                 `
             }
-            <div class="total"><span>Total</span><strong>${money.format(Number(invoice.total || 0))}</strong></div>
-            <div><span>Pagado</span><strong>${money.format(Number(invoice.amountPaid || 0))}</strong></div>
-            <div><span>Pendiente</span><strong>${money.format(Number(invoice.balance || 0))}</strong></div>
+            <div class="total"><span>${t("invoices.fields.total")}</span><strong>${money.format(Number(invoice.total || 0))}</strong></div>
+            <div><span>${t("invoices.fields.paid")}</span><strong>${money.format(Number(invoice.amountPaid || 0))}</strong></div>
+            <div><span>${t("invoices.fields.balance")}</span><strong>${money.format(Number(invoice.balance || 0))}</strong></div>
           </div>
 
           ${
@@ -857,7 +859,7 @@ const emitElectronicInvoice = async (invoice) => {
   </div>
 
             <div>
-              <strong>${tenant?.businessName || "Mi empresa"}</strong><br/>
+              <strong>${tenant?.businessName || t("invoices.company.myCompany")}</strong><br/>
               ${tenant?.address || ""}<br/>
               ${isDO ? `RNC/Cédula: ${tenant?.rnc || "-"}<br/>` : ""}
               ${tenant?.email || ""}<br/>
@@ -866,25 +868,25 @@ const emitElectronicInvoice = async (invoice) => {
           </div>
 
           <div class="box">
-            <strong>Cliente:</strong> ${form.customerName || "-"}<br/>
+            <strong>${t("invoices.fields.customer")}:</strong> ${form.customerName || "-"}<br/>
             ${isDO ? `<strong>RNC/Cédula:</strong> ${form.customerRnc || "-"}<br/>` : ""}
-            <strong>Teléfono:</strong> ${form.customerPhone || "-"}<br/>
-            <strong>Email:</strong> ${form.customerEmail || "-"}<br/><br/>
+            <strong>${t("invoices.fields.phone")}:</strong> ${form.customerPhone || "-"}<br/>
+            <strong>${t("invoices.fields.emailShort")}:</strong> ${form.customerEmail || "-"}<br/><br/>
 
-            <strong>Fecha de factura:</strong> ${form.invoiceDate || "-"}<br/>
-            <strong>Fecha de vencimiento:</strong> ${form.dueDate || "-"}
+            <strong>${t("invoices.fields.invoiceDate")}:</strong> ${form.invoiceDate || "-"}<br/>
+            <strong>${t("invoices.fields.dueDate")}:</strong> ${form.dueDate || "-"}
           </div>
 
           <table>
             <thead>
               <tr>
                 <th>Producto/Servicio</th>
-                <th>Cantidad</th>
-                <th>Precio</th>
-                <th>Descuento</th>
-                <th>Subtotal</th>
+                <th>${t("invoices.items.quantity")}</th>
+                <th>${t("invoices.items.price")}</th>
+                <th>${t("invoices.items.discount")}</th>
+                <th>${t("invoices.fields.subtotal")}</th>
                 ${taxMode === "line" ? `<th>${taxLabel}</th>` : ""}
-                <th>Total</th>
+                <th>${t("invoices.fields.total")}</th>
               </tr>
             </thead>
 
@@ -928,7 +930,7 @@ const emitElectronicInvoice = async (invoice) => {
           </table>
 
           <div class="totals">
-            <div><span>Subtotal</span><strong>${money.format(totals.subtotal)}</strong></div>
+            <div><span>${t("invoices.fields.subtotal")}</span><strong>${money.format(totals.subtotal)}</strong></div>
             ${
   isDO
     ? `<div><span>${taxLabel} (${taxRate}%)</span><strong>${money.format(totals.tax)}</strong></div>`
@@ -939,9 +941,9 @@ const emitElectronicInvoice = async (invoice) => {
       <div><span>Total Taxes (${taxRate}%)</span><strong>${money.format(totals.tax)}</strong></div>
     `
 }
-            <div class="total"><span>Total</span><strong>${money.format(totals.total)}</strong></div>
-            <div><span>Pagado</span><strong>${money.format(totals.paid)}</strong></div>
-            <div><span>Pendiente</span><strong>${money.format(totals.balance)}</strong></div>
+            <div class="total"><span>${t("invoices.fields.total")}</span><strong>${money.format(totals.total)}</strong></div>
+            <div><span>${t("invoices.fields.paid")}</span><strong>${money.format(totals.paid)}</strong></div>
+            <div><span>${t("invoices.fields.balance")}</span><strong>${money.format(totals.balance)}</strong></div>
           </div>
 
           ${
@@ -966,23 +968,17 @@ const emitElectronicInvoice = async (invoice) => {
     printWindow.focus();
     printWindow.print();
   };
-
   const drafts = invoices.filter((invoice) => invoice.status === "draft");
 
   const getInvoiceStatusLabel = (status) => {
-    if (status === "issued") return "Emitida";
-    if (status === "draft") return "Borrador";
-    if (status === "paid") return "Pagada";
-    if (status === "partial") return "Parcial";
-    if (status === "cancelled") return "Anulada";
-    return "Sin estado";
+    return t(`invoices.status.${status}`, t("invoices.status.none"));
   };
 
   const markAsPaid = async (invoice) => {
     const ok = await confirm({
-      title: "Marcar factura como pagada",
-      message: `¿Marcar ${getFiscalNumber(invoice)} como pagada?`,
-      confirmText: "Marcar como pagada",
+      title: t("invoices.confirm.markPaidTitle"),
+      message: t("invoices.confirm.markPaidMessage", { number: getFiscalNumber(invoice) }),
+      confirmText: t("invoices.actions.markPaid"),
       variant: "success",
     });
 
@@ -992,13 +988,13 @@ const emitElectronicInvoice = async (invoice) => {
       await api.patch(`/invoices/${invoice.id}/mark-paid`);
       await loadData();
     } catch (error) {
-      alert(error.response?.data?.message || "Error marcando factura como pagada");
+      alert(error.response?.data?.message || t("invoices.messages.markPaidError"));
     }
   };
 
   const saveCompany = async () => {
     if (!companyForm.businessName.trim()) {
-      alert("El nombre de la empresa es obligatorio");
+      alert(t("invoices.fields.companyNameRequired"));
       return;
     }
 
@@ -1008,9 +1004,9 @@ const emitElectronicInvoice = async (invoice) => {
       setTenant(data.tenant);
       setCompanyModalOpen(false);
 
-      alert("Empresa actualizada correctamente");
+      alert(t("invoices.messages.companyUpdated"));
     } catch (error) {
-      alert(error.response?.data?.message || "Error actualizando empresa");
+      alert(error.response?.data?.message || t("invoices.messages.updateCompanyError"));
     }
   };
 
@@ -1022,8 +1018,8 @@ const emitElectronicInvoice = async (invoice) => {
       >
         <div className="qb-list-header">
           <div>
-            <h1>Facturas</h1>
-            <p>Gestiona tus facturas, balances e inventario facturado.</p>
+            <h1>{t("invoices.list.title")}</h1>
+            <p>{t("invoices.list.description")}</p>
           </div>
 
           <div className="qb-header-actions">
@@ -1032,7 +1028,7 @@ const emitElectronicInvoice = async (invoice) => {
               onClick={() => navigate("/dashboard/facturacion/historial-pagos")}
             >
               <BarChart size={16} />
-              Historial de pagos
+              {t("invoices.actions.paymentHistory")}
             </button>
 
             <button
@@ -1044,7 +1040,7 @@ const emitElectronicInvoice = async (invoice) => {
               }}
             >
               <FileText size={16} />
-              Borradores
+              {t("invoices.actions.drafts")}
             </button>
 
             <button
@@ -1055,7 +1051,7 @@ const emitElectronicInvoice = async (invoice) => {
               }}
             >
               <Plus size={18} />
-              Nueva factura
+              {t("invoices.actions.newInvoice")}
             </button>
           </div>
         </div>
@@ -1064,16 +1060,16 @@ const emitElectronicInvoice = async (invoice) => {
   <table className="qb-table">
     <thead>
       <tr>
-        <th>{isDO ? "e-NCF" : "Invoice #"}</th>
-        <th>Cliente</th>
-        <th>Subtotal</th>
-        <th>{taxLabel}</th>
-        <th>Total</th>
-        <th>Pagado</th>
-        <th>Pendiente</th>
-        <th>Estado</th>
-        <th>Creada por</th>
-        <th>Acciones</th>
+        <th>{isDO ? "e-NCF" : t("invoices.fields.invoiceNumber")}</th>
+        <th>{t("invoices.fields.customer")}</th>
+        <th>{t("invoices.fields.subtotal")}</th>
+        <th>{t("invoices.fields.taxes")}</th>
+        <th>{t("invoices.fields.total")}</th>
+        <th>{t("invoices.fields.paid")}</th>
+        <th>{t("invoices.fields.balance")}</th>
+        <th>{t("invoices.fields.status")}</th>
+        <th>{t("invoices.fields.createdBy")}</th>
+        <th>{t("invoices.fields.actions")}</th>
       </tr>
     </thead>
 
@@ -1081,7 +1077,7 @@ const emitElectronicInvoice = async (invoice) => {
       {loading ? (
         <tr>
           <td colSpan="10" className="qb-empty">
-            Cargando facturas...
+            {t("invoices.messages.loading")}
           </td>
         </tr>
       ) : invoices.length ? (
@@ -1090,8 +1086,8 @@ const emitElectronicInvoice = async (invoice) => {
             <td>
               <strong>
                 {isDO
-                  ? invoice.eNcf || "Pendiente"
-                  : invoice.invoiceNumber || "Pending"}
+                  ? invoice.eNcf || t("invoices.common.pending")
+                  : invoice.invoiceNumber || t("invoices.common.pending")}
               </strong>
             </td>
             <td>{invoice.customerName}</td>
@@ -1107,7 +1103,7 @@ const emitElectronicInvoice = async (invoice) => {
               </span>
             </td>
 
-            <td>{invoice.creator?.name || "Sistema"}</td>
+            <td>{invoice.creator?.name || t("invoices.common.system")}</td>
 
             <td>
               <div className="qb-actions-cell">
@@ -1116,7 +1112,7 @@ const emitElectronicInvoice = async (invoice) => {
                   onClick={() => handlePrintInvoice(invoice)}
                 >
                   <Printer size={16} />
-                  Imprimir
+                  {t("invoices.actions.print")}
                 </button>
 
                 {invoice.status !== "paid" &&
@@ -1126,7 +1122,7 @@ const emitElectronicInvoice = async (invoice) => {
                       className="qb-secondary-btn"
                       onClick={() => markAsPaid(invoice)}
                     >
-                      Marcar pagada
+                      {t("invoices.actions.markPaid")}
                     </button>
                   )}
 
@@ -1146,7 +1142,7 @@ const emitElectronicInvoice = async (invoice) => {
       ) : (
         <tr>
           <td colSpan="10" className="qb-empty">
-            No hay facturas registradas.
+            {t("invoices.messages.empty")}
           </td>
         </tr>
       )}
@@ -1156,7 +1152,7 @@ const emitElectronicInvoice = async (invoice) => {
 
 <div className="qb-invoices-mobile">
   {loading ? (
-    <div className="qb-mobile-empty">Cargando facturas...</div>
+    <div className="qb-mobile-empty">{t("invoices.messages.loading")}</div>
   ) : invoices.length ? (
     invoices.map((invoice) => (
       <button
@@ -1167,11 +1163,11 @@ const emitElectronicInvoice = async (invoice) => {
       >
         <div className="qb-mobile-card-top">
           <div>
-            <span className="qb-mobile-label">Factura</span>
+            <span className="qb-mobile-label">{t("invoices.common.invoice")}</span>
             <strong>
               {isDO
-                ? invoice.eNcf || "e-NCF pendiente"
-                : invoice.invoiceNumber || "Pending"}
+                ? invoice.eNcf || t("invoices.common.pendingENcf")
+                : invoice.invoiceNumber || t("invoices.common.pending")}
             </strong>
           </div>
 
@@ -1181,30 +1177,30 @@ const emitElectronicInvoice = async (invoice) => {
         </div>
 
         <div className="qb-mobile-client">
-          <span>Cliente</span>
-          <strong>{invoice.customerName || "Sin cliente"}</strong>
+          <span>{t("invoices.fields.customer")}</span>
+          <strong>{invoice.customerName || t("invoices.common.noCustomer")}</strong>
         </div>
 
         <div className="qb-mobile-money-grid">
           <div>
-            <span>Total</span>
+            <span>{t("invoices.fields.total")}</span>
             <strong>{money.format(Number(invoice.total || 0))}</strong>
           </div>
 
           <div>
-            <span>Pendiente</span>
+            <span>{t("invoices.fields.balance")}</span>
             <strong>{money.format(Number(invoice.balance || 0))}</strong>
           </div>
         </div>
 
         <div className="qb-mobile-card-footer">
-          <span>Creada por {invoice.creator?.name || "Sistema"}</span>
-          <strong>Ver detalle</strong>
+          <span>Creada por {invoice.creator?.name || t("invoices.common.system")}</span>
+          <strong>{t("invoices.actions.viewDetail")}</strong>
         </div>
       </button>
     ))
   ) : (
-    <div className="qb-mobile-empty">No hay facturas registradas.</div>
+    <div className="qb-mobile-empty">{t("invoices.messages.empty")}</div>
   )}
 </div>
 
@@ -1213,11 +1209,11 @@ const emitElectronicInvoice = async (invoice) => {
     <div className="qb-mobile-detail-modal" onClick={(e) => e.stopPropagation()}>
       <div className="qb-mobile-detail-header">
         <div>
-          <span>Detalle de factura</span>
+          <span>{t("invoices.detail.title")}</span>
           <h3>
             {isDO
-              ? selectedInvoice.eNcf || "e-NCF pendiente"
-              : selectedInvoice.invoiceNumber || "Pending"}
+              ? selectedInvoice.eNcf || t("invoices.common.pendingENcf")
+              : selectedInvoice.invoiceNumber || t("invoices.common.pending")}
           </h3>
         </div>
 
@@ -1234,12 +1230,12 @@ const emitElectronicInvoice = async (invoice) => {
 
       <div className="qb-mobile-detail-list">
         <div>
-          <span>Cliente</span>
-          <strong>{selectedInvoice.customerName || "Sin cliente"}</strong>
+          <span>{t("invoices.fields.customer")}</span>
+          <strong>{selectedInvoice.customerName || t("invoices.common.noCustomer")}</strong>
         </div>
 
         <div>
-          <span>Subtotal</span>
+          <span>{t("invoices.fields.subtotal")}</span>
           <strong>{money.format(Number(selectedInvoice.subtotal || 0))}</strong>
         </div>
 
@@ -1249,23 +1245,23 @@ const emitElectronicInvoice = async (invoice) => {
         </div>
 
         <div>
-          <span>Total</span>
+          <span>{t("invoices.fields.total")}</span>
           <strong>{money.format(Number(selectedInvoice.total || 0))}</strong>
         </div>
 
         <div>
-          <span>Pagado</span>
+          <span>{t("invoices.fields.paid")}</span>
           <strong>{money.format(Number(selectedInvoice.amountPaid || 0))}</strong>
         </div>
 
         <div>
-          <span>Pendiente</span>
+          <span>{t("invoices.fields.balance")}</span>
           <strong>{money.format(Number(selectedInvoice.balance || 0))}</strong>
         </div>
 
         <div>
-          <span>Creada por</span>
-          <strong>{selectedInvoice.creator?.name || "Sistema"}</strong>
+          <span>{t("invoices.fields.createdBy")}</span>
+          <strong>{selectedInvoice.creator?.name || t("invoices.common.system")}</strong>
         </div>
       </div>
 
@@ -1276,7 +1272,7 @@ const emitElectronicInvoice = async (invoice) => {
           onClick={() => handlePrintInvoice(selectedInvoice)}
         >
           <Printer size={16} />
-          Imprimir
+          {t("invoices.actions.print")}
         </button>
 
         {selectedInvoice.status !== "paid" &&
@@ -1290,7 +1286,7 @@ const emitElectronicInvoice = async (invoice) => {
                 setSelectedInvoice(null);
               }}
             >
-              Marcar pagada
+              {t("invoices.actions.markPaid")}
             </button>
           )}
 
@@ -1305,7 +1301,7 @@ const emitElectronicInvoice = async (invoice) => {
               }}
             >
               <Ban size={16} />
-              Anular
+              {t("invoices.actions.cancelInvoice")}
             </button>
           )}
       </div>
@@ -1334,9 +1330,7 @@ const emitElectronicInvoice = async (invoice) => {
           </button>
 
           <span>
-            {isDO
-              ? "Facturación / Facturas / Nueva factura"
-              : "Billing / Invoices / New Invoice"}
+            {t("invoices.breadcrumb.newInvoice")}
           </span>
 
           <h1>
@@ -1345,11 +1339,11 @@ const emitElectronicInvoice = async (invoice) => {
                   eNcf: form.eNcf,
                   invoiceNumber: editingInvoiceNumber,
                 })
-              : "Nueva factura"}
+              : t("invoices.actions.newInvoice")}
           </h1>
 
           <small>
-            {editingInvoiceId ? "Editando borrador" : "Borrador"}
+            {editingInvoiceId ? t("invoices.messages.editingDraft") : t("invoices.common.draft")}
           </small>
         </div>
 
@@ -1357,7 +1351,7 @@ const emitElectronicInvoice = async (invoice) => {
           <div className="qb-actions-menu-wrap" ref={adminMenuRef}>
             <button onClick={() => setAdminMenuOpen(!adminMenuOpen)}>
               <Settings size={17} />
-              Administrar
+              {t("invoices.actions.manage")}
               <ChevronDown size={16} />
             </button>
 
@@ -1371,7 +1365,7 @@ const emitElectronicInvoice = async (invoice) => {
                   }}
                 >
                   <Settings size={16} />
-                  Editar empresa
+                  {t("invoices.actions.editCompany")}
                 </button>
 
                 <button
@@ -1382,7 +1376,7 @@ const emitElectronicInvoice = async (invoice) => {
                   }}
                 >
                   <Settings size={16} />
-                  Personalización
+                  {t("invoices.actions.customization")}
                 </button>
 
                 <button
@@ -1393,7 +1387,7 @@ const emitElectronicInvoice = async (invoice) => {
                   }}
                 >
                   <Settings size={16} />
-                  Preferencias de factura
+                  {t("invoices.actions.invoicePreferences")}
                 </button>
 
                 <button
@@ -1404,12 +1398,12 @@ const emitElectronicInvoice = async (invoice) => {
                   }}
                 >
                   <Settings size={16} />
-                  Numeración
+                  {t("invoices.actions.numbering")}
                 </button>
 
                 <button type="button" disabled>
                   <Settings size={16} />
-                  Comprobantes fiscales
+                  {t("invoices.actions.fiscalReceipts")}
                 </button>
               </div>
             )}
@@ -1418,7 +1412,7 @@ const emitElectronicInvoice = async (invoice) => {
           <div className="qb-actions-menu-wrap" ref={actionsMenuRef}>
             <button onClick={() => setActionsOpen(!actionsOpen)}>
               <MoreVertical size={17} />
-              Acciones
+              {t("invoices.fields.actions")}
               <ChevronDown size={16} />
             </button>
 
@@ -1432,7 +1426,7 @@ const emitElectronicInvoice = async (invoice) => {
                   }}
                 >
                   <Printer size={16} />
-                  Imprimir o descargar
+                  {t("invoices.actions.print")} o descargar
                 </button>
 
                 <button
@@ -1444,7 +1438,7 @@ const emitElectronicInvoice = async (invoice) => {
                   }}
                 >
                   <Save size={16} />
-                  Guardar borrador
+                  {t("invoices.actions.saveDraft")}
                 </button>
 
                 <button
@@ -1456,7 +1450,7 @@ const emitElectronicInvoice = async (invoice) => {
                   }}
                 >
                   <FileText size={16} />
-                  Emitir factura
+                  {t("invoices.actions.issueInvoice")}
                 </button>
               </div>
             )}
@@ -1478,18 +1472,18 @@ const emitElectronicInvoice = async (invoice) => {
           className={activeTab === "edit" ? "active" : ""}
           onClick={() => setActiveTab("edit")}
         >
-          Editar
+          {t("invoices.actions.edit")}
         </button>
 
         <button
           className={activeTab === "drafts" ? "active" : ""}
           onClick={() => setActiveTab("drafts")}
         >
-          Borradores
+          {t("invoices.actions.drafts")}
         </button>
 
         <button onClick={() => navigate("/dashboard/facturacion/historial-pagos")}>
-          Historial de pagos
+          {t("invoices.actions.paymentHistory")}
         </button>
       </div>
 
@@ -1499,10 +1493,10 @@ const emitElectronicInvoice = async (invoice) => {
       <table className="qb-table">
         <thead>
           <tr>
-            <th>Factura</th>
-            <th>Cliente</th>
-            <th>Total</th>
-            <th>Acciones</th>
+            <th>{t("invoices.common.invoice")}</th>
+            <th>{t("invoices.fields.customer")}</th>
+            <th>{t("invoices.fields.total")}</th>
+            <th>{t("invoices.fields.actions")}</th>
           </tr>
         </thead>
 
@@ -1510,8 +1504,8 @@ const emitElectronicInvoice = async (invoice) => {
           {drafts.length ? (
             drafts.map((invoice) => (
               <tr key={invoice.id}>
-                <td>{invoice.invoiceNumber || "Borrador"}</td>
-                <td>{invoice.customerName || "Sin cliente"}</td>
+                <td>{invoice.invoiceNumber || t("invoices.common.draft")}</td>
+                <td>{invoice.customerName || t("invoices.common.noCustomer")}</td>
                 <td>{money.format(Number(invoice.total || 0))}</td>
                 <td>
                   <div className="qb-actions-cell">
@@ -1519,7 +1513,7 @@ const emitElectronicInvoice = async (invoice) => {
                       className="qb-secondary-btn"
                       onClick={() => loadDraft(invoice)}
                     >
-                      Editar
+                      {t("invoices.actions.edit")}
                     </button>
 
                     <button
@@ -1542,7 +1536,7 @@ const emitElectronicInvoice = async (invoice) => {
           ) : (
             <tr>
               <td colSpan="4" className="qb-empty">
-                No hay borradores.
+                {t("invoices.messages.noDrafts")}
               </td>
             </tr>
           )}
@@ -1561,38 +1555,38 @@ const emitElectronicInvoice = async (invoice) => {
           >
             <div className="qb-mobile-card-top">
               <div>
-                <span className="qb-mobile-label">Borrador</span>
-                <strong>{invoice.invoiceNumber || "Sin número"}</strong>
+                <span className="qb-mobile-label">{t("invoices.common.draft")}</span>
+                <strong>{invoice.invoiceNumber || t("invoices.common.noNumber")}</strong>
               </div>
 
-              <span className="qb-status qb-draft">Borrador</span>
+              <span className="qb-status qb-draft">{t("invoices.common.draft")}</span>
             </div>
 
             <div className="qb-mobile-client">
-              <span>Cliente</span>
-              <strong>{invoice.customerName || "Sin cliente"}</strong>
+              <span>{t("invoices.fields.customer")}</span>
+              <strong>{invoice.customerName || t("invoices.common.noCustomer")}</strong>
             </div>
 
             <div className="qb-mobile-money-grid">
               <div>
-                <span>Subtotal</span>
+                <span>{t("invoices.fields.subtotal")}</span>
                 <strong>{money.format(Number(invoice.subtotal || 0))}</strong>
               </div>
 
               <div>
-                <span>Total</span>
+                <span>{t("invoices.fields.total")}</span>
                 <strong>{money.format(Number(invoice.total || 0))}</strong>
               </div>
             </div>
 
             <div className="qb-mobile-card-footer">
               <span>{taxLabel} {money.format(Number(invoice.tax || 0))}</span>
-              <strong>Ver detalle</strong>
+              <strong>{t("invoices.actions.viewDetail")}</strong>
             </div>
           </button>
         ))
       ) : (
-        <div className="qb-mobile-empty">No hay borradores.</div>
+        <div className="qb-mobile-empty">{t("invoices.messages.noDrafts")}</div>
       )}
     </div>
 
@@ -1607,8 +1601,8 @@ const emitElectronicInvoice = async (invoice) => {
         >
           <div className="qb-mobile-detail-header">
             <div>
-              <span>Detalle del borrador</span>
-              <h3>{selectedDraft.invoiceNumber || "Sin número"}</h3>
+              <span>{t("invoices.detail.draftTitle")}</span>
+              <h3>{selectedDraft.invoiceNumber || t("invoices.common.noNumber")}</h3>
             </div>
 
             <button type="button" onClick={() => setSelectedDraft(null)}>
@@ -1617,17 +1611,17 @@ const emitElectronicInvoice = async (invoice) => {
           </div>
 
           <div className="qb-mobile-detail-status">
-            <span className="qb-status qb-draft">Borrador</span>
+            <span className="qb-status qb-draft">{t("invoices.common.draft")}</span>
           </div>
 
           <div className="qb-mobile-detail-list">
             <div>
-              <span>Cliente</span>
-              <strong>{selectedDraft.customerName || "Sin cliente"}</strong>
+              <span>{t("invoices.fields.customer")}</span>
+              <strong>{selectedDraft.customerName || t("invoices.common.noCustomer")}</strong>
             </div>
 
             <div>
-              <span>Subtotal</span>
+              <span>{t("invoices.fields.subtotal")}</span>
               <strong>{money.format(Number(selectedDraft.subtotal || 0))}</strong>
             </div>
 
@@ -1637,17 +1631,17 @@ const emitElectronicInvoice = async (invoice) => {
             </div>
 
             <div>
-              <span>Total</span>
+              <span>{t("invoices.fields.total")}</span>
               <strong>{money.format(Number(selectedDraft.total || 0))}</strong>
             </div>
 
             <div>
-              <span>Pagado</span>
+              <span>{t("invoices.fields.paid")}</span>
               <strong>{money.format(Number(selectedDraft.amountPaid || 0))}</strong>
             </div>
 
             <div>
-              <span>Pendiente</span>
+              <span>{t("invoices.fields.balance")}</span>
               <strong>{money.format(Number(selectedDraft.balance || 0))}</strong>
             </div>
           </div>
@@ -1661,7 +1655,7 @@ const emitElectronicInvoice = async (invoice) => {
                 setSelectedDraft(null);
               }}
             >
-              Editar borrador
+              {t("invoices.actions.edit")} borrador
             </button>
 
             <button
@@ -1672,7 +1666,7 @@ const emitElectronicInvoice = async (invoice) => {
                 setSelectedDraft(null);
               }}
             >
-              Emitir factura
+              {t("invoices.actions.issueInvoice")}
             </button>
 
             <button
@@ -1684,7 +1678,7 @@ const emitElectronicInvoice = async (invoice) => {
               }}
             >
               <Trash2 size={16} />
-              Eliminar
+              {t("invoices.actions.delete")}
             </button>
           </div>
         </div>
@@ -1697,16 +1691,16 @@ const emitElectronicInvoice = async (invoice) => {
             <section className="qb-company">
               <div>
                 <h2 style={{ color: invoiceColor }}>
-                  {isDO ? "FACTURA" : "INVOICE"}
+                  {t("invoices.common.invoice").toUpperCase()}
                 </h2>
-                <strong>{tenant?.businessName || "Mi empresa"}</strong>
-                <p>{tenant?.address || "Dirección no configurada"}</p>
-                {isDO && <p>RNC/Cédula: {tenant?.rnc || "No configurado"}</p>}
+                <strong>{tenant?.businessName || t("invoices.company.myCompany")}</strong>
+                <p>{tenant?.address || t("invoices.company.addressNotSet")}</p>
+                {isDO && <p>{t("invoices.fields.rncId")}: {tenant?.rnc || t("invoices.common.notSet")}</p>}
                 <a
                   onClick={() => setCompanyModalOpen(true)}
                   style={{ color: invoiceColor }}
                 >
-                  Editar empresa
+                  {t("invoices.actions.editCompany")}
                 </a>
               </div>
 
@@ -1715,13 +1709,13 @@ const emitElectronicInvoice = async (invoice) => {
                   <Mail size={15} /> {tenant?.email || "correo@empresa.com"}
                 </p>
                 <p>
-                  <Phone size={15} /> {tenant?.phone || "Teléfono no configurado"}
+                  <Phone size={15} /> {tenant?.phone || t("invoices.company.phoneNotSet")}
                 </p>
               </div>
 
               <div className="qb-logo-box">
                 {invoiceLogo ? (
-                  <img src={invoiceLogo} alt="Logo empresa" />
+                  <img src={invoiceLogo} alt={t("invoices.company.logoAlt")} />
                 ) : (
                   <>
                     <span style={{ color: invoiceColor }}>Mi</span>
@@ -1741,10 +1735,10 @@ const emitElectronicInvoice = async (invoice) => {
                   defaultValue=""
                 >
                   <option value="" disabled>
-                    Agregar o seleccionar cliente
+                    {t("invoices.customer.addOrSelect")}
                   </option>
 
-                  <option value="new">+ Agregar nuevo cliente</option>
+                  <option value="new">{t("invoices.customer.addNew")}</option>
 
                   {customers.map((customer) => (
                     <option key={customer.id} value={customer.id}>
@@ -1755,7 +1749,7 @@ const emitElectronicInvoice = async (invoice) => {
 
                 <div className="qb-form-grid">
                   <label className="qb-customer-search-wrap">
-                    Cliente *
+                    {t("invoices.fields.customerRequired")}
                     <input
                       value={form.customerName}
                       onFocus={() => setShowCustomerSuggestions(true)}
@@ -1769,7 +1763,7 @@ const emitElectronicInvoice = async (invoice) => {
                         });
                         setShowCustomerSuggestions(true);
                       }}
-                      placeholder="Buscar cliente..."
+                      placeholder={t("invoices.placeholders.searchCustomer")}
                     />
 
                     {showCustomerSuggestions && (
@@ -1782,7 +1776,7 @@ const emitElectronicInvoice = async (invoice) => {
                             setCustomerModalOpen(true);
                           }}
                         >
-                          + Agregar nuevo cliente
+                          {t("invoices.customer.addNew")}
                         </button>
 
                         {filteredCustomers.length > 0 ? (
@@ -1798,14 +1792,14 @@ const emitElectronicInvoice = async (invoice) => {
                             >
                               <strong>{customer.name}</strong>
                               <span>
-                                {customer.rnc || "Sin RNC"} ·{" "}
-                                {customer.phone || "Sin teléfono"}
+                                {customer.rnc || t("invoices.common.noRnc")} ·{" "}
+                                {customer.phone || t("invoices.common.noPhone")}
                               </span>
                             </button>
                           ))
                         ) : (
                           <div className="qb-customer-empty">
-                            No se encontraron clientes
+                            {t("invoices.messages.noCustomersFound")}
                           </div>
                         )}
                       </div>
@@ -1814,19 +1808,19 @@ const emitElectronicInvoice = async (invoice) => {
 
                   {isDO && (
                     <label>
-                      RNC / Cédula
+                      {t("invoices.fields.rncIdSpaced")}
                       <input
                         value={form.customerRnc}
                         onChange={(e) =>
                           setForm({ ...form, customerRnc: e.target.value })
                         }
-                        placeholder="RNC o cédula"
+                        placeholder={t("invoices.placeholders.rncId")}
                       />
                     </label>
                   )}
 
                   <label>
-                    Correo electrónico
+                    {t("invoices.fields.email")}
                     <input
                       value={form.customerEmail}
                       onChange={(e) =>
@@ -1837,7 +1831,7 @@ const emitElectronicInvoice = async (invoice) => {
                   </label>
 
                   <label>
-                    Teléfono
+                    {t("invoices.fields.phone")}
                     <input
                       value={form.customerPhone}
                       onChange={(e) =>
@@ -1851,39 +1845,39 @@ const emitElectronicInvoice = async (invoice) => {
 
               <div className="qb-client-right">
                 <label>
-                  N.º de factura
+                  {t("invoices.fields.invoiceNumber")}
                   <input value={invoiceNumberPreview} disabled />
                 </label>
 
                 {isDO && (
                   <label>
-                    Tipo de factura
+                    {t("invoices.fields.invoiceType")}
                     <select
                       value={form.invoiceType}
                       onChange={(e) =>
                         setForm({ ...form, invoiceType: e.target.value })
                       }
                     >
-                      <option value="consumer_final">Consumidor final</option>
-                      <option value="credit_fiscal">Crédito fiscal</option>
+                      <option value="consumer_final">{t("invoices.invoiceTypes.consumerFinal")}</option>
+                      <option value="credit_fiscal">{t("invoices.invoiceTypes.creditFiscalShort")}</option>
                     </select>
                   </label>
                 )}
 
                 <label>
-                  Términos
+                  {t("invoices.fields.terms")}
                   <select
                     value={form.terms}
                     onChange={(e) => setForm({ ...form, terms: e.target.value })}
                   >
-                    <option>Pago en 30 días</option>
-                    <option>Pago inmediato</option>
-                    <option>Pago en 15 días</option>
+                    <option value="payment_30_days">{t("invoices.terms.payment30")}</option>
+                    <option value="immediate_payment">{t("invoices.terms.immediate")}</option>
+                    <option value="payment_15_days">{t("invoices.terms.payment15")}</option>
                   </select>
                 </label>
 
                 <label>
-                  Fecha de factura
+                  {t("invoices.fields.invoiceDate")}
                   <input
                     type="date"
                     value={form.invoiceDate}
@@ -1894,7 +1888,7 @@ const emitElectronicInvoice = async (invoice) => {
                 </label>
 
                 <label>
-                  Fecha de vencimiento
+                  {t("invoices.fields.dueDate")}
                   <input
                     type="date"
                     value={form.dueDate}
@@ -1908,7 +1902,7 @@ const emitElectronicInvoice = async (invoice) => {
 
             <section className="qb-items-card">
   <div className="qb-items-head">
-    <h3>Productos y servicios</h3>
+    <h3>{t("invoices.items.title")}</h3>
     <button
         onClick={addLine}
         style={{
@@ -1917,7 +1911,7 @@ const emitElectronicInvoice = async (invoice) => {
         }}
       >
       <Plus size={16} />
-      Agregar línea
+      {t("invoices.items.addLine")}
     </button>
   </div>
 
@@ -1926,16 +1920,16 @@ const emitElectronicInvoice = async (invoice) => {
       <thead>
         <tr>
           <th>#</th>
-          <th>Producto / Servicio</th>
-          <th>Descripción</th>
-          <th>Cantidad</th>
-          <th>Unidad</th>
-          <th>Precio</th>
-          <th>Descuento</th>
-          <th>Subtotal</th>
-          {taxMode === "line" && <th>Aplica {taxLabel}</th>}
-          <th>{taxLabel}</th>
-          <th>Total</th>
+          <th>{t("invoices.items.productService")}</th>
+          <th>{t("invoices.items.description")}</th>
+          <th>{t("invoices.items.quantity")}</th>
+          <th>{t("invoices.items.unit")}</th>
+          <th>{t("invoices.items.price")}</th>
+          <th>{t("invoices.items.discount")}</th>
+          <th>{t("invoices.fields.subtotal")}</th>
+          {taxMode === "line" && <th>{t("invoices.items.appliesTax", { tax: taxLabel })}</th>}
+          <th>{t("invoices.fields.taxes")}</th>
+          <th>{t("invoices.fields.total")}</th>
           <th></th>
         </tr>
       </thead>
@@ -2071,8 +2065,8 @@ const emitElectronicInvoice = async (invoice) => {
                         updateItem(index, "isTaxable", e.target.value === "yes")
                       }
                     >
-                      <option value="yes">Sí</option>
-                      <option value="no">No</option>
+                      <option value="yes">{t("invoices.common.yes")}</option>
+                      <option value="no">{t("invoices.common.no")}</option>
                     </select>
                   </td>
                 )}
@@ -2195,19 +2189,19 @@ const emitElectronicInvoice = async (invoice) => {
               )}
 
               <label>
-                Descripción
+                {t("invoices.items.description")}
                 <input
                   value={item.description}
                   onChange={(e) =>
                     updateItem(index, "description", e.target.value)
                   }
-                  placeholder="Descripción del producto"
+                  placeholder={t("invoices.placeholders.productDescription")}
                 />
               </label>
 
               <div className="qb-mobile-item-row-2">
                 <label>
-                  Cantidad
+                  {t("invoices.items.quantity")}
                   <input
                     type="number"
                     min="1"
@@ -2219,7 +2213,7 @@ const emitElectronicInvoice = async (invoice) => {
                 </label>
 
                 <label>
-                  Precio
+                  {t("invoices.items.price")}
                   <input
                     type="number"
                     value={item.price}
@@ -2232,7 +2226,7 @@ const emitElectronicInvoice = async (invoice) => {
 
               <div className="qb-mobile-item-row-2">
                 <label>
-                  Descuento
+                  {t("invoices.items.discount")}
                   <input
                     type="number"
                     value={item.discount}
@@ -2243,22 +2237,22 @@ const emitElectronicInvoice = async (invoice) => {
                 </label>
 
                 <label>
-                  Unidad
+                  {t("invoices.items.unit")}
                   <input value={item.unit || "UND"} disabled />
                 </label>
               </div>
 
               {taxMode === "line" && (
                 <label>
-                  Aplica {taxLabel}
+                  {t("invoices.items.appliesTax", { tax: taxLabel })}
                   <select
                     value={item.isTaxable === false ? "no" : "yes"}
                     onChange={(e) =>
                       updateItem(index, "isTaxable", e.target.value === "yes")
                     }
                   >
-                    <option value="yes">Sí</option>
-                    <option value="no">No</option>
+                    <option value="yes">{t("invoices.common.yes")}</option>
+                    <option value="no">{t("invoices.common.no")}</option>
                   </select>
                 </label>
               )}
@@ -2266,7 +2260,7 @@ const emitElectronicInvoice = async (invoice) => {
 
             <div className="qb-mobile-item-total">
               <p>
-                <span>Subtotal</span>
+                <span>{t("invoices.fields.subtotal")}</span>
                 <strong>{money.format(lineSubtotal)}</strong>
               </p>
 
@@ -2276,7 +2270,7 @@ const emitElectronicInvoice = async (invoice) => {
               </p>
 
               <p className="big">
-                <span>Total</span>
+                <span>{t("invoices.fields.total")}</span>
                 <strong>{money.format(lineTotal)}</strong>
               </p>
             </div>
@@ -2302,7 +2296,7 @@ const emitElectronicInvoice = async (invoice) => {
 
             <section className="qb-bottom-area">
               <textarea
-                placeholder="Notas adicionales para esta factura..."
+                placeholder={t("invoices.placeholders.notes")}
                 value={form.notes}
                 onChange={(e) => setForm({ ...form, notes: e.target.value })}
               />
@@ -2316,7 +2310,7 @@ const emitElectronicInvoice = async (invoice) => {
                     onClick={() => saveInvoice("draft")}
                   >
                     <Save size={16} />
-                    Guardar borrador
+                    {t("invoices.actions.saveDraft")}
                   </button>
 
                   <button
@@ -2326,12 +2320,12 @@ const emitElectronicInvoice = async (invoice) => {
                     onClick={() => setPreviewModalOpen(true)}
                   >
                     <FileText size={16} />
-                    Emitir factura
+                    {t("invoices.actions.issueInvoice")}
                   </button>
                 </div>
 
                 <p>
-                  <span>Subtotal</span>
+                  <span>{t("invoices.fields.subtotal")}</span>
                   <strong>{money.format(totals.subtotal)}</strong>
                 </p>
 
@@ -2365,12 +2359,12 @@ const emitElectronicInvoice = async (invoice) => {
               )}
 
                 <p className="big">
-                  <span>Total</span>
+                  <span>{t("invoices.fields.total")}</span>
                   <strong>{money.format(totals.total)}</strong>
                 </p>
 
                 <p className="pending">
-                  <span>Pendiente</span>
+                  <span>{t("invoices.fields.balance")}</span>
                   <strong>{money.format(totals.balance)}</strong>
                 </p>
               </div>
@@ -2397,29 +2391,29 @@ const emitElectronicInvoice = async (invoice) => {
 
             <div className="qb-customer-grid">
               <label>
-                Nombre *
+                {t("invoices.fields.nameRequired")}
                 <input
                   value={newCustomer.name}
                   onChange={(e) =>
                     setNewCustomer({ ...newCustomer, name: e.target.value })
                   }
-                  placeholder="Nombre del cliente"
+                  placeholder={t("invoices.placeholders.customerName")}
                 />
               </label>
 
               <label>
-                RNC / Cédula
+                {t("invoices.fields.rncIdSpaced")}
                 <input
                   value={newCustomer.rnc}
                   onChange={(e) =>
                     setNewCustomer({ ...newCustomer, rnc: e.target.value })
                   }
-                  placeholder="RNC o cédula"
+                  placeholder={t("invoices.placeholders.rncId")}
                 />
               </label>
 
               <label>
-                Teléfono
+                {t("invoices.fields.phone")}
                 <input
                   value={newCustomer.phone}
                   onChange={(e) =>
@@ -2430,7 +2424,7 @@ const emitElectronicInvoice = async (invoice) => {
               </label>
 
               <label>
-                Email
+                {t("invoices.fields.emailShort")}
                 <input
                   value={newCustomer.email}
                   onChange={(e) =>
@@ -2441,13 +2435,13 @@ const emitElectronicInvoice = async (invoice) => {
               </label>
 
               <label className="full">
-                Dirección
+                {t("invoices.fields.address")}
                 <textarea
                   value={newCustomer.address}
                   onChange={(e) =>
                     setNewCustomer({ ...newCustomer, address: e.target.value })
                   }
-                  placeholder="Dirección del cliente"
+                  placeholder={t("invoices.placeholders.customerAddress")}
                 />
               </label>
             </div>
@@ -2457,11 +2451,11 @@ const emitElectronicInvoice = async (invoice) => {
                 className="qb-secondary-btn"
                 onClick={() => setCustomerModalOpen(false)}
               >
-                Cancelar
+                {t("invoices.actions.cancel")}
               </button>
 
               <button className="qb-primary-btn" onClick={saveCustomer}>
-                Guardar cliente
+                {t("invoices.actions.save")} cliente
               </button>
             </div>
           </div>
@@ -2473,8 +2467,8 @@ const emitElectronicInvoice = async (invoice) => {
           <div className="qb-customer-modal">
             <div className="qb-modal-head">
               <div>
-                <span>Empresa</span>
-                <h3>Editar empresa</h3>
+                <span>{t("invoices.company.title")}</span>
+                <h3>{t("invoices.actions.editCompany")}</h3>
               </div>
 
               <button onClick={() => setCompanyModalOpen(false)}>
@@ -2484,7 +2478,7 @@ const emitElectronicInvoice = async (invoice) => {
 
             <div className="qb-customer-grid">
               <label>
-                Nombre de empresa *
+                {t("invoices.fields.companyNameRequired")}
                 <input
                   value={companyForm.businessName}
                   onChange={(e) =>
@@ -2493,12 +2487,12 @@ const emitElectronicInvoice = async (invoice) => {
                       businessName: e.target.value,
                     })
                   }
-                  placeholder="Nombre de la empresa"
+                  placeholder={t("invoices.placeholders.companyName")}
                 />
               </label>
 
               <label>
-                Correo
+                {t("invoices.fields.emailShort")}
                 <input
                   value={companyForm.email}
                   onChange={(e) =>
@@ -2510,7 +2504,7 @@ const emitElectronicInvoice = async (invoice) => {
 
               {isDO && (
                 <label>
-                  RNC / Cédula
+                  {t("invoices.fields.rncIdSpaced")}
                   <input
                     value={companyForm.rnc}
                     onChange={(e) =>
@@ -2519,13 +2513,13 @@ const emitElectronicInvoice = async (invoice) => {
                         rnc: e.target.value,
                       })
                     }
-                    placeholder="RNC o cédula"
+                    placeholder={t("invoices.placeholders.rncId")}
                   />
                 </label>
               )}
 
               <label>
-                Teléfono
+                {t("invoices.fields.phone")}
                 <input
                   value={companyForm.phone}
                   onChange={(e) =>
@@ -2536,13 +2530,13 @@ const emitElectronicInvoice = async (invoice) => {
               </label>
 
               <label className="full">
-                Dirección
+                {t("invoices.fields.address")}
                 <textarea
                   value={companyForm.address}
                   onChange={(e) =>
                     setCompanyForm({ ...companyForm, address: e.target.value })
                   }
-                  placeholder="Dirección de la empresa"
+                  placeholder={t("invoices.placeholders.companyAddress")}
                 />
               </label>
             </div>
@@ -2552,11 +2546,11 @@ const emitElectronicInvoice = async (invoice) => {
                 className="qb-secondary-btn"
                 onClick={() => setCompanyModalOpen(false)}
               >
-                Cancelar
+                {t("invoices.actions.cancel")}
               </button>
 
               <button className="qb-primary-btn" onClick={saveCompany}>
-                Guardar cambios
+                {t("invoices.actions.save")} cambios
               </button>
             </div>
           </div>
@@ -2575,8 +2569,8 @@ const emitElectronicInvoice = async (invoice) => {
     >
       <div className="qb-modal-head">
         <div>
-          <span>Vista previa</span>
-          <h3>¿Seguro que deseas emitir esta factura?</h3>
+          <span>{t("invoices.preview.title")}</span>
+          <h3>{t("invoices.preview.confirmTitle")}</h3>
         </div>
 
         <button onClick={() => setPreviewModalOpen(false)}>
@@ -2592,13 +2586,13 @@ const emitElectronicInvoice = async (invoice) => {
             </h2>
 
               {isDO && (
-                <p><strong>e-NCF:</strong> se generará al emitir</p>
+                <p><strong>e-NCF:</strong> {t("invoices.preview.willGenerate")}</p>
               )}
           </div>
 
           <div>
-            <strong>{tenant?.businessName || "Mi empresa"}</strong>
-            <p>{tenant?.address || "Dirección no configurada"}</p>
+            <strong>{tenant?.businessName || t("invoices.company.myCompany")}</strong>
+            <p>{tenant?.address || t("invoices.company.addressNotSet")}</p>
             {isDO && (
               <p>RNC/Cédula: {tenant?.rnc || "-"}</p>
             )}
@@ -2608,12 +2602,12 @@ const emitElectronicInvoice = async (invoice) => {
         </div>
 
         <div className="qb-preview-client">
-          <strong>Cliente:</strong> {form.customerName || "-"} <br />
+          <strong>{t("invoices.fields.customer")}:</strong> {form.customerName || "-"} <br />
           {isDO && (<><strong>RNC/Cédula:</strong> {form.customerRnc || "-"} <br /></>)}
-          <strong>Teléfono:</strong> {form.customerPhone || "-"} <br />
-          <strong>Email:</strong> {form.customerEmail || "-"} <br />
-          <strong>Fecha:</strong> {form.invoiceDate || "-"} <br />
-          <strong>Vencimiento:</strong> {form.dueDate || "-"}
+          <strong>{t("invoices.fields.phone")}:</strong> {form.customerPhone || "-"} <br />
+          <strong>{t("invoices.fields.emailShort")}:</strong> {form.customerEmail || "-"} <br />
+          <strong>{t("invoices.fields.date")}:</strong> {form.invoiceDate || "-"} <br />
+          <strong>{t("invoices.fields.due")}: </strong> {form.dueDate || "-"}
         </div>
 
         <table
@@ -2622,12 +2616,12 @@ const emitElectronicInvoice = async (invoice) => {
         >
           <thead>
             <tr>
-              <th>Producto / Servicio</th>
-              <th>Cant.</th>
-              <th>Precio</th>
-              <th>Desc.</th>
-              <th>{taxLabel}</th>
-              <th>Total</th>
+              <th>{t("invoices.items.productService")}</th>
+              <th>{t("invoices.items.qtyShort")}</th>
+              <th>{t("invoices.items.price")}</th>
+              <th>{t("invoices.items.discountShort")}</th>
+              <th>{t("invoices.fields.taxes")}</th>
+              <th>{t("invoices.fields.total")}</th>
             </tr>
           </thead>
 
@@ -2666,7 +2660,7 @@ const emitElectronicInvoice = async (invoice) => {
 
         <div className="qb-preview-totals">
           <p>
-            <span>Subtotal</span>
+            <span>{t("invoices.fields.subtotal")}</span>
             <strong>{money.format(totals.subtotal)}</strong>
           </p>
 
@@ -2676,12 +2670,12 @@ const emitElectronicInvoice = async (invoice) => {
           </p>
 
           <p className="big">
-            <span>Total</span>
+            <span>{t("invoices.fields.total")}</span>
             <strong>{money.format(totals.total)}</strong>
           </p>
 
           <p>
-            <span>Pendiente</span>
+            <span>{t("invoices.fields.balance")}</span>
             <strong>{money.format(totals.balance)}</strong>
           </p>
         </div>
@@ -2692,7 +2686,7 @@ const emitElectronicInvoice = async (invoice) => {
           className="qb-secondary-btn"
           onClick={() => setPreviewModalOpen(false)}
         >
-          Volver a editar
+          {t("invoices.actions.backToEdit")}
         </button>
 
         <button
@@ -2706,7 +2700,7 @@ const emitElectronicInvoice = async (invoice) => {
             onClick={() => saveInvoice("issued")}
           >
           <FileText size={16} />
-          Sí, emitir factura
+          {t("invoices.actions.yesIssueInvoice")}
         </button>
       </div>
     </div>

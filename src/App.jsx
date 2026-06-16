@@ -41,54 +41,235 @@ import CashRegisters from "./pages/modules/CashRegisters";
 import PosSales from "./pages/modules/PosSales";
 import CashSessionReports from "./pages/modules/CashSessionReports";
 
+
 function App() {
+  
+
   return (
-    <Routes>
-      <Route path="/" element={<Navigate to="/dashboard" />} />
+    <>
+      
 
-      <Route path="/login" element={<Login />} />
-      <Route path="/registro" element={<Register />} />
-      <Route path="/forgot-password" element={<ForgotPassword />} />
-      <Route path="/reset-password/:token" element={<ResetPassword />} />
-      <Route path="/verificar-correo/:token" element={<VerifyEmail />} />
-      <Route path="/seleccionar-plan" element={ <ProtectedRoute><SelectPlan /></ProtectedRoute>}/>
-      <Route path="/suscripcion-requerida"element={<ProtectedRoute><SubscriptionRequired /></ProtectedRoute>}/>
-      <Route path="/catalogo/:token" element={<CatalogPublic />} />
+      <Routes>
+        <Route path="/" element={<Navigate to="/dashboard" />} />
 
-      <Route path="/dashboard"element={<ProtectedRoute><SubscriptionRoute><SaaSLayout /></SubscriptionRoute></ProtectedRoute>}>
-        <Route index element={<Dashboard />} />
-        <Route path="facturacion" element={<Invoices />} />
-        <Route path="facturacion/historial-pagos" element={<PaymentHistory />} />
-        <Route path="cotizaciones" element={<Quotes />} />
-        <Route path="facturacion/personalizacion" element={<InvoiceCustomization />}/>
-        <Route path="facturacion/preferencias" element={<InvoicePreferences />}/>
-        <Route path="facturacion/numeracion" element={<InvoiceNumbering />} />
-        <Route path="activity-log" element={<ActivityLog />} />        
-        <Route path="usuarios"element={<RoleRoute allowedRoles={["master"]}><UsersManagement /></RoleRoute>}/>
-        <Route path="facturacion/billing"element={<RoleRoute allowedRoles={["master"]}><Billing /></RoleRoute>}/>
-        <Route path="inventario" element={<RoleRoute allowedRoles={["master", "admin"]}><Inventory /></RoleRoute>}/>
-        <Route path="conduces" element={<RoleRoute allowedRoles={["master", "admin"]}><DeliveryNotes /></RoleRoute>}/>
-        <Route path="recibos" element={<RoleRoute allowedRoles={["master", "admin"]}><Receipts /></RoleRoute>}/>
-        <Route path="ordenes-compra"element={<RoleRoute allowedRoles={["master", "admin"]}><PurchaseOrders /></RoleRoute>}/>
-        <Route path="proveedores" element={<RoleRoute allowedRoles={["master", "admin"]}><Suppliers /></RoleRoute>}/>
-        <Route path="contabilidad" element={<RoleRoute allowedRoles={["master", "admin"]}><AccountingSummary /></RoleRoute>}/>
-        <Route path="contabilidad/gastos" element={<RoleRoute allowedRoles={["master", "admin"]}> <Expenses /> </RoleRoute>}/>
-        <Route path="contabilidad/reportes" element={<RoleRoute allowedRoles={["master", "admin"]}><Reports /></RoleRoute>}/>
-        <Route path="contabilidad/cuentas-por-cobrar" element={<RoleRoute allowedRoles={["master", "admin"]}><AccountsReceivable /></RoleRoute>}/>
-        <Route path="contabilidad/cuentas-por-pagar" element={<RoleRoute allowedRoles={["master", "admin"]}><AccountsPayable /></RoleRoute>}/>
-        <Route path="configuracion/cuenta" element={<RoleRoute allowedRoles={["master"]}><AccountSettings /></RoleRoute>}/>
-        <Route path="conteo-inventario"element={<RoleRoute allowedRoles={["master", "admin"]}> <InventoryCount /> </RoleRoute>}/>
-        <Route path="catalogo" element={<RoleRoute allowedRoles={["master", "admin"]}><ProductCatalog /></RoleRoute>}/>
-        <Route path="pos" element={<RoleRoute allowedRoles={["master", "admin", "employee"]}><POS /></RoleRoute>}/>
-        <Route path="pos/cajas" element={<RoleRoute allowedRoles={["master"]}><CashRegisters /></RoleRoute>}/>
-        <Route path="pos/ventas" element={<RoleRoute allowedRoles={["master", "admin"]}><PosSales /></RoleRoute>}/>
-        <Route path="pos/cierres" element={<RoleRoute allowedRoles={["master", "admin"]}><CashSessionReports /></RoleRoute>}/>
+        <Route path="/login" element={<Login />} />
+        <Route path="/registro" element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
+        <Route path="/verificar-correo/:token" element={<VerifyEmail />} />
+        <Route
+          path="/seleccionar-plan"
+          element={
+            <ProtectedRoute>
+              <SelectPlan />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/suscripcion-requerida"
+          element={
+            <ProtectedRoute>
+              <SubscriptionRequired />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/catalogo/:token" element={<CatalogPublic />} />
 
-      </Route>
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <SubscriptionRoute>
+                <SaaSLayout />
+              </SubscriptionRoute>
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<Dashboard />} />
+          <Route path="facturacion" element={<Invoices />} />
+          <Route path="facturacion/historial-pagos" element={<PaymentHistory />} />
+          <Route path="cotizaciones" element={<Quotes />} />
+          <Route path="facturacion/personalizacion" element={<InvoiceCustomization />} />
+          <Route path="facturacion/preferencias" element={<InvoicePreferences />} />
+          <Route path="facturacion/numeracion" element={<InvoiceNumbering />} />
+          <Route path="activity-log" element={<ActivityLog />} />
 
-      <Route path="/success" element={<Success />} />
-      <Route path="/cancel" element={<Cancel />} />
-    </Routes>
+          <Route
+            path="usuarios"
+            element={
+              <RoleRoute allowedRoles={["master"]}>
+                <UsersManagement />
+              </RoleRoute>
+            }
+          />
+
+          <Route
+            path="facturacion/billing"
+            element={
+              <RoleRoute allowedRoles={["master"]}>
+                <Billing />
+              </RoleRoute>
+            }
+          />
+
+          <Route
+            path="inventario"
+            element={
+              <RoleRoute allowedRoles={["master", "admin"]}>
+                <Inventory />
+              </RoleRoute>
+            }
+          />
+
+          <Route
+            path="conduces"
+            element={
+              <RoleRoute allowedRoles={["master", "admin"]}>
+                <DeliveryNotes />
+              </RoleRoute>
+            }
+          />
+
+          <Route
+            path="recibos"
+            element={
+              <RoleRoute allowedRoles={["master", "admin"]}>
+                <Receipts />
+              </RoleRoute>
+            }
+          />
+
+          <Route
+            path="ordenes-compra"
+            element={
+              <RoleRoute allowedRoles={["master", "admin"]}>
+                <PurchaseOrders />
+              </RoleRoute>
+            }
+          />
+
+          <Route
+            path="proveedores"
+            element={
+              <RoleRoute allowedRoles={["master", "admin"]}>
+                <Suppliers />
+              </RoleRoute>
+            }
+          />
+
+          <Route
+            path="contabilidad"
+            element={
+              <RoleRoute allowedRoles={["master", "admin"]}>
+                <AccountingSummary />
+              </RoleRoute>
+            }
+          />
+
+          <Route
+            path="contabilidad/gastos"
+            element={
+              <RoleRoute allowedRoles={["master", "admin"]}>
+                <Expenses />
+              </RoleRoute>
+            }
+          />
+
+          <Route
+            path="contabilidad/reportes"
+            element={
+              <RoleRoute allowedRoles={["master", "admin"]}>
+                <Reports />
+              </RoleRoute>
+            }
+          />
+
+          <Route
+            path="contabilidad/cuentas-por-cobrar"
+            element={
+              <RoleRoute allowedRoles={["master", "admin"]}>
+                <AccountsReceivable />
+              </RoleRoute>
+            }
+          />
+
+          <Route
+            path="contabilidad/cuentas-por-pagar"
+            element={
+              <RoleRoute allowedRoles={["master", "admin"]}>
+                <AccountsPayable />
+              </RoleRoute>
+            }
+          />
+
+          <Route
+            path="configuracion/cuenta"
+            element={
+              <RoleRoute allowedRoles={["master"]}>
+                <AccountSettings />
+              </RoleRoute>
+            }
+          />
+
+          <Route
+            path="conteo-inventario"
+            element={
+              <RoleRoute allowedRoles={["master", "admin"]}>
+                <InventoryCount />
+              </RoleRoute>
+            }
+          />
+
+          <Route
+            path="catalogo"
+            element={
+              <RoleRoute allowedRoles={["master", "admin"]}>
+                <ProductCatalog />
+              </RoleRoute>
+            }
+          />
+
+          <Route
+            path="pos"
+            element={
+              <RoleRoute allowedRoles={["master", "admin", "employee"]}>
+                <POS />
+              </RoleRoute>
+            }
+          />
+
+          <Route
+            path="pos/cajas"
+            element={
+              <RoleRoute allowedRoles={["master"]}>
+                <CashRegisters />
+              </RoleRoute>
+            }
+          />
+
+          <Route
+            path="pos/ventas"
+            element={
+              <RoleRoute allowedRoles={["master", "admin"]}>
+                <PosSales />
+              </RoleRoute>
+            }
+          />
+
+          <Route
+            path="pos/cierres"
+            element={
+              <RoleRoute allowedRoles={["master", "admin"]}>
+                <CashSessionReports />
+              </RoleRoute>
+            }
+          />
+        </Route>
+
+        <Route path="/success" element={<Success />} />
+        <Route path="/cancel" element={<Cancel />} />
+      </Routes>
+    </>
   );
 }
 

@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { api, setAccessToken } from "../api/axios";
+import { normalizeLanguage } from "../i18n/translations";
 
 const AuthContext = createContext(null);
 
@@ -23,7 +24,9 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [tenant, setTenant] = useState(null);
   const [loading, setLoading] = useState(true);
-
+  const [language, setLanguage] = useState(() => {
+    return normalizeLanguage(localStorage.getItem("corex_language") || "es");
+  });
   const location = useLocation();
 
   const clearSession = () => {
@@ -39,6 +42,9 @@ export function AuthProvider({ children }) {
       setAccessToken(data.accessToken);
       setUser(data.user);
       setTenant(data.tenant);
+      const savedLanguage = normalizeLanguage(data.user?.preferredLanguage || "es");
+      setLanguage(savedLanguage);
+      localStorage.setItem("corex_language", savedLanguage);
     } catch (error) {
       clearSession();
     } finally {
@@ -52,6 +58,9 @@ export function AuthProvider({ children }) {
     setAccessToken(data.accessToken);
     setUser(data.user);
     setTenant(data.tenant);
+    const savedLanguage = normalizeLanguage(data.user?.preferredLanguage || "es");
+    setLanguage(savedLanguage);
+    localStorage.setItem("corex_language", savedLanguage);
 
     return data;
   };
@@ -94,9 +103,28 @@ export function AuthProvider({ children }) {
     setAccessToken(data.accessToken);
     setUser(data.user);
     setTenant(data.tenant);
-
+    const savedLanguage = normalizeLanguage(data.user?.preferredLanguage || "es");
+    setLanguage(savedLanguage);
+    localStorage.setItem("corex_language", savedLanguage); 
     return data;
   };
+
+const updateLanguage = async (nextLanguage) => {
+  const selectedLanguage = normalizeLanguage(nextLanguage);
+
+  const { data } = await api.patch("/auth/language", {
+    language: selectedLanguage,
+  });
+
+  if (data.user) {
+    setUser(data.user);
+  }
+
+  setLanguage(selectedLanguage);
+  localStorage.setItem("corex_language", selectedLanguage);
+
+  return data;
+};
 
   return (
     <AuthContext.Provider
@@ -111,6 +139,9 @@ export function AuthProvider({ children }) {
         setTenant,
         clearSession,
         refreshSession,
+        language,
+        setLanguage,
+        updateLanguage,
       }}
     >
       {children}

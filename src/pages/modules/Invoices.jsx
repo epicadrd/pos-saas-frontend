@@ -415,7 +415,7 @@ const getTaxAmount = (rate, base = totals.subtotal) => {
     }
 
     if (isDO && form.invoiceType === "credit_fiscal" && !form.customerRnc.trim()) {
-      alert("Para emitir una factura de crédito fiscal debes agregar el RNC/Cédula del cliente.");
+      alert(t("invoices.messages.creditFiscalRncRequired"));
       return;
     }
 
@@ -748,7 +748,7 @@ const printHtml = (html) => {
                   ? `<img src="${invoiceLogo}" style="max-width:120px; max-height:80px; object-fit:contain; margin-bottom:12px;" />`
                   : ""
               }
-              <h1>${isDO ? getFiscalInvoiceTitle(invoice.invoiceType) : "INVOICE"}</h1>
+              <h1>${isDO ? getFiscalInvoiceTitle(invoice.invoiceType) : t("invoices.preview.invoiceTitle")}</h1>
 
                 ${
                   isDO
@@ -760,7 +760,7 @@ const printHtml = (html) => {
             <div>
               <strong>${tenant?.businessName || t("invoices.company.myCompany")}</strong><br/>
               ${tenant?.address || ""}<br/>
-              ${isDO ? `RNC/Cédula: ${tenant?.rnc || "-" }<br/>` : ""}
+              ${isDO ? `${t("invoices.preview.rncId")}: ${tenant?.rnc || "-" }<br/>` : ""}
               ${tenant?.email || ""}<br/>
               ${tenant?.phone || ""}
             </div>
@@ -768,18 +768,18 @@ const printHtml = (html) => {
 
           <div class="box">
             <strong>${t("invoices.fields.customer")}:</strong> ${invoice.customerName || "-"}<br/>
-            ${isDO ? `<strong>RNC/Cédula:</strong> ${invoice.customerRnc || "-"}<br/>` : ""}
+            ${isDO ? `<strong>${t("invoices.preview.rncId")}:</strong> ${invoice.customerRnc || "-"}<br/>` : ""}
             <strong>${t("invoices.fields.phone")}:</strong> ${invoice.customerPhone || "-"}<br/>
             <strong>${t("invoices.fields.emailShort")}:</strong> ${invoice.customerEmail || "-"}<br/><br/>
 
-            <strong>Fecha de emisión:</strong> ${invoice.invoiceDate || "-"}<br/>
+            <strong>${t("invoices.fields.invoiceDate")}:</strong> ${invoice.invoiceDate || "-"}<br/>
             <strong>${t("invoices.fields.dueDate")}:</strong> ${invoice.dueDate || "-"}
           </div>
 
           <table>
             <thead>
               <tr>
-                <th>Producto/Servicio</th>
+                <th>${t("invoices.print.productService")}</th>
                 <th>${t("invoices.items.quantity")}</th>
                 <th>${t("invoices.items.price")}</th>
                 <th>${t("invoices.items.discount")}</th>
@@ -817,7 +817,7 @@ const printHtml = (html) => {
                   : `
                     <tr>
                       <td colspan="${taxMode === "line" ? 7 : 6}">
-                        No hay productos registrados en esta factura.
+                        ${t("invoices.print.emptyInvoiceItems")}
                       </td>
                     </tr>
                   `
@@ -846,8 +846,8 @@ const printHtml = (html) => {
             isDO
               ? `
                 <div class="qr-section">
-                  <img src="${qrDataUrl}" alt="Código QR de la factura" />
-                  <p>Escanee para consultar esta factura</p>
+                  <img src="${qrDataUrl}" alt="${t("invoices.print.qrAlt")}" />
+                  <p>${t("invoices.print.scanQr")}</p>
                 </div>
               `
               : ""
@@ -871,7 +871,7 @@ const handlePrintDraft = async () => {
     const html = `
       <html>
         <head>
-          <title>Factura ${invoiceNumberPreview}</title>
+          <title>${t("invoices.common.invoice")} ${invoiceNumberPreview}</title>
           <style>
             body { font-family: Arial, sans-serif; padding: 40px; color: #111827; }
             .header { display: flex; justify-content: space-between; border-bottom: 2px solid ${invoiceColor}; padding-bottom: 20px; margin-bottom: 30px; }
@@ -909,7 +909,7 @@ const handlePrintDraft = async () => {
             <div>
               <strong>${tenant?.businessName || t("invoices.company.myCompany")}</strong><br/>
               ${tenant?.address || ""}<br/>
-              ${isDO ? `RNC/Cédula: ${tenant?.rnc || "-"}<br/>` : ""}
+              ${isDO ? `${t("invoices.preview.rncId")}: ${tenant?.rnc || "-"}<br/>` : ""}
               ${tenant?.email || ""}<br/>
               ${tenant?.phone || ""}
             </div>
@@ -917,7 +917,7 @@ const handlePrintDraft = async () => {
 
           <div class="box">
             <strong>${t("invoices.fields.customer")}:</strong> ${form.customerName || "-"}<br/>
-            ${isDO ? `<strong>RNC/Cédula:</strong> ${form.customerRnc || "-"}<br/>` : ""}
+            ${isDO ? `<strong>${t("invoices.preview.rncId")}:</strong> ${form.customerRnc || "-"}<br/>` : ""}
             <strong>${t("invoices.fields.phone")}:</strong> ${form.customerPhone || "-"}<br/>
             <strong>${t("invoices.fields.emailShort")}:</strong> ${form.customerEmail || "-"}<br/><br/>
 
@@ -928,7 +928,7 @@ const handlePrintDraft = async () => {
           <table>
             <thead>
               <tr>
-                <th>Producto/Servicio</th>
+                <th>${t("invoices.print.productService")}</th>
                 <th>${t("invoices.items.quantity")}</th>
                 <th>${t("invoices.items.price")}</th>
                 <th>${t("invoices.items.discount")}</th>
@@ -969,7 +969,7 @@ const handlePrintDraft = async () => {
                   : `
                     <tr>
                       <td colspan="${taxMode === "line" ? 7 : 6}">
-                        No hay productos registrados.
+                        ${t("invoices.print.emptyItems")}
                       </td>
                     </tr>
                   `
@@ -983,10 +983,10 @@ const handlePrintDraft = async () => {
   isDO
     ? `<div><span>${taxLabel} (${taxRate}%)</span><strong>${money.format(totals.tax)}</strong></div>`
     : `
-      <div><span>State Tax (${usTaxBreakdown.stateRate}%)</span><strong>${money.format(getTaxAmount(usTaxBreakdown.stateRate))}</strong></div>
-      <div><span>County Tax (${usTaxBreakdown.countyRate}%)</span><strong>${money.format(getTaxAmount(usTaxBreakdown.countyRate))}</strong></div>
-      <div><span>City Tax (${usTaxBreakdown.cityRate}%)</span><strong>${money.format(getTaxAmount(usTaxBreakdown.cityRate))}</strong></div>
-      <div><span>Total Taxes (${taxRate}%)</span><strong>${money.format(totals.tax)}</strong></div>
+      <div><span>${t("invoices.print.stateTax")} (${usTaxBreakdown.stateRate}%)</span><strong>${money.format(getTaxAmount(usTaxBreakdown.stateRate))}</strong></div>
+      <div><span>${t("invoices.print.countyTax")} (${usTaxBreakdown.countyRate}%)</span><strong>${money.format(getTaxAmount(usTaxBreakdown.countyRate))}</strong></div>
+      <div><span>${t("invoices.print.cityTax")} (${usTaxBreakdown.cityRate}%)</span><strong>${money.format(getTaxAmount(usTaxBreakdown.cityRate))}</strong></div>
+      <div><span>${t("invoices.print.totalTaxes")} (${taxRate}%)</span><strong>${money.format(totals.tax)}</strong></div>
     `
 }
             <div class="total"><span>${t("invoices.fields.total")}</span><strong>${money.format(totals.total)}</strong></div>
@@ -998,7 +998,7 @@ const handlePrintDraft = async () => {
             isDO
               ? `
                 <div class="qr-section">
-                  <img src="${qrDataUrl}" alt="Código QR de la factura" />
+                  <img src="${qrDataUrl}" alt="${t("invoices.print.qrAlt")}" />
                   <p>Escanee para consultar esta factura</p>
                 </div>
               `
@@ -1008,14 +1008,8 @@ const handlePrintDraft = async () => {
       </html>
     `;
 
-    const printWindow = window.open("", "_blank");
-    if (!printWindow) return;
-
-    printWindow.document.write(html);
-    printWindow.document.close();
-    printWindow.focus();
-    printWindow.print();
-  };
+   printHtml(html);
+  }
   const drafts = invoices.filter((invoice) => invoice.status === "draft");
 
   const getInvoiceStatusLabel = (status) => {
@@ -1242,7 +1236,7 @@ const handlePrintDraft = async () => {
         </div>
 
         <div className="qb-mobile-card-footer">
-          <span>Creada por {invoice.creator?.name || t("invoices.common.system")}</span>
+          <span>{t("invoices.fields.createdBy")} {invoice.creator?.name || t("invoices.common.system")}</span>
           <strong>{t("invoices.actions.viewDetail")}</strong>
         </div>
       </button>
@@ -1474,7 +1468,7 @@ const handlePrintDraft = async () => {
                   }}
                 >
                   <Printer size={16} />
-                  {t("invoices.actions.print")} o descargar
+                  {t("invoices.actions.printOrDownload")}
                 </button>
 
                 <button
@@ -1568,7 +1562,7 @@ const handlePrintDraft = async () => {
                       className="qb-secondary-btn"
                       onClick={() => issueDraft(invoice)}
                     >
-                      Emitir
+                      {t("invoices.actions.issue")}
                     </button>
 
                     <button
@@ -1703,7 +1697,7 @@ const handlePrintDraft = async () => {
                 setSelectedDraft(null);
               }}
             >
-              {t("invoices.actions.edit")} borrador
+              {t("invoices.actions.editDraft")}
             </button>
 
             <button
@@ -1754,7 +1748,7 @@ const handlePrintDraft = async () => {
 
               <div className="qb-company-contact">
                 <p>
-                  <Mail size={15} /> {tenant?.email || "correo@empresa.com"}
+                  {tenant?.email || t("invoices.placeholders.companyEmail")}
                 </p>
                 <p>
                   <Phone size={15} /> {tenant?.phone || t("invoices.company.phoneNotSet")}
@@ -1766,9 +1760,9 @@ const handlePrintDraft = async () => {
                   <img src={invoiceLogo} alt={t("invoices.company.logoAlt")} />
                 ) : (
                   <>
-                    <span style={{ color: invoiceColor }}>Mi</span>
+                    <span style={{ color: invoiceColor }}>{t("invoices.company.myCompany").split(" ")[0]}</span>
                     <small style={{ color: invoiceColor }}>
-                      EMPRESA
+                      {t("invoices.company.title").toUpperCase()}
                     </small>
                   </>
                 )}
@@ -1874,7 +1868,7 @@ const handlePrintDraft = async () => {
                       onChange={(e) =>
                         setForm({ ...form, customerEmail: e.target.value })
                       }
-                      placeholder="correo@ejemplo.com"
+                      placeholder={t("invoices.placeholders.emailExample")}
                     />
                   </label>
 
@@ -1885,7 +1879,7 @@ const handlePrintDraft = async () => {
                       onChange={(e) =>
                         setForm({ ...form, customerPhone: e.target.value })
                       }
-                      placeholder="809-000-0000"
+                      placeholder={t("invoices.placeholders.phoneExample")}
                     />
                   </label>
                 </div>
@@ -1975,7 +1969,7 @@ const handlePrintDraft = async () => {
           <th>{t("invoices.items.price")}</th>
           <th>{t("invoices.items.discount")}</th>
           <th>{t("invoices.fields.subtotal")}</th>
-          {taxMode === "line" && <th>{t("invoices.items.appliesTax", { tax: taxLabel })}</th>}
+          {taxMode === "line" && <th>{t("invoices.items.appliesTax", { taxLabel })}</th>}
           <th>{t("invoices.fields.taxes")}</th>
           <th>{t("invoices.fields.total")}</th>
           <th></th>
@@ -2043,7 +2037,7 @@ const handlePrintDraft = async () => {
                             setItems(copy);
                           }
                         }}
-                        placeholder="Producto o servicio"
+                        placeholder={t("invoices.placeholders.productOrService")}
                       />
 
                     <datalist id={`invoice-products-${index}`}>
@@ -2055,10 +2049,10 @@ const handlePrintDraft = async () => {
                     {product && (
                       <small className={isService ? "service-label" : ""}>
                         {isService
-                          ? "Servicio"
+                          ? t("invoices.items.service")
                           : stockError
-                          ? `Stock insuficiente: ${product.stock}`
-                          : `Disponible: ${product.stock}`}
+                          ? t("invoices.items.insufficientStock", { stock: product.stock })
+                          : t("invoices.items.available", { stock: product.stock })}
                       </small>
                     )}
                   </td>
@@ -2136,7 +2130,7 @@ const handlePrintDraft = async () => {
         ) : (
           <tr>
             <td colSpan={taxMode === "line" ? 12 : 11} className="qb-empty">
-              Agrega productos o servicios para construir la factura.
+              {t("invoices.messages.addItemsToBuild")}
             </td>
           </tr>
         )}
@@ -2179,7 +2173,7 @@ const handlePrintDraft = async () => {
             key={index}
           >
             <div className="qb-mobile-item-head">
-              <h4>Producto #{index + 1}</h4>
+              <h4>{t("invoices.items.productNumber", { number: index + 1 })}</h4>
 
               <button type="button" onClick={() => removeItem(index)}>
                 <Trash2 size={16} />
@@ -2188,7 +2182,7 @@ const handlePrintDraft = async () => {
 
             <div className="qb-mobile-item-grid">
               <label>
-                Producto / servicio
+                {t("invoices.items.productService")}
                 <input
                   type="text"
                   list={`invoice-products-mobile-${index}`}
@@ -2216,7 +2210,7 @@ const handlePrintDraft = async () => {
                       setItems(copy);
                     }
                   }}
-                  placeholder="Producto o servicio"
+                  placeholder={t("invoices.placeholders.productOrService")}
                 />
 
                 <datalist id={`invoice-products-mobile-${index}`}>
@@ -2229,10 +2223,10 @@ const handlePrintDraft = async () => {
               {product && (
                 <small className={stockError ? "qb-stock-warning" : ""}>
                   {isService
-                    ? "Servicio"
+                    ? t("invoices.items.service")
                     : stockError
-                    ? `Stock insuficiente: ${product.stock}`
-                    : `Disponible: ${product.stock}`}
+                    ? t("invoices.items.insufficientStock", { stock: product.stock })
+                    : t("invoices.items.available", { stock: product.stock })}
                 </small>
               )}
 
@@ -2292,7 +2286,7 @@ const handlePrintDraft = async () => {
 
               {taxMode === "line" && (
                 <label>
-                  {t("invoices.items.appliesTax", { tax: taxLabel })}
+                  {t("invoices.items.appliesTax", { taxLabel })}
                   <select
                     value={item.isTaxable === false ? "no" : "yes"}
                     onChange={(e) =>
@@ -2327,7 +2321,7 @@ const handlePrintDraft = async () => {
       })
     ) : (
       <div className="qb-mobile-empty">
-        Agrega productos o servicios para construir la factura.
+        {t("invoices.messages.addItemsToBuild")}
       </div>
     )}
 
@@ -2385,22 +2379,22 @@ const handlePrintDraft = async () => {
               ) : (
                 <>
                   <p>
-                    <span>State Tax ({usTaxBreakdown.stateRate}%)</span>
+                    <span>{t("invoices.print.stateTax")} ({usTaxBreakdown.stateRate}%)</span>
                     <strong>{money.format(getTaxAmount(usTaxBreakdown.stateRate))}</strong>
                   </p>
 
                   <p>
-                    <span>County Tax ({usTaxBreakdown.countyRate}%)</span>
+                    <span>{t("invoices.print.countyTax")} ({usTaxBreakdown.countyRate}%)</span>
                     <strong>{money.format(getTaxAmount(usTaxBreakdown.countyRate))}</strong>
                   </p>
 
                   <p>
-                    <span>City Tax ({usTaxBreakdown.cityRate}%)</span>
+                    <span>{t("invoices.print.cityTax")} ({usTaxBreakdown.cityRate}%)</span>
                     <strong>{money.format(getTaxAmount(usTaxBreakdown.cityRate))}</strong>
                   </p>
 
                   <p>
-                    <span>Total Taxes ({taxRate}%)</span>
+                    <span>{t("invoices.print.totalTaxes")} ({taxRate}%)</span>
                     <strong>{money.format(totals.tax)}</strong>
                   </p>
                 </>
@@ -2428,8 +2422,8 @@ const handlePrintDraft = async () => {
           <div className="qb-customer-modal">
             <div className="qb-modal-head">
               <div>
-                <span>Nuevo cliente</span>
-                <h3>Agregar cliente</h3>
+                <span>{t("invoices.customer.newCustomer")}</span>
+                <h3>{t("invoices.customer.addCustomer")}</h3>
               </div>
 
               <button onClick={() => setCustomerModalOpen(false)}>
@@ -2503,7 +2497,7 @@ const handlePrintDraft = async () => {
               </button>
 
               <button className="qb-primary-btn" onClick={saveCustomer}>
-                {t("invoices.actions.save")} cliente
+                {t("invoices.actions.save")} {t("invoices.fields.customer").toLowerCase()}
               </button>
             </div>
           </div>
@@ -2598,7 +2592,7 @@ const handlePrintDraft = async () => {
               </button>
 
               <button className="qb-primary-btn" onClick={saveCompany}>
-                {t("invoices.actions.save")} cambios
+                {t("invoices.actions.save")}
               </button>
             </div>
           </div>
@@ -2630,11 +2624,11 @@ const handlePrintDraft = async () => {
                 <div className="qb-preview-header">
                   <div>
                     <h2 style={{ color: invoiceColor }}>
-                      {isDO ? getFiscalInvoiceTitle(form.invoiceType) : "INVOICE"}
+                      {isDO ? getFiscalInvoiceTitle(form.invoiceType) : t("invoices.preview.invoiceTitle")}
                     </h2>
 
                       {isDO && (
-                        <p><strong>e-NCF:</strong> {t("invoices.preview.willGenerate")}</p>
+                        <p><strong>{t("invoices.preview.eNcf")}:</strong> {t("invoices.preview.willGenerate")}</p>
                       )}
                   </div>
 
@@ -2642,7 +2636,7 @@ const handlePrintDraft = async () => {
                     <strong>{tenant?.businessName || t("invoices.company.myCompany")}</strong>
                     <p>{tenant?.address || t("invoices.company.addressNotSet")}</p>
                     {isDO && (
-                      <p>RNC/Cédula: {tenant?.rnc || "-"}</p>
+                      <p>{t("invoices.preview.rncId")}: {tenant?.rnc || "-"}</p>
                     )}
                     <p>{tenant?.email || ""}</p>
                     <p>{tenant?.phone || ""}</p>
@@ -2651,7 +2645,7 @@ const handlePrintDraft = async () => {
 
                 <div className="qb-preview-client">
                   <strong>{t("invoices.fields.customer")}:</strong> {form.customerName || "-"} <br />
-                  {isDO && (<><strong>RNC/Cédula:</strong> {form.customerRnc || "-"} <br /></>)}
+                  {isDO && (<><strong>{t("invoices.preview.rncId")}:</strong> {form.customerRnc || "-"} <br /></>)}
                   <strong>{t("invoices.fields.phone")}:</strong> {form.customerPhone || "-"} <br />
                   <strong>{t("invoices.fields.emailShort")}:</strong> {form.customerEmail || "-"} <br />
                   <strong>{t("invoices.fields.date")}:</strong> {form.invoiceDate || "-"} <br />

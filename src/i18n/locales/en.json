@@ -425,6 +425,7 @@
     "qtyShort": "Qty"
   },
   "messages": {
+    "creditFiscalRncRequired": "To issue a fiscal credit invoice, you must add the customer's Tax ID.",
     "loading": "Loading invoices...",
     "empty": "No invoices found.",
     "noDrafts": "No drafts found.",
@@ -463,10 +464,24 @@
     "notes": "Additional notes for this invoice...",
     "companyAddress": "Company address",
     "companyName": "Company name",
-    "customerAddress": "Customer address"
+    "customerAddress": "Customer address",
+    "emailExample": "email@example.com",
+    "customerEmail": "customer@email.com",
+    "companyEmail": "company@email.com",
+    "phoneExample": "809-000-0000",
+    "productOrService": "Product or service"
   },
   "print": {
-    "invoiceNumber": "Invoice #"
+  "invoiceNumber": "Invoice #",
+  "productService": "Product/Service",
+  "emptyItems": "No products registered.",
+  "emptyInvoiceItems": "No products registered in this invoice.",
+  "scanQr": "Scan to view this invoice",
+  "qrAlt": "Invoice QR code",
+  "stateTax": "State Tax",
+  "countyTax": "County Tax",
+  "cityTax": "City Tax",
+  "totalTaxes": "Total Taxes"
   },
   "confirm": {
     "cancelTitle": "Cancel Invoice",
@@ -479,9 +494,145 @@
     "markPaidMessage": "Mark {{number}} as paid?"
   },
   "preview": {
-    "confirmTitle": "Confirm issue",
-    "title": "Invoice preview",
-    "willGenerate": "Will be generated when issued"
+  "confirmTitle": "Confirm issue",
+  "title": "Invoice preview",
+  "willGenerate": "Will be generated when issued",
+  "invoiceTitle": "INVOICE",
+  "rncId": "Tax ID",
+  "eNcf": "e-NCF"
+}
+},
+
+"quotes": {
+  "title": "Quotes",
+  "subtitle": "Commercial proposals",
+  "description": "Create professional quotes, manage approval, expiration, printing, and direct conversion to invoices.",
+
+  "status": {
+    "draft": "Draft",
+    "sent": "Sent",
+    "approved": "Approved",
+    "rejected": "Rejected",
+    "expired": "Expired",
+    "converted": "Converted"
+  },
+
+  "filters": {
+    "all": "All"
+  },
+
+  "actions": {
+    "newQuote": "New Quote",
+    "createQuote": "Create Quote",
+    "saveQuote": "Save Quote",
+    "saving": "Saving...",
+    "edit": "Edit",
+    "delete": "Delete",
+    "print": "Print",
+    "approve": "Approve",
+    "reject": "Reject",
+    "markSent": "Mark as Sent",
+    "copyWhatsapp": "Copy WhatsApp",
+    "convertToInvoice": "Convert to Invoice",
+    "addLine": "Add Line",
+    "cancel": "Cancel",
+    "viewDetail": "View Details"
+  },
+
+  "fields": {
+    "quote": "Quote",
+    "customer": "Customer",
+    "phone": "Phone",
+    "email": "Email",
+    "status": "Status",
+    "subtotal": "Subtotal",
+    "total": "Total",
+    "validUntil": "Valid Until",
+    "createdBy": "Created By",
+    "date": "Date",
+    "notes": "Notes / Terms",
+    "product": "Product",
+    "quantity": "Quantity",
+    "quantityShort": "Qty.",
+    "price": "Price",
+    "discount": "Discount",
+    "discountShort": "Disc.",
+    "rnc": "Tax ID"
+  },
+
+  "messages": {
+    "loading": "Loading quotes...",
+    "empty": "No quotes found.",
+    "customerRequired": "Customer name is required",
+    "itemsRequired": "You must add at least one product or service",
+    "completeItems": "You must complete the added products",
+    "saveError": "Error creating quote",
+    "deleteError": "Error deleting quote",
+    "statusError": "Error updating status",
+    "convertError": "Error converting quote",
+    "convertedSuccess": "Quote converted to draft invoice",
+    "whatsappCopied": "WhatsApp message copied",
+    "noProducts": "No products added to this quote.",
+    "toolbarDescription": "Search, update statuses, print or convert quotes.",
+    "noCustomer": "No customer",
+    "system": "System",
+    "convertedCannotEdit": "You cannot edit a converted quote",
+    "productsDescription": "Products or services.",
+    "quoteNotFiscal": "This quote does not represent a fiscal invoice.",
+    "availability": "subject to availability"
+  },
+
+  "placeholders": {
+    "search": "Search quote or customer...",
+    "customerName": "Customer name",
+    "rnc": "Tax ID",
+    "phone": "809-000-0000",
+    "email": "customer@email.com",
+    "product": "Product or service",
+    "notes": "Terms, delivery time, observations..."
+  },
+
+  "detail": {
+    "title": "Quote Details"
+  },
+
+  "tax": {
+    "state": "State Tax",
+    "county": "County Tax",
+    "city": "City Tax",
+    "total": "Total Taxes",
+    "with": "With {{taxLabel}}",
+    "without": "Without {{taxLabel}}"
+  },
+
+  "confirm": {
+    "deleteTitle": "Delete Quote",
+    "deleteMessage": "Are you sure you want to delete quote {{number}}? This action cannot be undone.",
+    "deleteButton": "Delete",
+    "convertTitle": "Convert to Invoice",
+    "convertMessage": "Convert quote {{number}} to a draft invoice?",
+    "convertButton": "Convert"
+  },
+
+  "whatsapp": {
+    "message": "Hello, we are sharing quote {{number}} for {{total}}. Valid until: {{validUntil}}."
+  },
+
+  "print": {
+    "title": "QUOTE",
+    "companyFallback": "My company",
+    "date": "Date",
+    "validUntil": "Valid Until",
+    "customer": "Customer",
+    "rnc": "Tax ID",
+    "phone": "Phone",
+    "email": "Email",
+    "notes": "Notes"
   }
+},
+
+"items": {
+  "title": "Productos y servicios",
+  "productService": "Producto o servicio"
 }
 }

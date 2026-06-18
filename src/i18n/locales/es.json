@@ -434,6 +434,7 @@
     "qtyShort": "Cant."
   },
   "messages": {
+    "creditFiscalRncRequired": "Para emitir una factura de crédito fiscal debes agregar el RNC/Cédula del cliente.",
     "loading": "Cargando facturas...",
     "empty": "No hay facturas registradas.",
     "noDrafts": "No hay borradores.",
@@ -472,11 +473,25 @@
     "notes": "Notas adicionales para esta factura...",
     "companyAddress": "Dirección de la empresa",
     "companyName": "Nombre de la empresa",
-    "customerAddress": "Dirección del cliente"
+    "customerAddress": "Dirección del cliente",
+    "emailExample": "correo@ejemplo.com",
+    "customerEmail": "cliente@email.com",
+    "companyEmail": "empresa@email.com",
+    "phoneExample": "809-000-0000",
+    "productOrService": "Producto o servicio"
   },
   "print": {
-    "invoiceNumber": "Factura #"
-  },
+  "invoiceNumber": "Factura #",
+  "productService": "Producto/Servicio",
+  "emptyItems": "No hay productos registrados.",
+  "emptyInvoiceItems": "No hay productos registrados en esta factura.",
+  "scanQr": "Escanee para consultar esta factura",
+  "qrAlt": "Código QR de la factura",
+  "stateTax": "Impuesto estatal",
+  "countyTax": "Impuesto del condado",
+  "cityTax": "Impuesto municipal",
+  "totalTaxes": "Total impuestos"
+},
   "confirm": {
     "cancelTitle": "Anular factura",
     "cancelMessage": "¿Anular {{number}}? Esto devolverá el inventario.",
@@ -490,8 +505,145 @@
   "preview": {
     "confirmTitle": "Confirmar emisión",
     "title": "Vista previa de factura",
-    "willGenerate": "Se generará al emitir"
+    "willGenerate": "Se generará al emitir",
+    "invoiceTitle": "FACTURA",
+    "rncId": "RNC/Cédula",
+    "eNcf": "e-NCF"
   }
+},
+
+
+"quotes": {
+  "title": "Cotizaciones",
+  "subtitle": "Propuestas comerciales",
+  "description": "Crea cotizaciones profesionales, maneja aprobación, vencimiento, impresión y conversión directa a factura.",
+
+  "status": {
+    "draft": "Borrador",
+    "sent": "Enviada",
+    "approved": "Aprobada",
+    "rejected": "Rechazada",
+    "expired": "Vencida",
+    "converted": "Convertida"
+  },
+
+  "filters": {
+    "all": "Todos"
+  },
+
+  "actions": {
+    "newQuote": "Nueva cotización",
+    "createQuote": "Crear cotización",
+    "saveQuote": "Guardar cotización",
+    "saving": "Guardando...",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "print": "Imprimir",
+    "approve": "Aprobar",
+    "reject": "Rechazar",
+    "markSent": "Marcar enviada",
+    "copyWhatsapp": "Copiar WhatsApp",
+    "convertToInvoice": "Convertir a factura",
+    "addLine": "Agregar línea",
+    "cancel": "Cancelar",
+    "viewDetail": "Ver detalle"
+  },
+
+  "fields": {
+    "quote": "Cotización",
+    "customer": "Cliente",
+    "phone": "Teléfono",
+    "email": "Email",
+    "status": "Estado",
+    "subtotal": "Subtotal",
+    "total": "Total",
+    "validUntil": "Válida hasta",
+    "createdBy": "Creada por",
+    "date": "Fecha",
+    "notes": "Notas / términos",
+    "product": "Producto",
+    "quantity": "Cantidad",
+    "quantityShort": "Cant.",
+    "price": "Precio",
+    "discount": "Descuento",
+    "discountShort": "Desc.",
+    "rnc": "RNC / Cédula"
+  },
+
+  "messages": {
+    "loading": "Cargando cotizaciones...",
+    "empty": "No hay cotizaciones registradas.",
+    "customerRequired": "El nombre del cliente es obligatorio",
+    "itemsRequired": "Debes agregar al menos un producto o servicio",
+    "completeItems": "Debes completar los productos agregados",
+    "saveError": "Error creando cotización",
+    "deleteError": "Error eliminando cotización",
+    "statusError": "Error actualizando estado",
+    "convertError": "Error convirtiendo a factura",
+    "convertedSuccess": "Cotización convertida a factura en borrador",
+    "whatsappCopied": "Mensaje copiado para WhatsApp",
+    "noProducts": "No hay productos agregados a esta cotización.",
+    "toolbarDescription": "Busca, cambia estados, imprime o convierte cotizaciones.",
+    "noCustomer": "Sin cliente",
+    "system": "Sistema",
+    "convertedCannotEdit": "No puedes editar una cotización convertida",
+    "productsDescription": "Productos o servicios.",
+    "quoteNotFiscal": "Esta cotización no representa factura fiscal.",
+    "availability": "según disponibilidad"
+  },
+
+  "placeholders": {
+    "search": "Buscar cotización o cliente...",
+    "customerName": "Nombre del cliente",
+    "rnc": "RNC o cédula",
+    "phone": "809-000-0000",
+    "email": "cliente@email.com",
+    "product": "Producto o servicio",
+    "notes": "Condiciones, tiempo de entrega, observaciones..."
+  },
+
+  "detail": {
+    "title": "Detalle de cotización"
+  },
+
+  "tax": {
+    "state": "Impuesto estatal",
+    "county": "Impuesto del condado",
+    "city": "Impuesto municipal",
+    "total": "Total impuestos",
+    "with": "Con {{taxLabel}}",
+    "without": "Sin {{taxLabel}}"
+  },
+
+  "confirm": {
+    "deleteTitle": "Eliminar cotización",
+    "deleteMessage": "¿Seguro que quieres eliminar la cotización {{number}}? Esta acción no se puede deshacer.",
+    "deleteButton": "Eliminar",
+    "convertTitle": "Convertir a factura",
+    "convertMessage": "¿Convertir la cotización {{number}} a factura en borrador?",
+    "convertButton": "Convertir"
+  },
+
+  "whatsapp": {
+    "message": "Hola, te compartimos la cotización {{number}} por {{total}}. Válida hasta: {{validUntil}}."
+  },
+
+  "print": {
+    "title": "COTIZACIÓN",
+    "companyFallback": "Mi empresa",
+    "date": "Fecha",
+    "validUntil": "Válida hasta",
+    "customer": "Cliente",
+    "rnc": "RNC",
+    "phone": "Teléfono",
+    "email": "Email",
+    "notes": "Notas"
+  }
+},
+
+"items": {
+  "title": "Productos y servicios",
+  "productService": "Producto o servicio"
 }
 
 }

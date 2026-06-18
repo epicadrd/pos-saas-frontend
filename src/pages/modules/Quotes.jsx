@@ -17,6 +17,7 @@ import { useNavigate } from "react-router-dom";
 import { api } from "../../api/axios";
 import { Pencil } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
+import { useTranslation } from "react-i18next";
 import { useConfirm } from "../../components/ConfirmProvider";
 import {
   getTaxRate,
@@ -34,14 +35,15 @@ const emptyQuote = {
   notes: "",
 };
 
-const statusLabel = {
-  draft: "Borrador",
-  sent: "Enviada",
-  approved: "Aprobada",
-  rejected: "Rechazada",
-  expired: "Vencida",
-  converted: "Convertida",
-};
+const getStatusLabel = (status, t) =>
+  ({
+    draft: t("quotes.status.draft"),
+    sent: t("quotes.status.sent"),
+    approved: t("quotes.status.approved"),
+    rejected: t("quotes.status.rejected"),
+    expired: t("quotes.status.expired"),
+    converted: t("quotes.status.converted"),
+  }[status] || t("quotes.status.draft"));
 
 const statusClass = {
   draft: "badge warning",
@@ -70,6 +72,7 @@ export default function Quotes() {
   const [saving, setSaving] = useState(false);
 
   const { tenant } = useAuth();
+  const { t } = useTranslation();
   const quoteColor = tenant?.primaryColor || "#00bfae";
   const quoteLogo = tenant?.logoDataUrl || "";
   const [editingQuoteId, setEditingQuoteId] = useState(null);
@@ -155,7 +158,7 @@ export default function Quotes() {
       setQuotes(Array.isArray(data) ? data : []);
     } catch (error) {
       console.log(error);
-      alert(error.response?.data?.message || "Error cargando cotizaciones");
+      alert(error.response?.data?.message || t("quotes.messages.loadError"));
     } finally {
       setLoading(false);
     }
@@ -276,12 +279,12 @@ export default function Quotes() {
     e.preventDefault();
 
     if (!quoteForm.customerName.trim()) {
-      alert("El nombre del cliente es obligatorio");
+      alert(t("quotes.messages.customerRequired"));
       return;
     }
 
     if (!items.length) {
-      alert("Debes agregar al menos un producto o servicio");
+      alert(t("quotes.messages.itemsRequired"));
       return;
     }
 
@@ -298,7 +301,7 @@ export default function Quotes() {
       }));
 
     if (!cleanItems.length) {
-      alert("Debes completar los productos agregados");
+      alert(t("quotes.messages.completeItems"));
       return;
     }
 
@@ -321,31 +324,32 @@ export default function Quotes() {
       loadQuotes();
     } catch (error) {
       console.log(error);
-      alert(error.response?.data?.message || "Error creando cotización");
+      alert(error.response?.data?.message || t("quotes.messages.saveError"));
     } finally {
       setSaving(false);
     }
   };
 
   const handleDeleteQuote = async (quote) => {
+  const ok = await confirm({
+    title: t("quotes.confirm.deleteTitle"),
+    message: t("quotes.confirm.deleteMessage", {
+      number: quote.quoteNumber,
+    }),
+    confirmText: t("quotes.confirm.deleteButton"),
+    variant: "danger",
+  });
 
-    const ok = await confirm({
-        title: "Eliminar cotización",
-        message: `¿Seguro que quieres eliminar la cotización ${quote.quoteNumber}? Esta acción no se puede deshacer.`,
-        confirmText: "Eliminar",
-        variant: "danger",
-      });
+  if (!ok) return;
 
-      if (!ok) return;
-
-    try {
-      await api.delete(`/quotes/${quote.id}`);
-      loadQuotes();
-    } catch (error) {
-      console.log(error);
-      alert(error.response?.data?.message || "Error eliminando cotización");
-    }
-  };
+  try {
+    await api.delete(`/quotes/${quote.id}`);
+    loadQuotes();
+  } catch (error) {
+    console.log(error);
+    alert(error.response?.data?.message || t("quotes.messages.deleteError"));
+  }
+};
 
   const handleStatus = async (quote, status) => {
     try {
@@ -353,51 +357,53 @@ export default function Quotes() {
       loadQuotes();
     } catch (error) {
       console.log(error);
-      alert(error.response?.data?.message || "Error actualizando estado");
+      alert(error.response?.data?.message || t("quotes.messages.statusError"));
     }
   };
 
   const handleConvertToInvoice = async (quote) => {
   const ok = await confirm({
-      title: "Convertir a factura",
-      message: `¿Convertir la cotización ${quote.quoteNumber} a factura en borrador?`,
-      confirmText: "Convertir",
-      variant: "success",
-    });
+    title: t("quotes.confirm.convertTitle"),
+    message: t("quotes.confirm.convertMessage", {
+      number: quote.quoteNumber,
+    }),
+    confirmText: t("quotes.confirm.convertButton"),
+    variant: "success",
+  });
 
-    if (!ok) return;
+  if (!ok) return;
 
-    try {
-      await api.post(`/quotes/${quote.id}/convert-to-invoice`);
-      await loadQuotes();
-      alert("Cotización convertida a factura en borrador");
-      navigate("/dashboard/facturacion");
-    } catch (error) {
-      console.log(error);
-      alert(error.response?.data?.message || "Error convirtiendo a factura");
-    }
-  };
+  try {
+    await api.post(`/quotes/${quote.id}/convert-to-invoice`);
+    await loadQuotes();
+    alert(t("quotes.messages.convertedSuccess"));
+    navigate("/dashboard/facturacion");
+  } catch (error) {
+    console.log(error);
+    alert(error.response?.data?.message || t("quotes.messages.convertError"));
+  }
+};
 
   const copyWhatsAppMessage = async (quote) => {
-    const text = `Hola, te compartimos la cotización ${quote.quoteNumber} por ${money.format(
-      Number(quote.total || 0)
-    )}. Válida hasta: ${
-      quote.validUntil
-        ? new Date(quote.validUntil).toLocaleDateString(locale)
-        : "según disponibilidad"
-    }.`;
+  const text = t("quotes.whatsapp.message", {
+    number: quote.quoteNumber,
+    total: money.format(Number(quote.total || 0)),
+    validUntil: quote.validUntil
+      ? new Date(quote.validUntil).toLocaleDateString(locale)
+      : t("quotes.messages.availability"),
+  });
 
-    try {
-      await navigator.clipboard.writeText(text);
-      alert("Mensaje copiado para WhatsApp");
-    } catch {
-      alert(text);
-    }
-  };
+  try {
+    await navigator.clipboard.writeText(text);
+    alert(t("quotes.messages.whatsappCopied"));
+  } catch {
+    alert(text);
+  }
+};
 
   const openEditQuote = (quote) => {
   if (quote.status === "converted") {
-    alert("No puedes editar una cotización convertida");
+    alert(t("quotes.messages.convertedCannotEdit"));
     return;
   }
 
@@ -457,19 +463,19 @@ export default function Quotes() {
               ? `<img src="${quoteLogo}" style="max-width:120px; max-height:80px; object-fit:contain; margin-bottom:12px;" />`
               : ""
           }
-          <h1>COTIZACIÓN</h1>
+          <h1>${t("quotes.print.title")}</h1>
           <p>${quote.quoteNumber}</p>
-          <p class="muted">Esta cotización no representa factura fiscal.</p>
+          <p class="muted">${t("quotes.messages.quoteNotFiscal")}</p>
         </div>
 
         <div>
-          <strong>${tenant?.businessName || "Mi empresa"}</strong><br/>
+          <strong>${tenant?.businessName || t("quotes.print.companyFallback")}</strong><br/>
           ${tenant?.address || ""}<br/>
           ${isDO ? `RNC/Cédula: ${tenant?.rnc || "-"}<br/>` : ""}
           ${tenant?.email || ""}<br/>
           ${tenant?.phone || ""}<br/><br/>
-          <strong>Fecha:</strong> ${new Date(quote.createdAt).toLocaleDateString(locale)}<br/>
-          <strong>Válida hasta:</strong> ${
+          <strong>${t("quotes.print.date")}:</strong> ${new Date(quote.createdAt).toLocaleDateString(locale)}<br/>
+          <strong>${t("quotes.print.validUntil")}:</strong> ${
             quote.validUntil
               ? new Date(quote.validUntil).toLocaleDateString(locale)
               : "-"
@@ -478,22 +484,22 @@ export default function Quotes() {
       </div>
 
           <div class="box">
-            <strong>Cliente:</strong> ${quote.customerName}<br/>
-            ${isDO ? `<strong>RNC:</strong> ${quote.customerRnc || "-"}<br/>` : ""}
-            <strong>Teléfono:</strong> ${quote.customerPhone || "-"}<br/>
-            <strong>Email:</strong> ${quote.customerEmail || "-"}
+            <strong>${t("quotes.print.customer")}:</strong> ${quote.customerName}<br/>
+            ${isDO ? `<strong>${t("quotes.print.rnc")}:</strong> ${quote.customerRnc || "-"}<br/>` : ""}
+            <strong>${t("quotes.print.phone")}:</strong> ${quote.customerPhone || "-"}<br/>
+            <strong>${t("quotes.print.email")}:</strong> ${quote.customerEmail || "-"}
           </div>
 
           <table>
             <thead>
               <tr>
-                <th>Producto</th>
-                <th>Cant.</th>
-                <th>Precio</th>
-                <th>Desc.</th>
-                <th>Subtotal</th>
+               <th>${t("quotes.fields.product")}</th>
+                <th>${t("quotes.fields.quantityShort")}</th>
+                <th>${t("quotes.fields.price")}</th>
+                <th>${t("quotes.fields.discountShort")}</th>
+                <th>${t("quotes.fields.subtotal")}</th>
                 <th>${taxLabel}</th>
-                <th>Total</th>
+                <th>${t("quotes.fields.total")}</th>
               </tr>
             </thead>
             <tbody>
@@ -517,7 +523,7 @@ export default function Quotes() {
 
           <div class="totals">
             <div>
-              <span>Subtotal</span>
+              <span>${t("quotes.fields.subtotal")}</span>
               <strong>${money.format(Number(quote.subtotal || 0))}</strong>
             </div>
             ${
@@ -530,35 +536,35 @@ export default function Quotes() {
     `
     : `
       <div>
-        <span>State Tax (${usTaxBreakdown.stateRate}%)</span>
+        <span>${t("quotes.tax.state")} (${usTaxBreakdown.stateRate}%)</span>
         <strong>${money.format(getTaxAmount(usTaxBreakdown.stateRate, Number(quote.subtotal || 0)))}</strong>
       </div>
 
       <div>
-        <span>County Tax (${usTaxBreakdown.countyRate}%)</span>
+        <span>${t("quotes.tax.county")} (${usTaxBreakdown.countyRate}%)</span>
         <strong>${money.format(getTaxAmount(usTaxBreakdown.countyRate, Number(quote.subtotal || 0)))}</strong>
       </div>
 
       <div>
-        <span>City Tax (${usTaxBreakdown.cityRate}%)</span>
+        <span>${t("quotes.tax.city")} (${usTaxBreakdown.cityRate}%)</span>
         <strong>${money.format(getTaxAmount(usTaxBreakdown.cityRate, Number(quote.subtotal || 0)))}</strong>
       </div>
 
       <div>
-        <span>Total Taxes (${taxRate}%)</span>
+        <span>${t("quotes.tax.total")} (${taxRate}%)</span>
         <strong>${money.format(Number(quote.tax || 0))}</strong>
       </div>
     `
 }
             <div class="total">
-              <span>Total</span>
+              <span>${t("quotes.fields.total")}</span>
               <strong>${money.format(Number(quote.total || 0))}</strong>
             </div>
           </div>
 
           ${
             quote.notes
-              ? `<div class="notes"><strong>Notas:</strong><br/>${quote.notes}</div>`
+              ? `<div class="notes"><strong>${t("quotes.print.notes")}:</strong><br/>${quote.notes}</div>`
               : ""
           }
         </body>
@@ -576,17 +582,14 @@ export default function Quotes() {
     <div className="quote-page">
       <section className="quote-header">
         <div>
-          <span>Cotizaciones</span>
-          <h2>Propuestas comerciales</h2>
-          <p>
-            Crea cotizaciones profesionales, maneja aprobación, vencimiento,
-            impresión y conversión directa a factura.
-          </p>
+          <span>{t("quotes.title")}</span>
+          <h2>{t("quotes.subtitle")}</h2>
+          <p>{t("quotes.description")}</p>
         </div>
 
         <button onClick={openModal} className="primary-btn">
           <Plus size={18} />
-          Nueva cotización
+          {t("quotes.actions.newQuote")}
         </button>
       </section>
 
@@ -596,7 +599,7 @@ export default function Quotes() {
             <ClipboardList size={22} />
           </div>
           <div>
-            <span>Cotizaciones</span>
+            <span>{t("quotes.title")}</span>
             <strong>{stats.totalQuotes}</strong>
           </div>
         </div>
@@ -606,7 +609,7 @@ export default function Quotes() {
             <FileText size={22} />
           </div>
           <div>
-            <span>Total cotizado</span>
+            <span>{t("quotes.fields.total")}</span>
             <strong>{money.format(stats.totalAmount)}</strong>
           </div>
         </div>
@@ -616,7 +619,7 @@ export default function Quotes() {
             <CheckCircle size={22} />
           </div>
           <div>
-            <span>Aprobadas</span>
+            <span>{t("quotes.status.approved")}</span>
             <strong>{stats.approvedQuotes}</strong>
           </div>
         </div>
@@ -626,7 +629,7 @@ export default function Quotes() {
             <ClipboardList size={22} />
           </div>
           <div>
-            <span>Borradores</span>
+            <span>{t("quotes.status.draft")}</span>
             <strong>{stats.draftQuotes}</strong>
           </div>
         </div>
@@ -635,8 +638,8 @@ export default function Quotes() {
       <section className="quote-panel">
         <div className="quote-toolbar">
           <div>
-            <h3>Listado de cotizaciones</h3>
-            <p>Busca, cambia estados, imprime o convierte cotizaciones.</p>
+            <h3>{t("quotes.title")}</h3>
+            <p>{t("quotes.messages.toolbarDescription")}</p>
           </div>
 
           <div className="quote-toolbar-actions">
@@ -645,19 +648,19 @@ export default function Quotes() {
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
             >
-              <option value="all">Todos</option>
-              <option value="draft">Borrador</option>
-              <option value="sent">Enviada</option>
-              <option value="approved">Aprobada</option>
-              <option value="rejected">Rechazada</option>
-              <option value="expired">Vencida</option>
-              <option value="converted">Convertida</option>
+              <option value="all">{t("quotes.filters.all")}</option>
+              <option value="draft">{t("quotes.status.draft")}</option>
+              <option value="sent">{t("quotes.status.sent")}</option>
+              <option value="approved">{t("quotes.status.approved")}</option>
+              <option value="rejected">{t("quotes.status.rejected")}</option>
+              <option value="expired">{t("quotes.status.expired")}</option>
+              <option value="converted">{t("quotes.status.converted")}</option>
             </select>
 
             <div className="quote-search">
               <Search size={18} />
               <input
-                placeholder="Buscar cotización o cliente..."
+                placeholder={t("quotes.placeholders.search")}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
@@ -669,16 +672,16 @@ export default function Quotes() {
   <table className="quote-table">
     <thead>
       <tr>
-        <th>Cotización</th>
-        <th>Cliente</th>
-        <th>Fecha</th>
-        <th>Válida hasta</th>
-        <th>Subtotal</th>
-        <th>{isDO ? taxLabel : "Total Taxes"}</th>
-        <th>Total</th>
-        <th>Estado</th>
-        <th>Creada por</th>
-        <th>Acciones</th>
+        <th>{t("quotes.title")}</th>
+        <th>{t("quotes.fields.customer")}</th>
+        <th>{t("quotes.fields.date")}</th>
+        <th>{t("quotes.fields.validUntil")}</th>
+        <th>{t("quotes.fields.subtotal")}</th>
+        <th>{isDO ? taxLabel : t("quotes.tax.total")}</th>
+        <th>{t("quotes.fields.total")}</th>
+        <th>{t("quotes.fields.status")}</th>
+        <th>{t("quotes.fields.createdBy")}</th>
+        <th>{t("common.actions")}</th>
       </tr>
     </thead>
 
@@ -686,13 +689,13 @@ export default function Quotes() {
       {loading ? (
         <tr>
           <td colSpan="10" className="table-empty">
-            Cargando cotizaciones...
+            {t("quotes.messages.loading")}
           </td>
         </tr>
       ) : filteredQuotes.length === 0 ? (
         <tr>
           <td colSpan="10" className="table-empty">
-            No hay cotizaciones registradas.
+            {t("quotes.messages.empty")}
           </td>
         </tr>
       ) : (
@@ -724,51 +727,51 @@ export default function Quotes() {
               </td>
               <td>
                 <span className={statusClass[status] || "badge warning"}>
-                  {statusLabel[status] || "Borrador"}
+                  {getStatusLabel(status, t)}
                 </span>
               </td>
-              <td>{quote.creator?.name || "Sistema"}</td>
+              <td>{quote.creator?.name || t("common.system")}</td>
 
               <td>
                 <div className="table-actions quote-actions">
                   {status !== "converted" && status !== "expired" && (
                     <>
-                      <button title="Marcar enviada" onClick={() => handleStatus(quote, "sent")}>
+                      <button title={t("quotes.actions.markSent")}onClick={() => handleStatus(quote, "sent")}>
                         <Send size={16} />
                       </button>
 
-                      <button title="Aprobar" onClick={() => handleStatus(quote, "approved")}>
+                      <button title={t("quotes.actions.approve")} onClick={() => handleStatus(quote, "approved")}>
                         <CheckCircle size={16} />
                       </button>
 
-                      <button title="Rechazar" onClick={() => handleStatus(quote, "rejected")}>
+                      <button title={t("quotes.actions.reject")}onClick={() => handleStatus(quote, "rejected")}>
                         <XCircle size={16} />
                       </button>
                     </>
                   )}
 
-                  <button title="Copiar mensaje WhatsApp" onClick={() => copyWhatsAppMessage(quote)}>
+                  <button title={t("quotes.actions.copyWhatsapp")} onClick={() => copyWhatsAppMessage(quote)}>
                     <Copy size={16} />
                   </button>
 
                   {status !== "converted" && (
-                    <button title="Editar" onClick={() => openEditQuote(quote)}>
+                    <button title={t("quotes.actions.edit")} onClick={() => openEditQuote(quote)}>
                       <Pencil size={16} />
                     </button>
                   )}
 
-                  <button title="Imprimir" onClick={() => handlePrint(quote)}>
+                  <button title={t("quotes.actions.print")} onClick={() => handlePrint(quote)}>
                     <Printer size={16} />
                   </button>
 
                   {status !== "converted" && status !== "expired" && (
-                    <button title="Convertir a factura" onClick={() => handleConvertToInvoice(quote)}>
+                    <button title={t("quotes.actions.convertToInvoice")} onClick={() => handleConvertToInvoice(quote)}>
                       <FilePlus2 size={16} />
                     </button>
                   )}
 
                   {status !== "converted" && (
-                    <button className="danger-btn" title="Eliminar" onClick={() => handleDeleteQuote(quote)}>
+                    <button className="danger-btn" title={t("quotes.actions.delete")} onClick={() => handleDeleteQuote(quote)}>
                       <Trash2 size={16} />
                     </button>
                   )}
@@ -784,7 +787,7 @@ export default function Quotes() {
 
 <div className="quote-mobile-list">
   {loading ? (
-    <div className="quote-mobile-empty">Cargando cotizaciones...</div>
+    <div className="quote-mobile-empty">{t("quotes.messages.loading")}</div>
   ) : filteredQuotes.length ? (
     filteredQuotes.map((quote) => {
       const status = getStatus(quote);
@@ -798,46 +801,46 @@ export default function Quotes() {
         >
           <div className="quote-mobile-top">
             <div>
-              <span>Cotización</span>
+              <span>{t("quotes.fields.quote")}</span>
               <strong>{quote.quoteNumber}</strong>
             </div>
 
             <span className={statusClass[status] || "badge warning"}>
-              {statusLabel[status] || "Borrador"}
+              {getStatusLabel(status, t)}
             </span>
           </div>
 
           <div className="quote-mobile-client">
-            <span>Cliente</span>
-            <strong>{quote.customerName || "Sin cliente"}</strong>
+            <span>{t("quotes.fields.customer")}</span>
+            <strong>{quote.customerName || t("quotes.messages.noCustomer")}</strong>
           </div>
 
           <div className="quote-mobile-money-grid">
             <div>
-              <span>Subtotal</span>
+              <span>{t("quotes.fields.subtotal")}</span>
               <strong>{money.format(Number(quote.subtotal || 0))}</strong>
             </div>
 
             <div>
-              <span>Total</span>
+              <span>{t("quotes.fields.total")}</span>
               <strong>{money.format(Number(quote.total || 0))}</strong>
             </div>
           </div>
 
           <div className="quote-mobile-footer">
             <span>
-              Válida hasta{" "}
+              {t("quotes.fields.validUntil")}{" "}
               {quote.validUntil
                 ? new Date(quote.validUntil).toLocaleDateString(locale)
                 : "-"}
             </span>
-            <strong>Ver detalle</strong>
+            <strong>{t("quotes.actions.viewDetail")}</strong>
           </div>
         </button>
       );
     })
   ) : (
-    <div className="quote-mobile-empty">No hay cotizaciones registradas.</div>
+    <div className="quote-mobile-empty">{t("quotes.messages.empty")}</div>
   )}
 </div>
 
@@ -846,7 +849,7 @@ export default function Quotes() {
     <div className="quote-detail-modal" onClick={(e) => e.stopPropagation()}>
       <div className="quote-detail-header">
         <div>
-          <span>Detalle de cotización</span>
+          <span>{t("quotes.detail.title")}</span>
           <h3>{selectedQuote.quoteNumber}</h3>
         </div>
 
@@ -857,23 +860,23 @@ export default function Quotes() {
 
       <div className="quote-detail-status">
         <span className={statusClass[getStatus(selectedQuote)] || "badge warning"}>
-          {statusLabel[getStatus(selectedQuote)] || "Borrador"}
+          {getStatusLabel(getStatus(selectedQuote), t)}
         </span>
       </div>
 
       <div className="quote-detail-list">
         <div>
-          <span>Cliente</span>
-          <strong>{selectedQuote.customerName || "Sin cliente"}</strong>
+          <span>{t("quotes.fields.customer")}</span>
+          <strong>{selectedQuote.customerName || t("quotes.messages.noCustomer")}</strong>
         </div>
 
         <div>
-          <span>Fecha</span>
+          <span>{t("quotes.fields.date")}</span>
           <strong>{new Date(selectedQuote.createdAt).toLocaleDateString(locale)}</strong>
         </div>
 
         <div>
-          <span>Válida hasta</span>
+          <span>{t("quotes.fields.validUntil")}</span>
           <strong>
             {selectedQuote.validUntil
               ? new Date(selectedQuote.validUntil).toLocaleDateString(locale)
@@ -882,7 +885,7 @@ export default function Quotes() {
         </div>
 
         <div>
-          <span>Subtotal</span>
+          <span>{t("quotes.fields.subtotal")}</span>
           <strong>{money.format(Number(selectedQuote.subtotal || 0))}</strong>
         </div>
 
@@ -894,7 +897,7 @@ export default function Quotes() {
 ) : (
   <>
     <div>
-      <span>State Tax</span>
+      <span>{t("quotes.tax.state")}</span>
       <strong>
         {money.format(
           getTaxAmount(
@@ -906,7 +909,7 @@ export default function Quotes() {
     </div>
 
     <div>
-      <span>County Tax</span>
+      <span>{t("quotes.tax.county")}</span>
       <strong>
         {money.format(
           getTaxAmount(
@@ -918,7 +921,7 @@ export default function Quotes() {
     </div>
 
     <div>
-      <span>City Tax</span>
+      <span>{t("quotes.tax.city")}</span>
       <strong>
         {money.format(
           getTaxAmount(
@@ -930,20 +933,20 @@ export default function Quotes() {
     </div>
 
     <div>
-      <span>Total Taxes</span>
+      <span>{t("quotes.tax.total")}</span>
       <strong>{money.format(Number(selectedQuote.tax || 0))}</strong>
     </div>
   </>
 )}
 
         <div>
-          <span>Total</span>
+          <span>{t("quotes.fields.total")}</span>
           <strong>{money.format(Number(selectedQuote.total || 0))}</strong>
         </div>
 
         <div>
-          <span>Creada por</span>
-          <strong>{selectedQuote.creator?.name || "Sistema"}</strong>
+          <span>{t("quotes.fields.createdBy")}</span>
+          <strong>{selectedQuote.creator?.name || t("quotes.messages.system")}</strong>
         </div>
       </div>
 
@@ -953,24 +956,24 @@ export default function Quotes() {
             <>
               <button type="button" className="quote-action-btn" onClick={() => handleStatus(selectedQuote, "sent")}>
                 <Send size={16} />
-                Marcar enviada
+                {t("quotes.actions.markSent")}
               </button>
 
               <button type="button" className="quote-action-btn" onClick={() => handleStatus(selectedQuote, "approved")}>
                 <CheckCircle size={16} />
-                Aprobar
+                {t("quotes.actions.approve")}
               </button>
 
               <button type="button" className="quote-action-btn" onClick={() => handleStatus(selectedQuote, "rejected")}>
                 <XCircle size={16} />
-                Rechazar
+                {t("quotes.actions.reject")}
               </button>
             </>
           )}
 
         <button type="button" className="quote-action-btn" onClick={() => copyWhatsAppMessage(selectedQuote)}>
           <Copy size={16} />
-          Copiar WhatsApp
+          {t("quotes.actions.copyWhatsapp")}
         </button>
 
         {getStatus(selectedQuote) !== "converted" && (
@@ -983,13 +986,13 @@ export default function Quotes() {
             }}
           >
             <Pencil size={16} />
-            Editar
+            {t("quotes.actions.edit")}
           </button>
         )}
 
         <button type="button" className="quote-action-btn" onClick={() => handlePrint(selectedQuote)}>
           <Printer size={16} />
-          Imprimir
+          {t("quotes.actions.print")}
         </button>
 
         {getStatus(selectedQuote) !== "converted" &&
@@ -1003,7 +1006,7 @@ export default function Quotes() {
               }}
             >
               <FilePlus2 size={16} />
-              Convertir a factura
+              {t("quotes.actions.convertToInvoice")}
             </button>
           )}
 
@@ -1017,7 +1020,7 @@ export default function Quotes() {
             }}
           >
             <Trash2 size={16} />
-            Eliminar
+            {t("quotes.actions.delete")}
           </button>
         )}
       </div>
@@ -1032,8 +1035,8 @@ export default function Quotes() {
           <div className="quote-modal">
             <div className="modal-header">
               <div>
-                <span>Nueva cotización</span>
-                <h3>Crear cotización</h3>
+                <span>{t("quotes.actions.newQuote")}</span>
+                <h3>{t("quotes.actions.createQuote")}</h3>
               </div>
 
               <button onClick={closeModal} className="modal-close">
@@ -1044,14 +1047,14 @@ export default function Quotes() {
             <form onSubmit={handleSaveQuote} className="quote-form">
               <div className="quote-form-grid">
   <div className="form-row">
-    <label>Cliente *</label>
+    <label>{t("quotes.fields.customer")} *</label>
 
     <input
       name="customerName"
       list="quote-customers"
       value={quoteForm.customerName}
       onChange={handleQuoteChange}
-      placeholder="Nombre del cliente"
+      placeholder={t("quotes.placeholders.customerName")}
     />
 
     <datalist id="quote-customers">
@@ -1063,41 +1066,41 @@ export default function Quotes() {
 
   {isDO && (
     <div className="form-row">
-      <label>RNC / Cédula</label>
+      <label>{t("quotes.fields.rnc")}</label>
 
       <input
         name="customerRnc"
         value={quoteForm.customerRnc}
         onChange={handleQuoteChange}
-        placeholder="RNC o cédula"
+        placeholder={t("quotes.placeholders.rnc")}
       />
     </div>
   )}
 
   <div className="form-row">
-    <label>Teléfono</label>
+    <label>{t("quotes.fields.phone")}</label>
 
     <input
       name="customerPhone"
       value={quoteForm.customerPhone}
       onChange={handleQuoteChange}
-      placeholder="809-000-0000"
+      placeholder={t("quotes.placeholders.phone")}
     />
   </div>
 
   <div className="form-row">
-    <label>Email</label>
+    <label>{t("quotes.fields.email")}</label>
 
     <input
       name="customerEmail"
       value={quoteForm.customerEmail}
       onChange={handleQuoteChange}
-      placeholder="cliente@email.com"
+      placeholder={t("quotes.placeholders.email")}
     />
   </div>
 
   <div className="form-row">
-    <label>Válida hasta</label>
+    <label>{t("quotes.fields.validUntil")}</label>
 
     <input
       name="validUntil"
@@ -1109,17 +1112,17 @@ export default function Quotes() {
   </div>
 
   <div className="form-row">
-    <label>Estado</label>
+    <label>{t("quotes.fields.status")}</label>
 
     <select
       name="status"
       value={quoteForm.status}
       onChange={handleQuoteChange}
     >
-      <option value="draft">Borrador</option>
-      <option value="sent">Enviada</option>
-      <option value="approved">Aprobada</option>
-      <option value="rejected">Rechazada</option>
+      <option value="draft">{t("quotes.status.draft")}</option>
+      <option value="sent">{t("quotes.status.sent")}</option>
+      <option value="approved">{t("quotes.status.approved")}</option>
+      <option value="rejected">{t("quotes.status.rejected")}</option>
     </select>
   </div>
 </div>
@@ -1127,19 +1130,19 @@ export default function Quotes() {
               <div className="quote-items-box">
                 <div className="items-header">
                   <div>
-                    <h4>Productos y servicios</h4>
-                     <p>Productos o servicios.</p>
+                    <h4>{t("quotes.items.title")}</h4>
+                    <p>{t("quotes.messages.productsDescription")}</p>
                   </div>
 
                   <button type="button" onClick={addEmptyItem}>
                     <Plus size={17} />
-                    Agregar línea
+                    {t("quotes.actions.addLine")}
                   </button>
                 </div>
 
                 {items.length === 0 ? (
   <div className="items-empty">
-    No hay productos agregados a esta cotización.
+    {t("quotes.messages.noProducts")}
   </div>
 ) : (
   <>
@@ -1157,7 +1160,7 @@ export default function Quotes() {
         return (
           <div className="quote-item-row" key={index}>
   <div>
-    <small>Producto o servicio</small>
+    <small>{t("quotes.items.productService")}</small>
 
     <input
       type="text"
@@ -1186,7 +1189,7 @@ export default function Quotes() {
           setItems(copy);
         }
       }}
-      placeholder="Producto o servicio"
+      placeholder={t("quotes.placeholders.product")}
     />
 
     <datalist id={`quote-products-${index}`}>
@@ -1197,7 +1200,7 @@ export default function Quotes() {
   </div>
 
   <div>
-    <small>Cantidad</small>
+    <small>{t("quotes.fields.quantity")}</small>
 
     <input
       type="number"
@@ -1206,12 +1209,12 @@ export default function Quotes() {
       onChange={(e) =>
         handleItemChange(index, "quantity", e.target.value)
       }
-      placeholder="Cantidad"
+      placeholder={t("quotes.fields.quantity")}
     />
   </div>
 
   <div>
-    <small>Precio</small>
+    <small>{t("quotes.fields.price")}</small>
 
     <input
       type="number"
@@ -1220,12 +1223,12 @@ export default function Quotes() {
       onChange={(e) =>
         handleItemChange(index, "price", e.target.value)
       }
-      placeholder="Precio"
+      placeholder={t("quotes.fields.price")}
     />
   </div>
 
   <div>
-    <small>Descuento %</small>
+    <small>{t("quotes.fields.discount")} %</small>
 
     <input
       type="number"
@@ -1236,12 +1239,12 @@ export default function Quotes() {
       onChange={(e) =>
         handleItemChange(index, "discount", e.target.value)
       }
-      placeholder="Descuento %"
+      placeholder={`${t("quotes.fields.discount")} %`}
     />
   </div>
 
   <div>
-    <small>Impuesto</small>
+    <small>{taxLabel}</small>
 
     <select
       value={item.isTaxable === false ? "false" : "true"}
@@ -1250,17 +1253,17 @@ export default function Quotes() {
       }
     >
       <option value="true">
-        {isDO ? "Con ITBIS" : "Taxable"}
+        {t("quotes.tax.with", { taxLabel })}
       </option>
 
       <option value="false">
-        {isDO ? "Sin ITBIS" : "Non-Taxable"}
+        {t("quotes.tax.without", { taxLabel })}
       </option>
     </select>
   </div>
 
   <div>
-    <small>Total</small>
+    <small>{t("quotes.fields.total")}</small>
     <strong>{money.format(total)}</strong>
   </div>
 
@@ -1290,7 +1293,7 @@ export default function Quotes() {
         return (
           <div className="quote-mobile-item-card" key={index}>
             <div className="quote-mobile-item-head">
-              <h4>Producto #{index + 1}</h4>
+              <h4>{t("quotes.fields.product")} #{index + 1}</h4>
 
               <button type="button" onClick={() => removeItem(index)}>
                 <Trash2 size={16} />
@@ -1299,7 +1302,7 @@ export default function Quotes() {
 
             <div className="quote-mobile-item-grid">
               <label>
-  Producto o servicio
+            {t("quotes.items.productService")}
 
   <input
     type="text"
@@ -1328,7 +1331,7 @@ export default function Quotes() {
         setItems(copy);
       }
     }}
-    placeholder="Producto o servicio"
+    placeholder={t("quotes.placeholders.product")}
   />
 
   <datalist id={`quote-products-mobile-${index}`}>
@@ -1339,7 +1342,7 @@ export default function Quotes() {
 </label>
               <div className="quote-mobile-item-row-2">
                 <label>
-                  Cantidad
+                  {t("quotes.fields.quantity")}
                   <input
                     type="number"
                     min="1"
@@ -1349,7 +1352,7 @@ export default function Quotes() {
                 </label>
 
                 <label>
-                  Precio
+                  {t("quotes.fields.price")}
                   <input
                     type="number"
                     step="0.01"
@@ -1361,7 +1364,7 @@ export default function Quotes() {
 
               <div className="quote-mobile-item-row-2">
                 <label>
-                  Descuento %
+                  {t("quotes.fields.discount")} %
                   <input
                     type="number"
                     step="0.01"
@@ -1378,8 +1381,13 @@ export default function Quotes() {
                     value={item.isTaxable === false ? "false" : "true"}
                     onChange={(e) => handleItemChange(index, "isTaxable", e.target.value)}
                   >
-                    <option value="true">Con {taxLabel}</option>
-                    <option value="false">Sin {taxLabel}</option>
+                    <option value="true">
+                      {t("quotes.tax.with", { taxLabel })}
+                    </option>
+
+                    <option value="false">
+                      {t("quotes.tax.without", { taxLabel })}
+                    </option>
                   </select>
                 </label>
               </div>
@@ -1387,7 +1395,7 @@ export default function Quotes() {
 
             <div className="quote-mobile-item-total">
               <p>
-                <span>Subtotal</span>
+                <span>{t("quotes.fields.subtotal")}</span>
                 <strong>{money.format(subtotal)}</strong>
               </p>
 
@@ -1397,7 +1405,7 @@ export default function Quotes() {
               </p>
 
               <p className="big">
-                <span>Total</span>
+                <span>{t("quotes.fields.total")}</span>
                 <strong>{money.format(total)}</strong>
               </p>
             </div>
@@ -1410,18 +1418,18 @@ export default function Quotes() {
               </div>
 
               <div className="form-row full quote-notes">
-                <label>Notas / términos</label>
+                <label>{t("quotes.fields.notes")}</label>
                 <textarea
                   name="notes"
                   value={quoteForm.notes}
                   onChange={handleQuoteChange}
-                  placeholder="Condiciones, tiempo de entrega, observaciones..."
+                  placeholder={t("quotes.placeholders.notes")}
                 />
               </div>
 
               <div className="quote-summary">
   <div>
-    <span>Subtotal</span>
+    <span>{t("quotes.fields.subtotal")}</span>
     <strong>{money.format(totals.subtotal)}</strong>
   </div>
 
@@ -1433,40 +1441,40 @@ export default function Quotes() {
   ) : (
     <>
       <div>
-        <span>State Tax ({usTaxBreakdown.stateRate}%)</span>
+        <span>{t("quotes.tax.state")} ({usTaxBreakdown.stateRate}%)</span>
         <strong>{money.format(getTaxAmount(usTaxBreakdown.stateRate, totals.subtotal))}</strong>
       </div>
 
       <div>
-        <span>County Tax ({usTaxBreakdown.countyRate}%)</span>
+        <span>{t("quotes.tax.county")} ({usTaxBreakdown.countyRate}%)</span>
         <strong>{money.format(getTaxAmount(usTaxBreakdown.countyRate, totals.subtotal))}</strong>
       </div>
 
       <div>
-        <span>City Tax ({usTaxBreakdown.cityRate}%)</span>
+        <span>{t("quotes.tax.city")} ({usTaxBreakdown.cityRate}%)</span>
         <strong>{money.format(getTaxAmount(usTaxBreakdown.cityRate, totals.subtotal))}</strong>
       </div>
 
       <div>
-        <span>Total Taxes ({taxRate}%)</span>
+        <span>{t("quotes.tax.total")} ({taxRate}%)</span>
         <strong>{money.format(totals.tax)}</strong>
       </div>
     </>
   )}
 
   <div className="summary-total">
-    <span>Total</span>
+    <span>{t("quotes.fields.total")}</span>
     <strong>{money.format(totals.total)}</strong>
   </div>
 </div>
 
               <div className="modal-actions">
                 <button type="button" onClick={closeModal} className="cancel-btn">
-                  Cancelar
+                  {t("quotes.actions.cancel")}
                 </button>
 
                 <button disabled={saving} className="primary-btn">
-                  {saving ? "Guardando..." : "Guardar cotización"}
+                  {saving ? t("quotes.actions.saving") : t("quotes.actions.saveQuote")}
                 </button>
               </div>
             </form>

@@ -634,5 +634,283 @@
 "items": {
   "title": "Productos y servicios",
   "productService": "Producto o servicio"
-}
+},
+"receipts": {
+  "title": "Receipts",
+  "subtitle": "Payments and deposits",
+  "description": "Register full payments or partial deposits linked to pending invoices.",
+  "actions": {
+    "newReceipt": "New receipt",
+    "print": "Print",
+    "delete": "Delete",
+    "cancel": "Cancel",
+    "saveReceipt": "Save receipt",
+    "saving": "Saving..."
+  },
+  "stats": {
+    "receipts": "Receipts",
+    "totalReceived": "Total received",
+    "cash": "Cash",
+    "transfer": "Transfer"
+  },
+  "fields": {
+    "receipt": "Receipt",
+    "customer": "Customer",
+    "invoice": "Invoice",
+    "method": "Method",
+    "reference": "Reference",
+    "amount": "Amount",
+    "date": "Date",
+    "createdBy": "Created by",
+    "actions": "Actions",
+    "concept": "Concept",
+    "notes": "Notes",
+    "pendingInvoice": "Pending invoice",
+    "customerRequired": "Customer *",
+    "amountReceivedRequired": "Amount received *",
+    "paymentMethod": "Payment method"
+  },
+  "messages": {
+    "loading": "Loading receipts...",
+    "empty": "No receipts registered.",
+    "toolbarTitle": "Receipt list",
+    "toolbarDescription": "Search, print or delete registered receipts.",
+    "loadError": "Error loading receipts",
+    "createError": "Error creating receipt",
+    "deleteError": "Error deleting receipt",
+    "customerRequired": "Customer is required",
+    "amountGreaterThanZero": "Amount must be greater than 0",
+    "noCustomer": "No customer",
+    "system": "System",
+    "unlinkedInvoice": "Not linked to invoice",
+    "pending": "Pending"
+  },
+  "placeholders": {
+    "search": "Search receipt, customer or reference...",
+    "customerName": "Customer name",
+    "reference": "Transfer no. / voucher",
+    "concept": "Payment concept",
+    "notes": "Payment observations...",
+    "defaultConcept": "Invoice payment"
+  },
+  "paymentMethods": {
+    "cash": "Cash",
+    "transfer": "Transfer",
+    "card": "Card",
+    "check": "Check",
+    "other": "Other",
+    "deposit": "Deposit"
+  },
+  "detail": {
+    "title": "Receipt details"
+  },
+  "confirm": {
+    "deleteTitle": "Delete receipt",
+    "deleteMessage": "Are you sure you want to delete receipt {{number}}? This action cannot be undone.",
+    "deleteButton": "Delete"
+  },
+  "print": {
+    "title": "PAYMENT RECEIPT",
+    "receivedBy": "Received by",
+    "customer": "Customer"
+  }
+},
+
+ "inventory": {
+    "title": "Inventory",
+    "eyebrow": "Inventory PRO",
+    "activeTitle": "Products, services and stock",
+    "inactiveTitle": "Inactive products",
+    "description": "Manage products, services, minimum stock, barcodes, manual movements, and product kardex.",
+    "common": {
+      "product": "Product",
+      "service": "Service",
+      "yes": "Yes",
+      "no": "No",
+      "system": "System"
+    },
+    "actions": {
+      "importExcel": "Import Excel",
+      "exportExcel": "Export Excel",
+      "viewInactive": "View inactive",
+      "viewActive": "View active",
+      "newProductService": "New product/service",
+      "movement": "Movement",
+      "history": "History",
+      "edit": "Edit",
+      "new": "New",
+      "deactivate": "Deactivate",
+      "deactivating": "Deactivating...",
+      "reactivate": "Reactivate",
+      "viewDetail": "View details",
+      "uploadImage": "Upload image",
+      "takePhoto": "Take photo",
+      "removeImage": "Remove image",
+      "cancel": "Cancel",
+      "save": "Save",
+      "saving": "Saving...",
+      "registering": "Registering...",
+      "registerMovement": "Register movement",
+      "importing": "Importing...",
+      "confirmImport": "Confirm import"
+    },
+    "stats": {
+      "products": "Products",
+      "services": "Services",
+      "lowStock": "Low stock",
+      "inventoryValue": "Inventory value"
+    },
+    "toolbar": {
+      "list": "List",
+      "inactive": "Inactive",
+      "description": "Search, filter, register movements, and review history."
+    },
+    "filters": {
+      "all": "All"
+    },
+    "pagination": {
+      "showing": "Showing page {{page}} of {{totalPages}} · {{total}} records",
+      "previous": "Previous",
+      "next": "Next"
+    },
+    "fields": {
+      "productService": "Product / Service",
+      "barcode": "Barcode",
+      "category": "Category",
+      "price": "Price",
+      "cost": "Cost",
+      "stock": "Stock",
+      "status": "Status",
+      "type": "Type",
+      "typeRequired": "Type *",
+      "description": "Description",
+      "salePrice": "Sale price",
+      "minStock": "Minimum stock",
+      "initialStock": "Initial / current stock",
+      "unit": "Unit",
+      "nameRequired": "Name *"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "noControl": "No control",
+      "available": "Available",
+      "lowStock": "Low stock",
+      "notApplicable": "Not applicable",
+      "visible": "Visible",
+      "hidden": "Hidden"
+    },
+    "messages": {
+      "loading": "Loading...",
+      "loadingProducts": "Loading products...",
+      "empty": "No records found.",
+      "loadError": "Error loading products",
+      "noProductsToExport": "There are no products to export.",
+      "noValidProducts": "There are no valid products to import.",
+      "importCompleted": "Import completed.\nCreated: {{created}}\nUpdated: {{updated}}\nSkipped: {{skipped}}",
+      "importError": "Could not import inventory",
+      "fileTooLarge": "The file cannot be larger than 3MB.",
+      "missingProductName": "Product name is missing",
+      "readFileError": "Could not read the file. Make sure it is a valid Excel or CSV file.",
+      "invalidImage": "Select a valid image.",
+      "imageTooLarge": "The image cannot be larger than 5MB.",
+      "imageProcessError": "Could not process the image.",
+      "nameRequired": "Name is required",
+      "saveError": "Error saving product",
+      "loadMovementsError": "Error loading movements",
+      "noInventoryControl": "This service/product does not track inventory.",
+      "quantityGreaterThanZero": "Quantity must be greater than zero",
+      "newStockRequired": "Enter the new stock",
+      "saveMovementError": "Error registering movement",
+      "validateHistoryError": "Could not validate the product history.",
+      "deactivateError": "Error deactivating product",
+      "reactivateError": "Error reactivating product",
+      "noDescription": "No description",
+      "loadingMovements": "Loading movements...",
+      "noMovements": "This record has no movements."
+    },
+    "placeholders": {
+      "search": "Search name, SKU, barcode, or category...",
+      "name": "Example: Dell laptop / Installation service",
+      "barcode": "Example: 7501234567890",
+      "category": "Example: Technology",
+      "description": "Brief description...",
+      "reason": "Example: Purchase, waste, physical count, return...",
+      "reference": "Example: ADJ-001 / PURCHASE-55 / Internal note"
+    },
+    "detail": {
+      "title": "Record details"
+    },
+    "form": {
+      "updateTitle": "Update record",
+      "createTitle": "Register product/service",
+      "productImage": "Product image",
+      "showInCatalog": "Show in catalog",
+      "inventoryControl": "Inventory control"
+    },
+    "units": {
+      "unit": "Unit",
+      "box": "Box",
+      "package": "Package",
+      "service": "Service",
+      "meter": "Meter",
+      "pound": "Pound",
+      "hour": "Hour"
+    },
+    "movements": {
+      "manual": "Manual movement",
+      "currentStock": "Current stock",
+      "type": "Movement type",
+      "quantity": "Quantity",
+      "newStock": "New stock",
+      "reason": "Reason",
+      "reference": "Reference",
+      "historyTitle": "Kardex / History",
+      "user": "User",
+      "previous": "Previous",
+      "new": "New",
+      "date": "Date",
+      "previousStock": "Previous stock",
+      "types": {
+        "entry": "Entry",
+        "exit": "Exit",
+        "adjustment": "Adjustment",
+        "return": "Return",
+        "waste": "Waste / loss"
+      }
+    },
+    "delete": {
+      "title": "Deactivate product",
+      "question": "Are you sure you want to deactivate",
+      "validating": "Validating history...",
+      "hasMovements": "It has {{count}} movement(s). It will be hidden, but its history will be preserved.",
+      "noMovements": "It will be hidden from inventory. You can reactivate it later."
+    },
+    "import": {
+      "title": "Import inventory",
+      "preview": "Preview review",
+      "rowsDetected": "Rows detected",
+      "validProducts": "Valid products",
+      "withErrors": "With errors",
+      "updateExisting": "Update existing products when SKU or barcode matches",
+      "detectedErrors": "Detected errors",
+      "rowError": "Row {{row}}: {{message}}"
+    },
+    "export": {
+      "filePrefix": "inventory",
+      "name": "Name",
+      "type": "Type",
+      "barcode": "Barcode",
+      "category": "Category",
+      "unit": "Unit",
+      "description": "Description",
+      "cost": "Cost",
+      "salePrice": "Sale price",
+      "controlsStock": "Tracks inventory",
+      "minStock": "Minimum stock",
+      "status": "Status"
+    }
+  }
+
+
 }

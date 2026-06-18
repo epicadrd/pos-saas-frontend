@@ -15,11 +15,13 @@ import { useConfirm } from "../../components/ConfirmProvider";
 import { getFiscalNumber } from "../../utils/fiscalNumber";
 import { isDominicanTenant } from "../../utils/taxConfig";
 import { useAuth } from "../../context/AuthContext";
+import es from "../../i18n/locales/es.json";
+import en from "../../i18n/locales/en.json";
 
 const emptyReceipt = {
   invoiceId: "",
   customerName: "",
-  concept: "Pago de factura",
+  concept: "",
   amount: "",
   paymentMethod: "cash",
   reference: "",
@@ -29,8 +31,22 @@ const emptyReceipt = {
 
 export default function Receipts() {
   const { confirm } = useConfirm();
-  const { tenant } = useAuth();
-const isDO = isDominicanTenant(tenant);
+  const { tenant, language } = useAuth();
+  const isDO = isDominicanTenant(tenant);
+  const dictionary = language === "en" ? en : es;
+
+  const t = (path, fallback, vars = {}) => {
+    const value = path
+      .split(".")
+      .reduce((acc, key) => acc?.[key], dictionary);
+
+    const text = value || fallback || path;
+
+    return Object.entries(vars).reduce(
+      (acc, [key, val]) => acc.replaceAll(`{{${key}}}`, val),
+      text
+    );
+};
   const [receipts, setReceipts] = useState([]);
   const [invoices, setInvoices] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
@@ -102,7 +118,7 @@ const isDO = isDominicanTenant(tenant);
       setReceipts(data);
     } catch (error) {
       console.log(error);
-      alert(error.response?.data?.message || "Error cargando recibos");
+      alert(error.response?.data?.message || t("receipts.messages.loadError"));
     } finally {
       setLoading(false);
     }
@@ -123,9 +139,13 @@ const isDO = isDominicanTenant(tenant);
   }, []);
 
   const openModal = () => {
-    setForm(emptyReceipt);
-    setModalOpen(true);
-  };
+  setForm({
+    ...emptyReceipt,
+    concept: t("receipts.placeholders.defaultConcept"),
+  });
+
+  setModalOpen(true);
+};
 
   const closeModal = () => {
     setForm(emptyReceipt);
@@ -160,12 +180,12 @@ const isDO = isDominicanTenant(tenant);
     e.preventDefault();
 
     if (!form.customerName.trim()) {
-      alert("El cliente es obligatorio");
+      alert(t("receipts.messages.customerRequired"));
       return;
     }
 
     if (!form.amount || Number(form.amount) <= 0) {
-      alert("El monto debe ser mayor a 0");
+      alert(t("receipts.messages.amountGreaterThanZero"));
       return;
     }
 
@@ -187,18 +207,20 @@ const isDO = isDominicanTenant(tenant);
       loadInvoices();
     } catch (error) {
       console.log(error);
-      alert(error.response?.data?.message || "Error creando recibo");
+      alert(error.response?.data?.message || t("receipts.messages.createError"));
     } finally {
       setSaving(false);
     }
   };
 
   const handleDelete = async (receipt) => {
-    const ok = await confirm({
-    title: "Eliminar recibo",
-    message: `¿Seguro que quieres eliminar el recibo ${receipt.receiptNumber}? Esta acción no se puede deshacer.`,
-    confirmText: "Eliminar",
-    variant: "danger",
+   const ok = await confirm({
+      title: t("receipts.confirm.deleteTitle"),
+      message: t("receipts.confirm.deleteMessage", "", {
+        number: receipt.receiptNumber,
+      }),
+      confirmText: t("receipts.confirm.deleteButton"),
+      variant: "danger",
   });
 
   if (!ok) return;
@@ -209,22 +231,12 @@ const isDO = isDominicanTenant(tenant);
       loadInvoices();
     } catch (error) {
       console.log(error);
-      alert(error.response?.data?.message || "Error eliminando recibo");
+      alert(error.response?.data?.message || t("receipts.messages.deleteError"));
     }
   };
 
-  const getPaymentMethodLabel = (method) => {
-    const methods = {
-      cash: "Efectivo",
-      transfer: "Transferencia",
-      card: "Tarjeta",
-      check: "Cheque",
-      other: "Otro",
-      deposit: "Depósito",
-    };
-
-    return methods[method] || method;
-  };
+  const getPaymentMethodLabel = (method) =>
+  t(`receipts.paymentMethods.${method}`, method);
 
   const handlePrint = (receipt) => {
     const html = `
@@ -286,7 +298,7 @@ const isDO = isDominicanTenant(tenant);
         <body>
           <div class="header">
             <div>
-              <h1>${isDO ? "RECIBO DE PAGO" : "PAYMENT RECEIPT"}</h1>
+              <h1>${t("receipts.print.title")}</h1>
               <p>${receipt.receiptNumber}</p>
             </div>
             <div>
@@ -318,8 +330,8 @@ const isDO = isDominicanTenant(tenant);
           }
 
           <div class="signatures">
-            <div class="signature">Recibido por</div>
-            <div class="signature">Cliente</div>
+            <div class="signature">${t("receipts.print.receivedBy")}</div>
+            <div class="signature">${t("receipts.print.customer")}</div>
           </div>
         </body>
       </html>
@@ -335,17 +347,14 @@ const isDO = isDominicanTenant(tenant);
     <div className="receipt-page">
       <section className="receipt-header">
         <div>
-          <span>Recibos</span>
-          <h2>Pagos y abonos</h2>
-          <p>
-            Registra pagos completos o abonos por cuotas, vinculados a facturas
-            pendientes.
-          </p>
+          <span>{t("receipts.title")}</span>
+          <h2>{t("receipts.subtitle")}</h2>
+          <p>{t("receipts.description")}</p>
         </div>
 
         <button onClick={openModal} className="primary-btn">
           <Plus size={18} />
-          Nuevo recibo
+          {t("receipts.actions.newReceipt")}
         </button>
       </section>
 
@@ -355,7 +364,7 @@ const isDO = isDominicanTenant(tenant);
             <ReceiptText size={22} />
           </div>
           <div>
-            <span>Recibos</span>
+            <span>{t("receipts.title")}</span>
             <strong>{stats.totalReceipts}</strong>
           </div>
         </div>
@@ -365,7 +374,7 @@ const isDO = isDominicanTenant(tenant);
             <WalletCards size={22} />
           </div>
           <div>
-            <span>Total recibido</span>
+            <span>{t("receipts.stats.totalReceived")}</span>
             <strong>{money.format(stats.totalReceived)}</strong>
           </div>
         </div>
@@ -375,7 +384,7 @@ const isDO = isDominicanTenant(tenant);
             <WalletCards size={22} />
           </div>
           <div>
-            <span>Efectivo</span>
+            <span>{t("receipts.stats.cash")}</span>
             <strong>{money.format(stats.cashTotal)}</strong>
           </div>
         </div>
@@ -385,7 +394,7 @@ const isDO = isDominicanTenant(tenant);
             <WalletCards size={22} />
           </div>
           <div>
-            <span>Transferencia</span>
+            <span>{t("receipts.stats.transfer")}</span>
             <strong>{money.format(stats.transferTotal)}</strong>
           </div>
         </div>
@@ -394,14 +403,14 @@ const isDO = isDominicanTenant(tenant);
       <section className="receipt-panel">
         <div className="receipt-toolbar">
           <div>
-            <h3>Listado de recibos</h3>
-            <p>Busca, imprime o elimina recibos registrados.</p>
+            <h3>{t("receipts.messages.toolbarTitle")}</h3>
+            <p>{t("receipts.messages.toolbarDescription")}</p>
           </div>
 
           <div className="receipt-search">
             <Search size={18} />
             <input
-              placeholder="Buscar recibo, cliente o referencia..."
+              placeholder={t("receipts.placeholders.search")}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -411,15 +420,15 @@ const isDO = isDominicanTenant(tenant);
   <table className="receipt-table">
     <thead>
       <tr>
-        <th>Recibo</th>
-        <th>Cliente</th>
-        {isDO && <th>Factura</th>}
-        <th>Método</th>
-        <th>Referencia</th>
-        <th>Monto</th>
-        <th>Fecha</th>
-        <th>Creado por</th>
-        <th>Acciones</th>
+        <th>{t("receipts.fields.receipt")}</th>
+        <th>{t("receipts.fields.customer")}</th>
+        {isDO && <th>{t("receipts.fields.invoice")}</th>}
+        <th>{t("receipts.fields.method")}</th>
+        <th>{t("receipts.fields.reference")}</th>
+        <th>{t("receipts.fields.amount")}</th>
+        <th>{t("receipts.fields.date")}</th>
+        <th>{t("receipts.fields.createdBy")}</th>
+        <th>{t("receipts.fields.actions")}</th>
       </tr>
     </thead>
 
@@ -427,13 +436,13 @@ const isDO = isDominicanTenant(tenant);
       {loading ? (
         <tr>
           <td colSpan="9" className="table-empty">
-            Cargando recibos...
+            {t("receipts.messages.loading")}
           </td>
         </tr>
       ) : filteredReceipts.length === 0 ? (
         <tr>
           <td colSpan="9" className="table-empty">
-            No hay recibos registrados.
+            {t("receipts.messages.empty")}
           </td>
         </tr>
       ) : (
@@ -456,7 +465,7 @@ const isDO = isDominicanTenant(tenant);
               <strong>{money.format(Number(receipt.amount || 0))}</strong>
             </td>
             <td>{formatReceiptDate(receipt.receiptDate || receipt.createdAt)}</td>
-            <td>{receipt.creator?.name || "Sistema"}</td>
+            <td>{receipt.creator?.name || t("receipts.messages.system")}</td>
 
             <td>
               <div className="table-actions">
@@ -492,7 +501,7 @@ const isDO = isDominicanTenant(tenant);
       >
         <div className="receipt-mobile-top">
           <div>
-            <span>Recibo</span>
+            <span>{t("receipts.fields.receipt")}</span>
             <strong>{receipt.receiptNumber}</strong>
           </div>
 
@@ -500,31 +509,37 @@ const isDO = isDominicanTenant(tenant);
         </div>
 
         <div className="receipt-mobile-client">
-          <span>Cliente</span>
-          <strong>{receipt.customerName || "Sin cliente"}</strong>
+          <span>{t("receipts.fields.customer")}</span>
+          <strong>
+            {receipt.customerName || t("receipts.messages.noCustomer")}
+          </strong>
         </div>
 
         <div className="receipt-mobile-money-grid">
           <div>
-            <span>Monto</span>
+            <span>{t("receipts.fields.amount")}</span>
             <strong>{money.format(Number(receipt.amount || 0))}</strong>
           </div>
 
           <div>
-            <span>Método</span>
+            <span>{t("receipts.fields.method")}</span>
             <strong>{getPaymentMethodLabel(receipt.paymentMethod)}</strong>
           </div>
         </div>
 
         {isDO ? (
-          <span>Factura {getFiscalNumber(receipt.Invoice)}</span>
+          <span>
+            {t("receipts.fields.invoice")} {getFiscalNumber(receipt.Invoice)}
+          </span>
         ) : (
           <span>{getPaymentMethodLabel(receipt.paymentMethod)}</span>
         )}
       </button>
     ))
   ) : (
-    <div className="receipt-mobile-empty">No hay recibos registrados.</div>
+    <div className="receipt-mobile-empty">
+      {t("receipts.messages.empty")}
+    </div>
   )}
 </div>
 
@@ -539,7 +554,7 @@ const isDO = isDominicanTenant(tenant);
     >
       <div className="receipt-detail-header">
         <div>
-          <span>Detalle del recibo</span>
+          <span>{t("receipts.detail.title")}</span>
           <h3>{selectedReceipt.receiptNumber}</h3>
         </div>
 
@@ -550,52 +565,54 @@ const isDO = isDominicanTenant(tenant);
 
       <div className="receipt-detail-list">
         <div>
-          <span>Cliente</span>
-          <strong>{selectedReceipt.customerName || "Sin cliente"}</strong>
+          <span>{t("receipts.fields.customer")}</span>
+          <strong>{selectedReceipt.customerName || t("receipts.messages.noCustomer")}</strong>
         </div>
 
         {isDO && (
           <div>
-            <span>Factura</span>
+            <span>{t("receipts.fields.invoice")}</span>
             <strong>{getFiscalNumber(selectedReceipt.Invoice)}</strong>
           </div>
         )}
 
         <div>
-          <span>Concepto</span>
+          <span>{t("receipts.fields.concept")}</span>
           <strong>{selectedReceipt.concept || "-"}</strong>
         </div>
 
         <div>
-          <span>Método</span>
+          <span>{t("receipts.fields.method")}</span>
           <strong>{getPaymentMethodLabel(selectedReceipt.paymentMethod)}</strong>
         </div>
 
         <div>
-          <span>Referencia</span>
+          <span>{t("receipts.fields.reference")}</span>
           <strong>{selectedReceipt.reference || "-"}</strong>
         </div>
 
         <div>
-          <span>Monto</span>
+          <span>{t("receipts.fields.amount")}</span>
           <strong>{money.format(Number(selectedReceipt.amount || 0))}</strong>
         </div>
 
         <div>
-          <span>Fecha</span>
+          <span>{t("receipts.fields.date")}</span>
           <strong>
             {formatReceiptDate(selectedReceipt.receiptDate || selectedReceipt.createdAt)}
           </strong>
         </div>
 
         <div>
-          <span>Creado por</span>
-          <strong>{selectedReceipt.creator?.name || "Sistema"}</strong>
+          <span>{t("receipts.fields.createdBy")}</span>
+          <strong>
+            {selectedReceipt.creator?.name || t("receipts.messages.system")}
+          </strong>
         </div>
 
         {selectedReceipt.notes && (
           <div>
-            <span>Notas</span>
+            <span>{t("receipts.fields.notes")}</span>
             <strong>{selectedReceipt.notes}</strong>
           </div>
         )}
@@ -608,7 +625,7 @@ const isDO = isDominicanTenant(tenant);
           onClick={() => handlePrint(selectedReceipt)}
         >
           <Printer size={16} />
-          Imprimir
+          {t("receipts.actions.print")}
         </button>
 
         <button
@@ -620,7 +637,7 @@ const isDO = isDominicanTenant(tenant);
           }}
         >
           <Trash2 size={16} />
-          Eliminar
+          {t("receipts.actions.delete")}
         </button>
       </div>
     </div>
@@ -633,8 +650,8 @@ const isDO = isDominicanTenant(tenant);
           <div className="receipt-modal">
             <div className="modal-header">
               <div>
-                <span>Nuevo recibo</span>
-                <h3>Registrar pago</h3>
+                <span>{t("receipts.actions.newReceipt")}</span>
+                <h3>{t("receipts.subtitle")}</h3>
               </div>
 
               <button onClick={closeModal} className="modal-close">
@@ -646,16 +663,18 @@ const isDO = isDominicanTenant(tenant);
               <div className="receipt-form-grid">
                 {isDO && (
                 <div className="form-row full">
-                  <label>Factura pendiente</label>
+                  <label>{t("receipts.fields.pendingInvoice")}</label>
                   <select
                     name="invoiceId"
                     value={form.invoiceId}
                     onChange={handleChange}
                   >
-                    <option value="">Sin vincular a factura</option>
+                    <option value="">
+                      {t("receipts.messages.unlinkedInvoice")}
+                    </option>
                     {pendingInvoices.map((invoice) => (
                       <option key={invoice.id} value={invoice.id}>
-                        {getFiscalNumber(invoice)} - {invoice.customerName} - Pendiente:{" "}
+                        {getFiscalNumber(invoice)} - {invoice.customerName} - {t("receipts.messages.pending")}:{" "}
                         {money.format(Number(invoice.balance || 0))}
                       </option>
                     ))}
@@ -664,17 +683,17 @@ const isDO = isDominicanTenant(tenant);
                 )}
 
                 <div className="form-row">
-                  <label>Cliente *</label>
+                  <label>{t("receipts.fields.customerRequired")}</label>
                   <input
                     name="customerName"
                     value={form.customerName}
                     onChange={handleChange}
-                    placeholder="Nombre del cliente"
+                    placeholder={t("receipts.placeholders.customerName")}
                   />
                 </div>
 
                 <div className="form-row">
-                  <label>Monto recibido *</label>
+                  <label>{t("receipts.fields.amountReceivedRequired")}</label>
                   <input
                     name="amount"
                     type="number"
@@ -686,7 +705,7 @@ const isDO = isDominicanTenant(tenant);
                 </div>
 
                 <div className="form-row">
-                  <label>Fecha</label>
+                  <label>{t("receipts.fields.date")}</label>
                   <DatePicker
                     selected={form.receiptDate}
                     onChange={(date) =>
@@ -701,59 +720,63 @@ const isDO = isDominicanTenant(tenant);
                 </div>
 
                 <div className="form-row">
-                  <label>Método de pago</label>
+                  <label>{t("receipts.fields.paymentMethod")}</label>
                   <select
                     name="paymentMethod"
                     value={form.paymentMethod}
                     onChange={handleChange}
                   >
-                    <option value="cash">Efectivo</option>
-                    <option value="transfer">Transferencia</option>
-                    <option value="card">Tarjeta</option>
-                    <option value="check">Cheque</option>
-                    <option value="deposit">Depósito</option>
-                    <option value="other">Otro</option>
+                    <option value="cash">{t("receipts.paymentMethods.cash")}</option>
+                    <option value="transfer">{t("receipts.paymentMethods.transfer")}</option>
+                    <option value="card">{t("receipts.paymentMethods.card")}</option>
+                    <option value="check">{t("receipts.paymentMethods.check")}</option>
+                    <option value="deposit">{t("receipts.paymentMethods.deposit")}</option>
+                    <option value="other">{t("receipts.paymentMethods.other")}</option>
                   </select>
                 </div>
 
                 <div className="form-row">
-                  <label>Referencia</label>
+                  <label>{t("receipts.fields.reference")}</label>
                   <input
                     name="reference"
                     value={form.reference}
                     onChange={handleChange}
-                    placeholder="No. transferencia / voucher"
+                    placeholder={t("receipts.placeholders.reference")}
                   />
                 </div>
 
                 <div className="form-row full">
-                  <label>Concepto</label>
+                  <label>{t("receipts.fields.concept")}</label>
                   <input
                     name="concept"
                     value={form.concept}
                     onChange={handleChange}
-                    placeholder="Concepto del pago"
+                    placeholder={t("receipts.placeholders.concept")}
                   />
                 </div>
 
                 <div className="form-row full">
-                  <label>Notas</label>
+                  <label>{t("receipts.fields.notes")}</label>
                   <textarea
                     name="notes"
                     value={form.notes}
                     onChange={handleChange}
-                    placeholder="Observaciones del pago..."
+                    placeholder={t("receipts.placeholders.notes")}
                   />
                 </div>
               </div>
 
               <div className="modal-actions">
                 <button type="button" onClick={closeModal} className="cancel-btn">
-                  Cancelar
+                  {t("receipts.actions.cancel")}
                 </button>
 
                 <button disabled={saving} className="primary-btn">
-                  {saving ? "Guardando..." : "Guardar recibo"}
+                  {
+                    saving
+                      ? t("receipts.actions.saving")
+                      : t("receipts.actions.saveReceipt")
+                  }
                 </button>
               </div>
             </form>

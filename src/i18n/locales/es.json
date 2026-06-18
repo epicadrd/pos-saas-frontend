@@ -644,8 +644,284 @@
 "items": {
   "title": "Productos y servicios",
   "productService": "Producto o servicio"
-}
+},
 
+"receipts": {
+  "title": "Recibos",
+  "subtitle": "Pagos y abonos",
+  "description": "Registra pagos completos o abonos por cuotas, vinculados a facturas pendientes.",
+  "actions": {
+    "newReceipt": "Nuevo recibo",
+    "print": "Imprimir",
+    "delete": "Eliminar",
+    "cancel": "Cancelar",
+    "saveReceipt": "Guardar recibo",
+    "saving": "Guardando..."
+  },
+  "stats": {
+    "receipts": "Recibos",
+    "totalReceived": "Total recibido",
+    "cash": "Efectivo",
+    "transfer": "Transferencia"
+  },
+  "fields": {
+    "receipt": "Recibo",
+    "customer": "Cliente",
+    "invoice": "Factura",
+    "method": "Método",
+    "reference": "Referencia",
+    "amount": "Monto",
+    "date": "Fecha",
+    "createdBy": "Creado por",
+    "actions": "Acciones",
+    "concept": "Concepto",
+    "notes": "Notas",
+    "pendingInvoice": "Factura pendiente",
+    "customerRequired": "Cliente *",
+    "amountReceivedRequired": "Monto recibido *",
+    "paymentMethod": "Método de pago"
+  },
+  "messages": {
+    "loading": "Cargando recibos...",
+    "empty": "No hay recibos registrados.",
+    "toolbarTitle": "Listado de recibos",
+    "toolbarDescription": "Busca, imprime o elimina recibos registrados.",
+    "loadError": "Error cargando recibos",
+    "createError": "Error creando recibo",
+    "deleteError": "Error eliminando recibo",
+    "customerRequired": "El cliente es obligatorio",
+    "amountGreaterThanZero": "El monto debe ser mayor a 0",
+    "noCustomer": "Sin cliente",
+    "system": "Sistema",
+    "unlinkedInvoice": "Sin vincular a factura",
+    "pending": "Pendiente"
+  },
+  "placeholders": {
+    "search": "Buscar recibo, cliente o referencia...",
+    "customerName": "Nombre del cliente",
+    "reference": "No. transferencia / voucher",
+    "concept": "Concepto del pago",
+    "notes": "Observaciones del pago...",
+    "defaultConcept": "Pago de factura"
+  },
+  "paymentMethods": {
+    "cash": "Efectivo",
+    "transfer": "Transferencia",
+    "card": "Tarjeta",
+    "check": "Cheque",
+    "other": "Otro",
+    "deposit": "Depósito"
+  },
+  "detail": {
+    "title": "Detalle del recibo"
+  },
+  "confirm": {
+    "deleteTitle": "Eliminar recibo",
+    "deleteMessage": "¿Seguro que quieres eliminar el recibo {{number}}? Esta acción no se puede deshacer.",
+    "deleteButton": "Eliminar"
+  },
+  "print": {
+    "title": "RECIBO DE PAGO",
+    "receivedBy": "Recibido por",
+    "customer": "Cliente"
+  }
+},
+
+"inventory": {
+    "title": "Inventario",
+    "eyebrow": "Inventario PRO",
+    "activeTitle": "Productos, servicios y existencias",
+    "inactiveTitle": "Productos inactivos",
+    "description": "Controla productos, servicios, stock mínimo, código de barras, movimientos manuales y kardex por producto.",
+    "common": {
+      "product": "Producto",
+      "service": "Servicio",
+      "yes": "Sí",
+      "no": "No",
+      "system": "Sistema"
+    },
+    "actions": {
+      "importExcel": "Importar Excel",
+      "exportExcel": "Exportar Excel",
+      "viewInactive": "Ver inactivos",
+      "viewActive": "Ver activos",
+      "newProductService": "Nuevo producto/servicio",
+      "movement": "Movimiento",
+      "history": "Historial",
+      "edit": "Editar",
+      "new": "Nuevo",
+      "deactivate": "Desactivar",
+      "deactivating": "Desactivando...",
+      "reactivate": "Reactivar",
+      "viewDetail": "Ver detalle",
+      "uploadImage": "Subir imagen",
+      "takePhoto": "Tirar foto",
+      "removeImage": "Quitar imagen",
+      "cancel": "Cancelar",
+      "save": "Guardar",
+      "saving": "Guardando...",
+      "registering": "Registrando...",
+      "registerMovement": "Registrar movimiento",
+      "importing": "Importando...",
+      "confirmImport": "Confirmar importación"
+    },
+    "stats": {
+      "products": "Productos",
+      "services": "Servicios",
+      "lowStock": "Stock bajo",
+      "inventoryValue": "Valor inventario"
+    },
+    "toolbar": {
+      "list": "Listado",
+      "inactive": "Inactivos",
+      "description": "Busca, filtra, registra movimientos y consulta historial."
+    },
+    "filters": {
+      "all": "Todos"
+    },
+    "pagination": {
+      "showing": "Mostrando página {{page}} de {{totalPages}} · {{total}} registros",
+      "previous": "Anterior",
+      "next": "Siguiente"
+    },
+    "fields": {
+      "productService": "Producto / Servicio",
+      "barcode": "Código barras",
+      "category": "Categoría",
+      "price": "Precio",
+      "cost": "Costo",
+      "stock": "Stock",
+      "status": "Estado",
+      "type": "Tipo",
+      "typeRequired": "Tipo *",
+      "description": "Descripción",
+      "salePrice": "Precio venta",
+      "minStock": "Stock mínimo",
+      "initialStock": "Stock inicial / actual",
+      "unit": "Unidad",
+      "nameRequired": "Nombre *"
+    },
+    "status": {
+      "active": "Activo",
+      "inactive": "Inactivo",
+      "noControl": "Sin control",
+      "available": "Disponible",
+      "lowStock": "Stock bajo",
+      "notApplicable": "No aplica",
+      "visible": "Visible",
+      "hidden": "Oculto"
+    },
+    "messages": {
+      "loading": "Cargando...",
+      "loadingProducts": "Cargando productos...",
+      "empty": "No hay registros.",
+      "loadError": "Error cargando productos",
+      "noProductsToExport": "No hay productos para exportar.",
+      "noValidProducts": "No hay productos válidos para importar.",
+      "importCompleted": "Importación completada.\nCreados: {{created}}\nActualizados: {{updated}}\nOmitidos: {{skipped}}",
+      "importError": "No se pudo importar el inventario",
+      "fileTooLarge": "El archivo no puede pesar más de 3MB.",
+      "missingProductName": "Falta el nombre del producto",
+      "readFileError": "No se pudo leer el archivo. Verifica que sea Excel o CSV válido.",
+      "invalidImage": "Selecciona una imagen válida.",
+      "imageTooLarge": "La imagen no puede pesar más de 5MB.",
+      "imageProcessError": "No se pudo procesar la imagen.",
+      "nameRequired": "El nombre es obligatorio",
+      "saveError": "Error guardando producto",
+      "loadMovementsError": "Error cargando movimientos",
+      "noInventoryControl": "Este servicio/producto no controla inventario.",
+      "quantityGreaterThanZero": "La cantidad debe ser mayor a cero",
+      "newStockRequired": "Indica el nuevo stock",
+      "saveMovementError": "Error registrando movimiento",
+      "validateHistoryError": "No se pudo validar el historial del producto.",
+      "deactivateError": "Error desactivando producto",
+      "reactivateError": "Error reactivando producto",
+      "noDescription": "Sin descripción",
+      "loadingMovements": "Cargando movimientos...",
+      "noMovements": "Este registro no tiene movimientos."
+    },
+    "placeholders": {
+      "search": "Buscar nombre, SKU, código de barras o categoría...",
+      "name": "Ej: Laptop Dell / Servicio instalación",
+      "barcode": "Ej: 7501234567890",
+      "category": "Ej: Tecnología",
+      "description": "Descripción breve...",
+      "reason": "Ej: Compra, merma, conteo físico, devolución...",
+      "reference": "Ej: AJ-001 / COMPRA-55 / Nota interna"
+    },
+    "detail": {
+      "title": "Detalle del registro"
+    },
+    "form": {
+      "updateTitle": "Actualizar registro",
+      "createTitle": "Registrar producto/servicio",
+      "productImage": "Imagen del producto",
+      "showInCatalog": "Mostrar en catálogo",
+      "inventoryControl": "Control de inventario"
+    },
+    "units": {
+      "unit": "Unidad",
+      "box": "Caja",
+      "package": "Paquete",
+      "service": "Servicio",
+      "meter": "Metro",
+      "pound": "Libra",
+      "hour": "Hora"
+    },
+    "movements": {
+      "manual": "Movimiento manual",
+      "currentStock": "Stock actual",
+      "type": "Tipo de movimiento",
+      "quantity": "Cantidad",
+      "newStock": "Nuevo stock",
+      "reason": "Motivo",
+      "reference": "Referencia",
+      "historyTitle": "Kardex / Historial",
+      "user": "Usuario",
+      "previous": "Anterior",
+      "new": "Nuevo",
+      "date": "Fecha",
+      "previousStock": "Stock anterior",
+      "types": {
+        "entry": "Entrada",
+        "exit": "Salida",
+        "adjustment": "Ajuste",
+        "return": "Devolución",
+        "waste": "Merma / pérdida"
+      }
+    },
+    "delete": {
+      "title": "Desactivar producto",
+      "question": "¿Seguro que quieres desactivar",
+      "validating": "Validando historial...",
+      "hasMovements": "Tiene {{count}} movimiento(s). Se ocultará, pero su historial se conserva.",
+      "noMovements": "Se ocultará del inventario. Podrás reactivarlo luego."
+    },
+    "import": {
+      "title": "Importar inventario",
+      "preview": "Revisión previa",
+      "rowsDetected": "Filas detectadas",
+      "validProducts": "Productos válidos",
+      "withErrors": "Con errores",
+      "updateExisting": "Actualizar productos existentes si coinciden por SKU o código de barras",
+      "detectedErrors": "Errores detectados",
+      "rowError": "Fila {{row}}: {{message}}"
+    },
+    "export": {
+      "filePrefix": "inventario",
+      "name": "Nombre",
+      "type": "Tipo",
+      "barcode": "Código de barras",
+      "category": "Categoría",
+      "unit": "Unidad",
+      "description": "Descripción",
+      "cost": "Costo",
+      "salePrice": "Precio venta",
+      "controlsStock": "Controla inventario",
+      "minStock": "Stock mínimo",
+      "status": "Estado"
+    }
+  }
 }
 
 

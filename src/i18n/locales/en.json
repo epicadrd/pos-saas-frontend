@@ -2113,5 +2113,62 @@
   "common": {
     "system": "System"
   }
+},
+"paymentHistory": {
+  "header": {
+    "title": "Payment history",
+    "description": "Review paid invoices, total collected, and {{taxLabel}} by month."
+  },
+  "filters": {
+    "search": "Search invoice or customer..."
+  },
+  "months": {
+    "01": "January",
+    "02": "February",
+    "03": "March",
+    "04": "April",
+    "05": "May",
+    "06": "June",
+    "07": "July",
+    "08": "August",
+    "09": "September",
+    "10": "October",
+    "11": "November",
+    "12": "December"
+  },
+  "stats": {
+    "totalCollected": "Total collected",
+    "subtotal": "Subtotal",
+    "paidInvoices": "Paid invoices"
+  },
+  "table": {
+    "invoice": "Invoice",
+    "customer": "Customer",
+    "date": "Date",
+    "subtotal": "Subtotal",
+    "total": "Total",
+    "paid": "Paid",
+    "empty": "No paid invoices this month."
+  },
+  "mobile": {
+    "invoice": "Invoice",
+    "customer": "Customer",
+    "noCustomer": "No customer",
+    "total": "Total",
+    "paid": "Paid",
+    "viewDetail": "View details"
+  },
+  "detail": {
+    "title": "Payment details",
+    "customer": "Customer",
+    "noCustomer": "No customer",
+    "date": "Date",
+    "subtotal": "Subtotal",
+    "total": "Total",
+    "paid": "Paid"
+  },
+  "messages": {
+    "loadError": "Could not load payment history"
+  }
 }
 }

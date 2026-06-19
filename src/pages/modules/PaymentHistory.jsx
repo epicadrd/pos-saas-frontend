@@ -2,11 +2,29 @@ import { useEffect, useMemo, useState } from "react";
 import { Calendar, FileText, Search, Wallet, X } from "lucide-react";
 import { api } from "../../api/axios";
 import { useAuth } from "../../context/AuthContext";
+import es from "../../i18n/locales/es.json";
+import en from "../../i18n/locales/en.json";
 import { getTaxLabel, isDominicanTenant } from "../../utils/taxConfig";
 import { getFiscalNumber } from "../../utils/fiscalNumber";
 
 export default function PaymentHistory() {
-  const { tenant } = useAuth();
+  const { tenant, language } = useAuth();
+
+  const dictionary = language === "en" ? en : es;
+
+  const t = (path, fallback = "", vars = {}) => {
+    let value = path
+      .split(".")
+      .reduce((acc, key) => acc?.[key], dictionary);
+
+    value = value || fallback || path;
+
+    Object.entries(vars).forEach(([key, val]) => {
+      value = String(value).replace(`{{${key}}}`, val);
+    });
+
+    return value;
+  };
 
   const [invoices, setInvoices] = useState([]);
   const [month, setMonth] = useState(
@@ -36,8 +54,15 @@ export default function PaymentHistory() {
   };
 
   const loadInvoices = async () => {
-    const { data } = await api.get("/invoices");
-    setInvoices(data);
+    try {
+      const { data } = await api.get("/invoices");
+      setInvoices(data);
+    } catch (error) {
+      alert(
+        error.response?.data?.message ||
+          t("paymentHistory.messages.loadError")
+      );
+    }
   };
 
   useEffect(() => {
@@ -77,26 +102,30 @@ export default function PaymentHistory() {
   }, [paidInvoices]);
 
   const months = [
-    ["01", "Enero"],
-    ["02", "Febrero"],
-    ["03", "Marzo"],
-    ["04", "Abril"],
-    ["05", "Mayo"],
-    ["06", "Junio"],
-    ["07", "Julio"],
-    ["08", "Agosto"],
-    ["09", "Septiembre"],
-    ["10", "Octubre"],
-    ["11", "Noviembre"],
-    ["12", "Diciembre"],
+    ["01", t("paymentHistory.months.01")],
+    ["02", t("paymentHistory.months.02")],
+    ["03", t("paymentHistory.months.03")],
+    ["04", t("paymentHistory.months.04")],
+    ["05", t("paymentHistory.months.05")],
+    ["06", t("paymentHistory.months.06")],
+    ["07", t("paymentHistory.months.07")],
+    ["08", t("paymentHistory.months.08")],
+    ["09", t("paymentHistory.months.09")],
+    ["10", t("paymentHistory.months.10")],
+    ["11", t("paymentHistory.months.11")],
+    ["12", t("paymentHistory.months.12")],
   ];
 
   return (
     <div className="payment-history-page">
       <div className="payment-history-header">
         <div>
-          <h1>Historial de pagos</h1>
-          <p>Consulta facturas pagadas, total cobrado e {taxLabel} por mes.</p>
+          <h1>{t("paymentHistory.header.title")}</h1>
+          <p>
+            {t("paymentHistory.header.description", "", {
+              taxLabel,
+            })}
+          </p>
         </div>
       </div>
 
@@ -104,7 +133,7 @@ export default function PaymentHistory() {
         <div className="payment-search">
           <Search size={18} />
           <input
-            placeholder="Buscar factura o cliente..."
+            placeholder={t("paymentHistory.filters.search")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -133,7 +162,7 @@ export default function PaymentHistory() {
             <Wallet size={22} />
           </div>
           <div>
-            <span>Total cobrado</span>
+            <span>{t("paymentHistory.stats.totalCollected")}</span>
             <strong>{money.format(totals.amountPaid)}</strong>
           </div>
         </div>
@@ -143,7 +172,7 @@ export default function PaymentHistory() {
             <FileText size={22} />
           </div>
           <div>
-            <span>Subtotal</span>
+            <span>{t("paymentHistory.stats.subtotal")}</span>
             <strong>{money.format(totals.subtotal)}</strong>
           </div>
         </div>
@@ -163,7 +192,7 @@ export default function PaymentHistory() {
             <FileText size={22} />
           </div>
           <div>
-            <span>Facturas pagadas</span>
+            <span>{t("paymentHistory.stats.paidInvoices")}</span>
             <strong>{paidInvoices.length}</strong>
           </div>
         </div>
@@ -173,13 +202,13 @@ export default function PaymentHistory() {
         <table className="payment-table">
           <thead>
             <tr>
-              <th>Factura</th>
-              <th>Cliente</th>
-              <th>Fecha</th>
-              <th>Subtotal</th>
+              <th>{t("paymentHistory.table.invoice")}</th>
+              <th>{t("paymentHistory.table.customer")}</th>
+              <th>{t("paymentHistory.table.date")}</th>
+              <th>{t("paymentHistory.table.subtotal")}</th>
               <th>{taxLabel}</th>
-              <th>Total</th>
-              <th>Pagado</th>
+              <th>{t("paymentHistory.table.total")}</th>
+              <th>{t("paymentHistory.table.paid")}</th>
             </tr>
           </thead>
 
@@ -203,7 +232,7 @@ export default function PaymentHistory() {
             {!paidInvoices.length && (
               <tr>
                 <td colSpan="7" className="payment-empty">
-                  No hay facturas pagadas en este mes.
+                  {t("paymentHistory.table.empty")}
                 </td>
               </tr>
             )}
@@ -222,7 +251,7 @@ export default function PaymentHistory() {
             >
               <div className="payment-mobile-card-top">
                 <div>
-                  <span>Factura</span>
+                  <span>{t("paymentHistory.mobile.invoice")}</span>
                   <strong>{getFiscalNumber(invoice)}</strong>
                 </div>
 
@@ -230,18 +259,20 @@ export default function PaymentHistory() {
               </div>
 
               <div className="payment-mobile-client">
-                <span>Cliente</span>
-                <strong>{invoice.customerName || "Sin cliente"}</strong>
+                <span>{t("paymentHistory.mobile.customer")}</span>
+                <strong>
+                  {invoice.customerName || t("paymentHistory.mobile.noCustomer")}
+                </strong>
               </div>
 
               <div className="payment-mobile-money-grid">
                 <div>
-                  <span>Total</span>
+                  <span>{t("paymentHistory.mobile.total")}</span>
                   <strong>{money.format(Number(invoice.total || 0))}</strong>
                 </div>
 
                 <div>
-                  <span>Pagado</span>
+                  <span>{t("paymentHistory.mobile.paid")}</span>
                   <strong>
                     {money.format(Number(invoice.amountPaid || 0))}
                   </strong>
@@ -252,13 +283,13 @@ export default function PaymentHistory() {
                 <span>
                   {taxLabel} {money.format(Number(invoice.tax || 0))}
                 </span>
-                <strong>Ver detalle</strong>
+                <strong>{t("paymentHistory.mobile.viewDetail")}</strong>
               </div>
             </button>
           ))
         ) : (
           <div className="payment-mobile-empty">
-            No hay facturas pagadas en este mes.
+            {t("paymentHistory.table.empty")}
           </div>
         )}
       </div>
@@ -274,7 +305,7 @@ export default function PaymentHistory() {
           >
             <div className="payment-detail-header">
               <div>
-                <span>Detalle del pago</span>
+                <span>{t("paymentHistory.detail.title")}</span>
                 <h3>{getFiscalNumber(selectedInvoice)}</h3>
               </div>
 
@@ -285,17 +316,20 @@ export default function PaymentHistory() {
 
             <div className="payment-detail-list">
               <div>
-                <span>Cliente</span>
-                <strong>{selectedInvoice.customerName || "Sin cliente"}</strong>
+                <span>{t("paymentHistory.detail.customer")}</span>
+                <strong>
+                  {selectedInvoice.customerName ||
+                    t("paymentHistory.detail.noCustomer")}
+                </strong>
               </div>
 
               <div>
-                <span>Fecha</span>
+                <span>{t("paymentHistory.detail.date")}</span>
                 <strong>{formatDate(selectedInvoice.createdAt)}</strong>
               </div>
 
               <div>
-                <span>Subtotal</span>
+                <span>{t("paymentHistory.detail.subtotal")}</span>
                 <strong>
                   {money.format(Number(selectedInvoice.subtotal || 0))}
                 </strong>
@@ -309,14 +343,14 @@ export default function PaymentHistory() {
               </div>
 
               <div>
-                <span>Total</span>
+                <span>{t("paymentHistory.detail.total")}</span>
                 <strong>
                   {money.format(Number(selectedInvoice.total || 0))}
                 </strong>
               </div>
 
               <div>
-                <span>Pagado</span>
+                <span>{t("paymentHistory.detail.paid")}</span>
                 <strong>
                   {money.format(Number(selectedInvoice.amountPaid || 0))}
                 </strong>

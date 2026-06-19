@@ -2125,6 +2125,63 @@
   "common": {
     "system": "Sistema"
   }
+},
+"paymentHistory": {
+  "header": {
+    "title": "Historial de pagos",
+    "description": "Consulta facturas pagadas, total cobrado e {{taxLabel}} por mes."
+  },
+  "filters": {
+    "search": "Buscar factura o cliente..."
+  },
+  "months": {
+    "01": "Enero",
+    "02": "Febrero",
+    "03": "Marzo",
+    "04": "Abril",
+    "05": "Mayo",
+    "06": "Junio",
+    "07": "Julio",
+    "08": "Agosto",
+    "09": "Septiembre",
+    "10": "Octubre",
+    "11": "Noviembre",
+    "12": "Diciembre"
+  },
+  "stats": {
+    "totalCollected": "Total cobrado",
+    "subtotal": "Subtotal",
+    "paidInvoices": "Facturas pagadas"
+  },
+  "table": {
+    "invoice": "Factura",
+    "customer": "Cliente",
+    "date": "Fecha",
+    "subtotal": "Subtotal",
+    "total": "Total",
+    "paid": "Pagado",
+    "empty": "No hay facturas pagadas en este mes."
+  },
+  "mobile": {
+    "invoice": "Factura",
+    "customer": "Cliente",
+    "noCustomer": "Sin cliente",
+    "total": "Total",
+    "paid": "Pagado",
+    "viewDetail": "Ver detalle"
+  },
+  "detail": {
+    "title": "Detalle del pago",
+    "customer": "Cliente",
+    "noCustomer": "Sin cliente",
+    "date": "Fecha",
+    "subtotal": "Subtotal",
+    "total": "Total",
+    "paid": "Pagado"
+  },
+  "messages": {
+    "loadError": "No se pudo cargar el historial de pagos"
+  }
 }
 }
 

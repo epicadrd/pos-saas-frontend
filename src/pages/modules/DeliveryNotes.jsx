@@ -14,36 +14,14 @@ import {
 import { useNavigate } from "react-router-dom";
 import { api } from "../../api/axios";
 import { useAuth } from "../../context/AuthContext";
+import es from "../../i18n/locales/es.json";
+import en from "../../i18n/locales/en.json";
 import {
   getTaxLabel,
   getTaxRate,
   isDominicanTenant,
 } from "../../utils/taxConfig";
 import { useConfirm } from "../../components/ConfirmProvider";
-
-const emptyForm = {
-  customerName: "",
-  customerRnc: "",
-  customerPhone: "",
-  customerEmail: "",
-  customerAddress: "",
-  customerPurchaseOrder: "",
-  warehouseName: "Principal",
-  issueDate: new Date().toISOString().slice(0, 10),
-  deliveryDate: "",
-  driverName: "",
-  driverId: "",
-  vehiclePlate: "",
-  deliveryAddress: "",
-  deliveryInstructions: "",
-};
-
-const statusLabel = {
-  draft: "Borrador",
-  issued: "Emitido",
-  delivered: "Recibido",
-  cancelled: "Anulado",
-};
 
 const statusClass = {
   draft: "badge warning",
@@ -54,8 +32,48 @@ const statusClass = {
 
 export default function DeliveryNotes() {
   const navigate = useNavigate();
-  const { tenant } = useAuth();
+  const { tenant, language } = useAuth();
   const { confirm } = useConfirm();
+
+  const dictionary = language === "en" ? en : es;
+
+  const t = (path, fallback = "", vars = {}) => {
+    let value = path
+      .split(".")
+      .reduce((acc, key) => acc?.[key], dictionary);
+
+    value = value || fallback || path;
+
+    Object.entries(vars).forEach(([key, val]) => {
+      value = String(value).replace(`{{${key}}}`, val);
+    });
+
+    return value;
+  };
+
+  const emptyForm = {
+    customerName: "",
+    customerRnc: "",
+    customerPhone: "",
+    customerEmail: "",
+    customerAddress: "",
+    customerPurchaseOrder: "",
+    warehouseName: t("deliveryNotes.common.warehouseDefault"),
+    issueDate: new Date().toISOString().slice(0, 10),
+    deliveryDate: "",
+    driverName: "",
+    driverId: "",
+    vehiclePlate: "",
+    deliveryAddress: "",
+    deliveryInstructions: "",
+  };
+
+  const statusLabel = {
+    draft: t("deliveryNotes.status.draft"),
+    issued: t("deliveryNotes.status.issued"),
+    delivered: t("deliveryNotes.status.delivered"),
+    cancelled: t("deliveryNotes.status.cancelled"),
+  };
 
   const [deliveryNotes, setDeliveryNotes] = useState([]);
   const [products, setProducts] = useState([]);
@@ -75,36 +93,32 @@ export default function DeliveryNotes() {
   const locale = isDO ? "es-DO" : "en-US";
   const currency = isDO ? "DOP" : "USD";
 
+  const money = useMemo(
+    () =>
+      new Intl.NumberFormat(locale, {
+        style: "currency",
+        currency,
+      }),
+    [locale, currency]
+  );
 
+  const color = tenant?.primaryColor || "#00bfae";
+  const logo = tenant?.logoDataUrl || "";
 
-const money = useMemo(
-  () =>
-    new Intl.NumberFormat(locale, {
-      style: "currency",
-      currency,
-    }),
-  [locale, currency]
-);
+  const taxLabel = getTaxLabel(tenant);
+  const taxRate = getTaxRate(tenant);
+  const taxEnabled = Number(taxRate || 0) > 0;
+  const taxMode = tenant?.invoiceTaxMode || "global";
 
+  const formatDateOnly = (value) => {
+    if (!value) return "-";
 
-const color = tenant?.primaryColor || "#00bfae";
-const logo = tenant?.logoDataUrl || "";
-
-const taxLabel = getTaxLabel(tenant);
-const taxRate = getTaxRate(tenant);
-const taxEnabled = Number(taxRate || 0) > 0;
-const taxMode = tenant?.invoiceTaxMode || "global";
-const formatDateOnly = (value) => {
-  if (!value) return "-";
-
-  return new Intl.DateTimeFormat(locale, {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  }).format(new Date(value));
-};
-
-
+    return new Intl.DateTimeFormat(locale, {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    }).format(new Date(value));
+  };
 
   const filteredDeliveryNotes = deliveryNotes.filter((note) => {
     const text = `${note.deliveryNoteNumber} ${note.customerName} ${
@@ -171,7 +185,7 @@ const formatDateOnly = (value) => {
       setProducts(Array.isArray(productsRes.data) ? productsRes.data : []);
       setCustomers(Array.isArray(customersRes.data) ? customersRes.data : []);
     } catch (error) {
-      alert(error.response?.data?.message || "Error cargando conduces");
+      alert(error.response?.data?.message || t("deliveryNotes.messages.loadError"));
     } finally {
       setLoading(false);
     }
@@ -223,7 +237,7 @@ const formatDateOnly = (value) => {
         productId: "",
         productName: "",
         description: "",
-        unit: "UND",
+        unit: t("deliveryNotes.common.unitDefault"),
         requestedQuantity: 1,
         dispatchedQuantity: 1,
         unitPrice: 0,
@@ -244,7 +258,7 @@ const formatDateOnly = (value) => {
         productId: product?.id || "",
         productName: product?.name || "",
         description: product?.description || product?.name || "",
-        unit: product?.unit || "UND",
+        unit: product?.unit || t("deliveryNotes.common.unitDefault"),
         requestedQuantity: 1,
         dispatchedQuantity: 1,
         unitPrice: Number(product?.salePrice || product?.price || 0),
@@ -277,9 +291,12 @@ const formatDateOnly = (value) => {
   });
 
   const saveDeliveryNote = async (status = "draft") => {
-    if (!form.customerName.trim()) return alert("El cliente es obligatorio");
+    if (!form.customerName.trim()) {
+      return alert(t("deliveryNotes.messages.customerRequired"));
+    }
+
     if (!form.customerPurchaseOrder.trim()) {
-      return alert("La orden de compra del cliente es obligatoria");
+      return alert(t("deliveryNotes.messages.purchaseOrderRequired"));
     }
 
     const cleanItems = items
@@ -291,16 +308,16 @@ const formatDateOnly = (value) => {
         unitPrice: Number(item.unitPrice || 0),
         discount: Number(item.discount || 0),
         description: item.description || "",
-        unit: item.unit || "UND",
+        unit: item.unit || t("deliveryNotes.common.unitDefault"),
         isTaxable: item.isTaxable !== false,
       }));
 
     if (!cleanItems.length) {
-      return alert("Agrega al menos un producto");
+      return alert(t("deliveryNotes.messages.itemsRequired"));
     }
 
     if (status === "issued" && hasStockError) {
-      return alert("Hay productos con stock insuficiente");
+      return alert(t("deliveryNotes.messages.stockError"));
     }
 
     try {
@@ -317,7 +334,7 @@ const formatDateOnly = (value) => {
       closeModal();
       await loadData();
     } catch (error) {
-      alert(error.response?.data?.message || "Error guardando conduce");
+      alert(error.response?.data?.message || t("deliveryNotes.messages.saveError"));
     } finally {
       setSaving(false);
     }
@@ -325,9 +342,11 @@ const formatDateOnly = (value) => {
 
   const issueNote = async (note) => {
     const ok = await confirm({
-      title: "Emitir conduce",
-      message: `¿Emitir ${note.deliveryNoteNumber}? Esto descontará inventario.`,
-      confirmText: "Emitir",
+      title: t("deliveryNotes.confirm.issueTitle"),
+      message: t("deliveryNotes.confirm.issueMessage", "", {
+        number: note.deliveryNoteNumber,
+      }),
+      confirmText: t("deliveryNotes.confirm.issueButton"),
       variant: "danger",
     });
 
@@ -337,15 +356,15 @@ const formatDateOnly = (value) => {
       await api.patch(`/delivery-notes/${note.id}/issue`);
       await loadData();
     } catch (error) {
-      alert(error.response?.data?.message || "Error emitiendo conduce");
+      alert(error.response?.data?.message || t("deliveryNotes.messages.issueError"));
     }
   };
 
   const markDelivered = async (note) => {
-    const receivedByName = prompt("Nombre de quien recibió:");
+    const receivedByName = prompt(t("deliveryNotes.prompts.receivedByName"));
     if (!receivedByName) return;
 
-    const receivedById = prompt("Cédula / ID de quien recibió:") || "";
+    const receivedById = prompt(t("deliveryNotes.prompts.receivedById")) || "";
 
     try {
       await api.patch(`/delivery-notes/${note.id}/delivered`, {
@@ -355,15 +374,17 @@ const formatDateOnly = (value) => {
 
       await loadData();
     } catch (error) {
-      alert(error.response?.data?.message || "Error marcando recibido");
+      alert(error.response?.data?.message || t("deliveryNotes.messages.deliveredError"));
     }
   };
 
   const cancelNote = async (note) => {
     const ok = await confirm({
-      title: "Anular conduce",
-      message: `¿Anular ${note.deliveryNoteNumber}?`,
-      confirmText: "Anular",
+      title: t("deliveryNotes.confirm.cancelTitle"),
+      message: t("deliveryNotes.confirm.cancelMessage", "", {
+        number: note.deliveryNoteNumber,
+      }),
+      confirmText: t("deliveryNotes.confirm.cancelButton"),
       variant: "danger",
     });
 
@@ -373,15 +394,17 @@ const formatDateOnly = (value) => {
       await api.patch(`/delivery-notes/${note.id}/cancel`);
       await loadData();
     } catch (error) {
-      alert(error.response?.data?.message || "Error anulando conduce");
+      alert(error.response?.data?.message || t("deliveryNotes.messages.cancelError"));
     }
   };
 
   const convertToInvoice = async (note) => {
     const ok = await confirm({
-      title: "Convertir a factura",
-      message: `¿Convertir ${note.deliveryNoteNumber} a factura?`,
-      confirmText: "Convertir",
+      title: t("deliveryNotes.confirm.convertTitle"),
+      message: t("deliveryNotes.confirm.convertMessage", "", {
+        number: note.deliveryNoteNumber,
+      }),
+      confirmText: t("deliveryNotes.confirm.convertButton"),
       variant: "success",
     });
 
@@ -390,10 +413,10 @@ const formatDateOnly = (value) => {
     try {
       await api.post(`/delivery-notes/${note.id}/convert-to-invoice`);
       await loadData();
-      alert("Conduce convertido a factura en borrador");
+      alert(t("deliveryNotes.messages.convertedSuccess"));
       navigate("/dashboard/facturacion");
     } catch (error) {
-      alert(error.response?.data?.message || "Error convirtiendo a factura");
+      alert(error.response?.data?.message || t("deliveryNotes.messages.convertError"));
     }
   };
 
@@ -424,14 +447,14 @@ const formatDateOnly = (value) => {
                   ? `<img src="${logo}" style="max-width:120px; max-height:80px; object-fit:contain; margin-bottom:12px;" />`
                   : ""
               }
-              <h1>CONDUCE</h1>
+              <h1>${t("deliveryNotes.print.title")}</h1>
               <p>${note.deliveryNoteNumber}</p>
-              <p class="muted">Documento de entrega. No representa factura fiscal.</p>
+              <p class="muted">${t("deliveryNotes.print.subtitle")}</p>
             </div>
 
             <div>
-              <strong>${tenant?.businessName || "Mi empresa"}</strong><br/>
-              RNC/Cédula: ${tenant?.rnc || "-"}<br/>
+              <strong>${tenant?.businessName || t("deliveryNotes.print.companyFallback")}</strong><br/>
+              ${t("deliveryNotes.print.rnc")}: ${tenant?.rnc || "-"}<br/>
               ${tenant?.address || ""}<br/>
               ${tenant?.email || ""}<br/>
               ${tenant?.phone || ""}
@@ -439,35 +462,31 @@ const formatDateOnly = (value) => {
           </div>
 
           <div class="box">
-            <strong>Cliente:</strong> ${note.customerName || "-"}<br/>
-            <strong>RNC:</strong> ${note.customerRnc || "-"}<br/>
-            <strong>Teléfono:</strong> ${note.customerPhone || "-"}<br/>
-            <strong>Orden de compra:</strong> ${note.customerPurchaseOrder || "-"}<br/>
-            <strong>Dirección entrega:</strong> ${note.deliveryAddress || "-"}
+            <strong>${t("deliveryNotes.print.customer")}:</strong> ${note.customerName || "-"}<br/>
+            <strong>${t("deliveryNotes.print.customerRnc")}:</strong> ${note.customerRnc || "-"}<br/>
+            <strong>${t("deliveryNotes.print.phone")}:</strong> ${note.customerPhone || "-"}<br/>
+            <strong>${t("deliveryNotes.print.customerPurchaseOrder")}:</strong> ${note.customerPurchaseOrder || "-"}<br/>
+            <strong>${t("deliveryNotes.print.deliveryAddress")}:</strong> ${note.deliveryAddress || "-"}
           </div>
 
           <div class="box">
-            <strong>Almacén:</strong> ${note.warehouseName || "Principal"}<br/>
-            <strong>Chofer:</strong> ${note.driverName || "-"}<br/>
-            <strong>Cédula/ID:</strong> ${note.driverId || "-"}<br/>
-            <strong>Vehículo/Placa:</strong> ${note.vehiclePlate || "-"}<br/>
-            <strong>Fecha emisión:</strong> ${
-              formatDateOnly(note.issueDate)
-            }<br/>
-            <strong>Fecha entrega:</strong> ${
-              formatDateOnly(note.deliveryDate || note.issueDate)
-            }
+            <strong>${t("deliveryNotes.print.warehouse")}:</strong> ${note.warehouseName || t("deliveryNotes.print.warehouseFallback")}<br/>
+            <strong>${t("deliveryNotes.print.driver")}:</strong> ${note.driverName || "-"}<br/>
+            <strong>${t("deliveryNotes.print.driverId")}:</strong> ${note.driverId || "-"}<br/>
+            <strong>${t("deliveryNotes.print.vehiclePlate")}:</strong> ${note.vehiclePlate || "-"}<br/>
+            <strong>${t("deliveryNotes.print.issueDate")}:</strong> ${formatDateOnly(note.issueDate)}<br/>
+            <strong>${t("deliveryNotes.print.deliveryDate")}:</strong> ${formatDateOnly(note.deliveryDate || note.issueDate)}
           </div>
 
           <table>
             <thead>
               <tr>
-                <th>Código</th>
-                <th>Producto</th>
-                <th>Descripción</th>
-                <th>Unidad</th>
-                <th>Solicitado</th>
-                <th>Despachado</th>
+                <th>${t("deliveryNotes.print.code")}</th>
+                <th>${t("deliveryNotes.print.product")}</th>
+                <th>${t("deliveryNotes.print.description")}</th>
+                <th>${t("deliveryNotes.print.unit")}</th>
+                <th>${t("deliveryNotes.print.requested")}</th>
+                <th>${t("deliveryNotes.print.dispatched")}</th>
               </tr>
             </thead>
 
@@ -479,7 +498,7 @@ const formatDateOnly = (value) => {
                     <td>${item.productId || "-"}</td>
                     <td>${item.productName || "-"}</td>
                     <td>${item.description || "-"}</td>
-                    <td>${item.unit || "UND"}</td>
+                    <td>${item.unit || t("deliveryNotes.common.unitDefault")}</td>
                     <td>${item.requestedQuantity || 0}</td>
                     <td>${item.dispatchedQuantity || 0}</td>
                   </tr>
@@ -491,19 +510,19 @@ const formatDateOnly = (value) => {
 
           ${
             note.deliveryInstructions
-              ? `<div class="box" style="margin-top:20px;"><strong>Instrucciones:</strong><br/>${note.deliveryInstructions}</div>`
+              ? `<div class="box" style="margin-top:20px;"><strong>${t("deliveryNotes.print.instructions")}:</strong><br/>${note.deliveryInstructions}</div>`
               : ""
           }
 
           <div class="signatures">
             <div class="signature">
-              Entregado por<br/>
-              Nombre / Firma / Cédula
+              ${t("deliveryNotes.print.deliveredBy")}<br/>
+              ${t("deliveryNotes.print.signatureDelivered")}
             </div>
 
             <div class="signature">
-              Recibido por<br/>
-              Nombre / Firma / Cédula / Sello
+              ${t("deliveryNotes.print.receivedBy")}<br/>
+              ${t("deliveryNotes.print.signatureReceived")}
             </div>
           </div>
         </body>
@@ -523,16 +542,14 @@ const formatDateOnly = (value) => {
     <div className="quote-page">
       <section className="quote-header">
         <div>
-          <span>Conduces</span>
-          <h2>Despachos y entregas</h2>
-          <p>
-            Crea conduces, descuenta inventario al emitir y convierte entregas a factura.
-          </p>
+          <span>{t("deliveryNotes.header.eyebrow")}</span>
+          <h2>{t("deliveryNotes.header.title")}</h2>
+          <p>{t("deliveryNotes.header.description")}</p>
         </div>
 
         <button className="primary-btn" onClick={openModal}>
           <Plus size={18} />
-          Nuevo conduce
+          {t("deliveryNotes.header.new")}
         </button>
       </section>
 
@@ -542,7 +559,7 @@ const formatDateOnly = (value) => {
             <ClipboardList size={22} />
           </div>
           <div>
-            <span>Total</span>
+            <span>{t("deliveryNotes.stats.total")}</span>
             <strong>{stats.total}</strong>
           </div>
         </div>
@@ -552,7 +569,7 @@ const formatDateOnly = (value) => {
             <FileText size={22} />
           </div>
           <div>
-            <span>Borradores</span>
+            <span>{t("deliveryNotes.stats.drafts")}</span>
             <strong>{stats.draft}</strong>
           </div>
         </div>
@@ -562,7 +579,7 @@ const formatDateOnly = (value) => {
             <Truck size={22} />
           </div>
           <div>
-            <span>Emitidos</span>
+            <span>{t("deliveryNotes.stats.issued")}</span>
             <strong>{stats.issued}</strong>
           </div>
         </div>
@@ -572,7 +589,7 @@ const formatDateOnly = (value) => {
             <CheckCircle size={22} />
           </div>
           <div>
-            <span>Recibidos</span>
+            <span>{t("deliveryNotes.stats.delivered")}</span>
             <strong>{stats.delivered}</strong>
           </div>
         </div>
@@ -581,8 +598,8 @@ const formatDateOnly = (value) => {
       <section className="quote-panel">
         <div className="quote-toolbar">
           <div>
-            <h3>Listado de conduces</h3>
-            <p>Administra borradores, entregas, anulaciones y facturación.</p>
+            <h3>{t("deliveryNotes.toolbar.title")}</h3>
+            <p>{t("deliveryNotes.toolbar.description")}</p>
           </div>
 
           <div className="quote-toolbar-actions">
@@ -591,17 +608,17 @@ const formatDateOnly = (value) => {
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
             >
-              <option value="all">Todos</option>
-              <option value="draft">Borrador</option>
-              <option value="issued">Emitido</option>
-              <option value="delivered">Recibido</option>
-              <option value="cancelled">Anulado</option>
+              <option value="all">{t("deliveryNotes.toolbar.all")}</option>
+              <option value="draft">{t("deliveryNotes.status.draft")}</option>
+              <option value="issued">{t("deliveryNotes.status.issued")}</option>
+              <option value="delivered">{t("deliveryNotes.status.delivered")}</option>
+              <option value="cancelled">{t("deliveryNotes.status.cancelled")}</option>
             </select>
 
             <div className="quote-search">
               <Search size={18} />
               <input
-                placeholder="Buscar conduce..."
+                placeholder={t("deliveryNotes.toolbar.search")}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
@@ -613,14 +630,14 @@ const formatDateOnly = (value) => {
           <table className="quote-table">
             <thead>
               <tr>
-                <th>Conduce</th>
-                <th>Cliente</th>
-                <th>OC Cliente</th>
-                <th>Entrega</th>
-                <th>Total</th>
-                <th>Estado</th>
-                <th>Creado por</th>
-                <th>Acciones</th>
+                <th>{t("deliveryNotes.table.deliveryNote")}</th>
+                <th>{t("deliveryNotes.table.customer")}</th>
+                <th>{t("deliveryNotes.table.customerPurchaseOrder")}</th>
+                <th>{t("deliveryNotes.table.delivery")}</th>
+                <th>{t("deliveryNotes.table.total")}</th>
+                <th>{t("deliveryNotes.table.status")}</th>
+                <th>{t("deliveryNotes.table.createdBy")}</th>
+                <th>{t("deliveryNotes.table.actions")}</th>
               </tr>
             </thead>
 
@@ -628,13 +645,13 @@ const formatDateOnly = (value) => {
               {loading ? (
                 <tr>
                   <td colSpan="8" className="table-empty">
-                    Cargando conduces...
+                    {t("deliveryNotes.messages.loading")}
                   </td>
                 </tr>
               ) : filteredDeliveryNotes.length === 0 ? (
                 <tr>
                   <td colSpan="8" className="table-empty">
-                    No hay conduces registrados.
+                    {t("deliveryNotes.messages.empty")}
                   </td>
                 </tr>
               ) : (
@@ -657,27 +674,33 @@ const formatDateOnly = (value) => {
 
                     <td>
                       <span className={statusClass[note.status] || "badge warning"}>
-                        {statusLabel[note.status] || "Borrador"}
+                        {statusLabel[note.status] || t("deliveryNotes.status.draft")}
                       </span>
                     </td>
 
-                    <td>{note.creator?.name || "Sistema"}</td>
+                    <td>{note.creator?.name || t("deliveryNotes.common.system")}</td>
 
                     <td>
                       <div className="table-actions quote-actions">
-                        <button title="Imprimir" onClick={() => printNote(note)}>
+                        <button
+                          title={t("deliveryNotes.actions.print")}
+                          onClick={() => printNote(note)}
+                        >
                           <Printer size={16} />
                         </button>
 
                         {note.status === "draft" && (
-                          <button title="Emitir" onClick={() => issueNote(note)}>
+                          <button
+                            title={t("deliveryNotes.actions.issue")}
+                            onClick={() => issueNote(note)}
+                          >
                             <Send size={16} />
                           </button>
                         )}
 
                         {note.status === "issued" && (
                           <button
-                            title="Marcar recibido"
+                            title={t("deliveryNotes.actions.markDelivered")}
                             onClick={() => markDelivered(note)}
                           >
                             <CheckCircle size={16} />
@@ -687,7 +710,7 @@ const formatDateOnly = (value) => {
                         {(note.status === "issued" || note.status === "delivered") &&
                           !note.invoiceId && (
                             <button
-                              title="Convertir a factura"
+                              title={t("deliveryNotes.actions.convertToInvoice")}
                               onClick={() => convertToInvoice(note)}
                             >
                               <FileText size={16} />
@@ -697,7 +720,7 @@ const formatDateOnly = (value) => {
                         {note.status !== "cancelled" && !note.invoiceId && (
                           <button
                             className="danger-btn"
-                            title="Anular"
+                            title={t("deliveryNotes.actions.cancel")}
                             onClick={() => cancelNote(note)}
                           >
                             <Ban size={16} />
@@ -718,8 +741,8 @@ const formatDateOnly = (value) => {
           <div className="quote-modal">
             <div className="modal-header">
               <div>
-                <span>Nuevo conduce</span>
-                <h3>Crear conduce</h3>
+                <span>{t("deliveryNotes.form.modalEyebrow")}</span>
+                <h3>{t("deliveryNotes.form.title")}</h3>
               </div>
 
               <button className="modal-close" onClick={closeModal}>
@@ -730,13 +753,13 @@ const formatDateOnly = (value) => {
             <div className="quote-form">
               <div className="quote-form-grid">
                 <div className="form-row">
-                  <label>Cliente *</label>
+                  <label>{t("deliveryNotes.form.customer")}</label>
                   <input
                     name="customerName"
                     list="delivery-customers"
                     value={form.customerName}
                     onChange={handleFormChange}
-                    placeholder="Nombre del cliente"
+                    placeholder={t("deliveryNotes.form.customerName")}
                   />
                   <datalist id="delivery-customers">
                     {customers.map((customer) => (
@@ -746,7 +769,7 @@ const formatDateOnly = (value) => {
                 </div>
 
                 <div className="form-row">
-                  <label>RNC</label>
+                  <label>{t("deliveryNotes.form.rnc")}</label>
                   <input
                     name="customerRnc"
                     value={form.customerRnc}
@@ -755,7 +778,7 @@ const formatDateOnly = (value) => {
                 </div>
 
                 <div className="form-row">
-                  <label>Teléfono</label>
+                  <label>{t("deliveryNotes.form.phone")}</label>
                   <input
                     name="customerPhone"
                     value={form.customerPhone}
@@ -764,7 +787,7 @@ const formatDateOnly = (value) => {
                 </div>
 
                 <div className="form-row">
-                  <label>Email</label>
+                  <label>{t("deliveryNotes.form.email")}</label>
                   <input
                     name="customerEmail"
                     value={form.customerEmail}
@@ -773,17 +796,17 @@ const formatDateOnly = (value) => {
                 </div>
 
                 <div className="form-row">
-                  <label>Orden compra cliente *</label>
+                  <label>{t("deliveryNotes.form.customerPurchaseOrder")}</label>
                   <input
                     name="customerPurchaseOrder"
                     value={form.customerPurchaseOrder}
                     onChange={handleFormChange}
-                    placeholder="OC-0001"
+                    placeholder={t("deliveryNotes.form.purchaseOrderPlaceholder")}
                   />
                 </div>
 
                 <div className="form-row">
-                  <label>Almacén</label>
+                  <label>{t("deliveryNotes.form.warehouse")}</label>
                   <input
                     name="warehouseName"
                     value={form.warehouseName}
@@ -792,7 +815,7 @@ const formatDateOnly = (value) => {
                 </div>
 
                 <div className="form-row">
-                  <label>Fecha emisión</label>
+                  <label>{t("deliveryNotes.form.issueDate")}</label>
                   <input
                     type="date"
                     name="issueDate"
@@ -802,7 +825,7 @@ const formatDateOnly = (value) => {
                 </div>
 
                 <div className="form-row">
-                  <label>Fecha entrega</label>
+                  <label>{t("deliveryNotes.form.deliveryDate")}</label>
                   <input
                     type="date"
                     name="deliveryDate"
@@ -812,7 +835,7 @@ const formatDateOnly = (value) => {
                 </div>
 
                 <div className="form-row">
-                  <label>Chofer</label>
+                  <label>{t("deliveryNotes.form.driver")}</label>
                   <input
                     name="driverName"
                     value={form.driverName}
@@ -821,7 +844,7 @@ const formatDateOnly = (value) => {
                 </div>
 
                 <div className="form-row">
-                  <label>Cédula / ID chofer</label>
+                  <label>{t("deliveryNotes.form.driverId")}</label>
                   <input
                     name="driverId"
                     value={form.driverId}
@@ -830,7 +853,7 @@ const formatDateOnly = (value) => {
                 </div>
 
                 <div className="form-row">
-                  <label>Placa / vehículo</label>
+                  <label>{t("deliveryNotes.form.vehiclePlate")}</label>
                   <input
                     name="vehiclePlate"
                     value={form.vehiclePlate}
@@ -839,7 +862,7 @@ const formatDateOnly = (value) => {
                 </div>
 
                 <div className="form-row full">
-                  <label>Dirección entrega</label>
+                  <label>{t("deliveryNotes.form.deliveryAddress")}</label>
                   <textarea
                     name="deliveryAddress"
                     value={form.deliveryAddress}
@@ -848,7 +871,7 @@ const formatDateOnly = (value) => {
                 </div>
 
                 <div className="form-row full">
-                  <label>Instrucciones especiales</label>
+                  <label>{t("deliveryNotes.form.deliveryInstructions")}</label>
                   <textarea
                     name="deliveryInstructions"
                     value={form.deliveryInstructions}
@@ -860,19 +883,19 @@ const formatDateOnly = (value) => {
               <div className="quote-items-box">
                 <div className="items-header">
                   <div>
-                    <h4>Productos</h4>
-                    <p>Cantidad solicitada vs cantidad despachada.</p>
+                    <h4>{t("deliveryNotes.items.title")}</h4>
+                    <p>{t("deliveryNotes.items.description")}</p>
                   </div>
 
                   <button type="button" onClick={addItem}>
                     <Plus size={17} />
-                    Agregar producto
+                    {t("deliveryNotes.items.addProduct")}
                   </button>
                 </div>
 
                 {items.length === 0 ? (
                   <div className="items-empty">
-                    No hay productos agregados.
+                    {t("deliveryNotes.items.empty")}
                   </div>
                 ) : (
                   <div className="quote-items-list">
@@ -899,7 +922,9 @@ const formatDateOnly = (value) => {
                               updateItem(index, "productId", e.target.value)
                             }
                           >
-                            <option value="">Producto</option>
+                            <option value="">
+                              {t("deliveryNotes.items.product")}
+                            </option>
                             {products.map((product) => {
                               const service =
                                 product.productType === "service" ||
@@ -908,7 +933,9 @@ const formatDateOnly = (value) => {
                               return (
                                 <option key={product.id} value={product.id}>
                                   {product.name}{" "}
-                                  {service ? "(Servicio)" : `(Stock: ${product.stock})`}
+                                  {service
+                                    ? `(${t("deliveryNotes.items.service")})`
+                                    : `(${t("deliveryNotes.items.stock")}: ${product.stock})`}
                                 </option>
                               );
                             })}
@@ -921,7 +948,7 @@ const formatDateOnly = (value) => {
                             onChange={(e) =>
                               updateItem(index, "requestedQuantity", e.target.value)
                             }
-                            placeholder="Solicitado"
+                            placeholder={t("deliveryNotes.items.requested")}
                           />
 
                           <input
@@ -931,7 +958,7 @@ const formatDateOnly = (value) => {
                             onChange={(e) =>
                               updateItem(index, "dispatchedQuantity", e.target.value)
                             }
-                            placeholder="Despachado"
+                            placeholder={t("deliveryNotes.items.dispatched")}
                           />
 
                           <input
@@ -940,7 +967,7 @@ const formatDateOnly = (value) => {
                             onChange={(e) =>
                               updateItem(index, "unitPrice", e.target.value)
                             }
-                            placeholder="Precio"
+                            placeholder={t("deliveryNotes.items.price")}
                           />
 
                           <input
@@ -951,12 +978,12 @@ const formatDateOnly = (value) => {
                             onChange={(e) =>
                               updateItem(index, "discount", e.target.value)
                             }
-                            placeholder="Desc. %"
+                            placeholder={t("deliveryNotes.items.discount")}
                           />
 
                           <strong className={stockError ? "text-danger" : ""}>
                             {stockError
-                              ? `Stock: ${product.stock}`
+                              ? `${t("deliveryNotes.items.stock")}: ${product.stock}`
                               : money.format(
                                   Number(item.dispatchedQuantity || 0) *
                                     Number(item.unitPrice || 0)
@@ -979,7 +1006,7 @@ const formatDateOnly = (value) => {
 
               <div className="quote-summary">
                 <div>
-                  <span>Subtotal</span>
+                  <span>{t("deliveryNotes.summary.subtotal")}</span>
                   <strong>{money.format(totals.subtotal)}</strong>
                 </div>
 
@@ -989,14 +1016,14 @@ const formatDateOnly = (value) => {
                 </div>
 
                 <div className="summary-total">
-                  <span>Total</span>
+                  <span>{t("deliveryNotes.summary.total")}</span>
                   <strong>{money.format(totals.total)}</strong>
                 </div>
               </div>
 
               <div className="modal-actions">
                 <button type="button" className="cancel-btn" onClick={closeModal}>
-                  Cancelar
+                  {t("deliveryNotes.actions.close")}
                 </button>
 
                 <button
@@ -1005,7 +1032,7 @@ const formatDateOnly = (value) => {
                   disabled={saving}
                   onClick={() => saveDeliveryNote("draft")}
                 >
-                  Guardar borrador
+                  {t("deliveryNotes.actions.saveDraft")}
                 </button>
 
                 <button
@@ -1014,7 +1041,7 @@ const formatDateOnly = (value) => {
                   disabled={saving || hasStockError}
                   onClick={() => saveDeliveryNote("issued")}
                 >
-                  Emitir conduce
+                  {t("deliveryNotes.actions.issueDeliveryNote")}
                 </button>
               </div>
             </div>

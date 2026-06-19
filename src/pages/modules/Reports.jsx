@@ -11,6 +11,8 @@ import {
 import { api } from "../../api/axios";
 import { getFiscalNumber } from "../../utils/fiscalNumber";
 import { useAuth } from "../../context/AuthContext";
+import es from "../../i18n/locales/es.json";
+import en from "../../i18n/locales/en.json";
 import { isDominicanTenant } from "../../utils/taxConfig";
 
 const today = new Date().toISOString().slice(0, 10);
@@ -21,18 +23,33 @@ const firstDayOfMonth = () => {
   return date.toISOString().slice(0, 10);
 };
 
-
-
-const statusLabels = {
-  issued: "Emitida",
-  partial: "Parcial",
-  paid: "Pagada",
-  draft: "Borrador",
-  cancelled: "Cancelada",
-  pending: "Pendiente",
-};
-
 export default function Reports() {
+  const { tenant, language } = useAuth();
+  const dictionary = language === "en" ? en : es;
+
+  const t = (path, fallback = "", vars = {}) => {
+    let value = path
+      .split(".")
+      .reduce((acc, key) => acc?.[key], dictionary);
+
+    value = value || fallback || path;
+
+    Object.entries(vars).forEach(([key, val]) => {
+      value = String(value).replace(`{{${key}}}`, val);
+    });
+
+    return value;
+  };
+
+  const statusLabels = {
+    issued: t("reports.status.issued"),
+    partial: t("reports.status.partial"),
+    paid: t("reports.status.paid"),
+    draft: t("reports.status.draft"),
+    cancelled: t("reports.status.cancelled"),
+    pending: t("reports.status.pending"),
+  };
+
   const [loading, setLoading] = useState(true);
   const [report, setReport] = useState(null);
 
@@ -41,18 +58,14 @@ export default function Reports() {
     to: today,
   });
 
-  const { tenant } = useAuth();
   const isDO = isDominicanTenant(tenant);
 
   const formatMoney = (value) =>
-    new Intl.NumberFormat(
-      isDO ? "es-DO" : "en-US",
-      {
-        style: "currency",
-        currency: isDO ? "DOP" : "USD",
-      }
-    ).format(Number(value || 0));
-    
+    new Intl.NumberFormat(isDO ? "es-DO" : "en-US", {
+      style: "currency",
+      currency: isDO ? "DOP" : "USD",
+    }).format(Number(value || 0));
+
   const summary = report?.summary || {};
 
   const maxCategoryTotal = useMemo(() => {
@@ -80,7 +93,7 @@ export default function Reports() {
 
       setReport(data);
     } catch (error) {
-      alert(error.response?.data?.message || "No se pudieron cargar los reportes");
+      alert(error.response?.data?.message || t("reports.messages.loadError"));
     } finally {
       setLoading(false);
     }
@@ -94,12 +107,9 @@ export default function Reports() {
     <div className="reports-page">
       <section className="reports-hero">
         <div>
-          <span>Contabilidad</span>
-          <h2>Reportes</h2>
-          <p>
-            Analiza ventas, cobros, gastos, utilidad estimada, inventario y
-            movimientos recientes del negocio.
-          </p>
+          <span>{t("reports.header.eyebrow")}</span>
+          <h2>{t("reports.header.title")}</h2>
+          <p>{t("reports.header.description")}</p>
         </div>
 
         <div className="reports-actions">
@@ -127,69 +137,83 @@ export default function Reports() {
 
           <button onClick={loadReport}>
             <RefreshCcw size={18} />
-            Actualizar
+            {t("reports.header.refresh")}
           </button>
         </div>
       </section>
 
       {loading ? (
-        <div className="reports-empty">Cargando reportes...</div>
+        <div className="reports-empty">{t("reports.messages.loading")}</div>
       ) : (
         <>
           <section className="reports-stats-grid">
             <div className="report-stat">
               <BarChart3 />
-              <span>Ventas</span>
+              <span>{t("reports.stats.sales")}</span>
               <strong>{formatMoney(summary.totalSales)}</strong>
-              <small>{summary.invoicesCount || 0} facturas</small>
+              <small>
+                {t("reports.stats.invoices", "", {
+                  count: summary.invoicesCount || 0,
+                })}
+              </small>
             </div>
 
             <div className="report-stat">
               <ReceiptText />
-              <span>Cobrado</span>
+              <span>{t("reports.stats.collected")}</span>
               <strong>{formatMoney(summary.totalCollected)}</strong>
-              <small>{summary.receiptsCount || 0} recibos</small>
+              <small>
+                {t("reports.stats.receipts", "", {
+                  count: summary.receiptsCount || 0,
+                })}
+              </small>
             </div>
 
             <div className="report-stat danger">
               <WalletCards />
-              <span>Gastos</span>
+              <span>{t("reports.stats.expenses")}</span>
               <strong>{formatMoney(summary.totalExpenses)}</strong>
-              <small>{summary.expensesCount || 0} gastos</small>
+              <small>
+                {t("reports.stats.expenseCount", "", {
+                  count: summary.expensesCount || 0,
+                })}
+              </small>
             </div>
 
             <div className="report-stat success">
               <TrendingUp />
-              <span>Ganancia estimada</span>
+              <span>{t("reports.stats.netProfit")}</span>
               <strong>{formatMoney(summary.netProfit)}</strong>
-              <small>Cobrado - gastos</small>
+              <small>{t("reports.stats.netProfitHint")}</small>
             </div>
 
             <div className="report-stat warning">
               <AlertTriangle />
-              <span>Cuentas por cobrar</span>
+              <span>{t("reports.stats.accountsReceivable")}</span>
               <strong>{formatMoney(summary.accountsReceivable)}</strong>
-              <small>Balance pendiente</small>
+              <small>{t("reports.stats.accountsReceivableHint")}</small>
             </div>
 
             <div className="report-stat">
               <Package />
-              <span>Gastos pendientes</span>
+              <span>{t("reports.stats.pendingExpenses")}</span>
               <strong>{formatMoney(summary.pendingExpenses)}</strong>
-              <small>Estado pendiente</small>
+              <small>{t("reports.stats.pendingExpensesHint")}</small>
             </div>
           </section>
 
           <section className="reports-grid-two">
             <div className="reports-panel">
               <div className="reports-panel-header">
-                <h3>Ventas por día</h3>
-                <span>Facturación del rango</span>
+                <h3>{t("reports.charts.salesByDay")}</h3>
+                <span>{t("reports.charts.salesByDayHint")}</span>
               </div>
 
               <div className="report-bars">
                 {(report?.charts?.salesByDay || []).length === 0 ? (
-                  <div className="reports-empty small">No hay ventas en este rango.</div>
+                  <div className="reports-empty small">
+                    {t("reports.charts.noSales")}
+                  </div>
                 ) : (
                   report.charts.salesByDay.map((item) => (
                     <div className="report-bar-row" key={item.date}>
@@ -199,7 +223,9 @@ export default function Reports() {
                         <div
                           className="report-bar-fill"
                           style={{
-                            width: `${(Number(item.total || 0) / maxSalesDay) * 100}%`,
+                            width: `${
+                              (Number(item.total || 0) / maxSalesDay) * 100
+                            }%`,
                           }}
                         />
                       </div>
@@ -213,13 +239,15 @@ export default function Reports() {
 
             <div className="reports-panel">
               <div className="reports-panel-header">
-                <h3>Gastos por categoría</h3>
-                <span>Distribución de egresos</span>
+                <h3>{t("reports.charts.expensesByCategory")}</h3>
+                <span>{t("reports.charts.expensesByCategoryHint")}</span>
               </div>
 
               <div className="report-bars">
                 {(report?.charts?.expensesByCategory || []).length === 0 ? (
-                  <div className="reports-empty small">No hay gastos en este rango.</div>
+                  <div className="reports-empty small">
+                    {t("reports.charts.noExpenses")}
+                  </div>
                 ) : (
                   report.charts.expensesByCategory.map((item) => (
                     <div className="report-bar-row" key={item.category}>
@@ -229,7 +257,9 @@ export default function Reports() {
                         <div
                           className="report-bar-fill expense"
                           style={{
-                            width: `${(Number(item.total || 0) / maxCategoryTotal) * 100}%`,
+                            width: `${
+                              (Number(item.total || 0) / maxCategoryTotal) * 100
+                            }%`,
                           }}
                         />
                       </div>
@@ -245,13 +275,15 @@ export default function Reports() {
           <section className="reports-grid-two">
             <div className="reports-panel">
               <div className="reports-panel-header">
-                <h3>Productos más vendidos</h3>
-                <span>Según facturas emitidas</span>
+                <h3>{t("reports.charts.topProducts")}</h3>
+                <span>{t("reports.charts.topProductsHint")}</span>
               </div>
 
               <div className="report-bars">
                 {(report?.charts?.topProducts || []).length === 0 ? (
-                  <div className="reports-empty small">No hay productos vendidos.</div>
+                  <div className="reports-empty small">
+                    {t("reports.charts.noProducts")}
+                  </div>
                 ) : (
                   report.charts.topProducts.map((item) => (
                     <div className="report-bar-row" key={item.productName}>
@@ -261,7 +293,9 @@ export default function Reports() {
                         <div
                           className="report-bar-fill product"
                           style={{
-                            width: `${(Number(item.total || 0) / maxProductTotal) * 100}%`,
+                            width: `${
+                              (Number(item.total || 0) / maxProductTotal) * 100
+                            }%`,
                           }}
                         />
                       </div>
@@ -275,19 +309,21 @@ export default function Reports() {
 
             <div className="reports-panel">
               <div className="reports-panel-header">
-                <h3>Gastos por proveedor</h3>
-                <span>Proveedores con mayor gasto</span>
+                <h3>{t("reports.charts.expensesBySupplier")}</h3>
+                <span>{t("reports.charts.expensesBySupplierHint")}</span>
               </div>
 
               <div className="reports-list">
                 {(report?.charts?.expensesBySupplier || []).length === 0 ? (
-                  <div className="reports-empty small">No hay gastos con proveedor.</div>
+                  <div className="reports-empty small">
+                    {t("reports.charts.noSupplierExpenses")}
+                  </div>
                 ) : (
                   report.charts.expensesBySupplier.map((item) => (
                     <div className="reports-list-item" key={item.supplierId}>
                       <div>
                         <strong>{item.supplierName}</strong>
-                        <span>Proveedor</span>
+                        <span>{t("reports.charts.supplier")}</span>
                       </div>
 
                       <b>{formatMoney(item.total)}</b>
@@ -300,19 +336,19 @@ export default function Reports() {
 
           <section className="reports-panel">
             <div className="reports-panel-header">
-              <h3>Facturas recientes</h3>
-              <span>Últimos movimientos de ventas</span>
+              <h3>{t("reports.tables.recentInvoices")}</h3>
+              <span>{t("reports.tables.recentInvoicesHint")}</span>
             </div>
 
             <div className="reports-table-wrap">
               <table className="reports-table">
                 <thead>
                   <tr>
-                    <th>{isDO ? "e-NCF" : "Invoice #"}</th>
-                    <th>Cliente</th>
-                    <th>Estado</th>
-                    <th>Total</th>
-                    <th>Balance</th>
+                    <th>{isDO ? "e-NCF" : t("reports.tables.invoiceNumber")}</th>
+                    <th>{t("reports.tables.customer")}</th>
+                    <th>{t("reports.tables.status")}</th>
+                    <th>{t("reports.tables.total")}</th>
+                    <th>{t("reports.tables.balance")}</th>
                   </tr>
                 </thead>
 
@@ -342,13 +378,15 @@ export default function Reports() {
           <section className="reports-grid-two">
             <div className="reports-panel">
               <div className="reports-panel-header">
-                <h3>Gastos recientes</h3>
-                <span>Últimos egresos registrados</span>
+                <h3>{t("reports.tables.recentExpenses")}</h3>
+                <span>{t("reports.tables.recentExpensesHint")}</span>
               </div>
 
               <div className="reports-list">
                 {(report?.tables?.recentExpenses || []).length === 0 ? (
-                  <div className="reports-empty small">No hay gastos recientes.</div>
+                  <div className="reports-empty small">
+                    {t("reports.tables.noRecentExpenses")}
+                  </div>
                 ) : (
                   report.tables.recentExpenses.map((expense) => (
                     <div className="reports-list-item" key={expense.id}>
@@ -368,19 +406,23 @@ export default function Reports() {
 
             <div className="reports-panel">
               <div className="reports-panel-header">
-                <h3>Inventario bajo</h3>
-                <span>Productos que requieren atención</span>
+                <h3>{t("reports.tables.lowStock")}</h3>
+                <span>{t("reports.tables.lowStockHint")}</span>
               </div>
 
               <div className="reports-list">
                 {(report?.tables?.lowStockProducts || []).length === 0 ? (
-                  <div className="reports-empty small">No hay productos con stock bajo.</div>
+                  <div className="reports-empty small">
+                    {t("reports.tables.noLowStock")}
+                  </div>
                 ) : (
                   report.tables.lowStockProducts.map((product) => (
                     <div className="reports-list-item" key={product.id}>
                       <div>
                         <strong>{product.name}</strong>
-                        <span>SKU: {product.sku || "—"}</span>
+                        <span>
+                          {t("reports.tables.sku")}: {product.sku || "—"}
+                        </span>
                       </div>
 
                       <b>

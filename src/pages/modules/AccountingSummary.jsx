@@ -3,18 +3,33 @@ import {
   Wallet,
   TrendingUp,
   AlertTriangle,
-  CreditCard,
   ReceiptText,
   RefreshCcw,
 } from "lucide-react";
 import { api } from "../../api/axios";
 import { useAuth } from "../../context/AuthContext";
+import es from "../../i18n/locales/es.json";
+import en from "../../i18n/locales/en.json";
 import { isDominicanTenant } from "../../utils/taxConfig";
 
-
 export default function AccountingSummary() {
+  const { tenant, language } = useAuth();
 
-    const { tenant } = useAuth();
+  const dictionary = language === "en" ? en : es;
+
+  const t = (path, fallback = "", vars = {}) => {
+    let value = path
+      .split(".")
+      .reduce((acc, key) => acc?.[key], dictionary);
+
+    value = value || fallback || path;
+
+    Object.entries(vars).forEach(([key, val]) => {
+      value = String(value).replace(`{{${key}}}`, val);
+    });
+
+    return value;
+  };
 
   const isDO = isDominicanTenant(tenant);
   const locale = isDO ? "es-DO" : "en-US";
@@ -25,7 +40,7 @@ export default function AccountingSummary() {
       style: "currency",
       currency,
     }).format(Number(value || 0));
-    
+
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -35,7 +50,10 @@ export default function AccountingSummary() {
       const res = await api.get("/accounting/summary");
       setData(res.data);
     } catch (error) {
-      alert(error.response?.data?.message || "No se pudo cargar contabilidad");
+      alert(
+        error.response?.data?.message ||
+          t("accountingSummary.messages.loadError")
+      );
     } finally {
       setLoading(false);
     }
@@ -56,7 +74,7 @@ export default function AccountingSummary() {
     return (
       <div className="accounting-loading">
         <RefreshCcw className="dash-spin" />
-        <strong>Cargando resumen contable...</strong>
+        <strong>{t("accountingSummary.loading")}</strong>
       </div>
     );
   }
@@ -65,47 +83,48 @@ export default function AccountingSummary() {
     <div className="accounting-page">
       <section className="accounting-hero">
         <div>
-          <span>Contabilidad</span>
-          <h2>Resumen contable</h2>
-          <p>
-            Visualiza ingresos, cobros, balances pendientes y salud financiera
-            general del negocio.
-          </p>
+          <span>{t("accountingSummary.header.eyebrow")}</span>
+          <h2>{t("accountingSummary.header.title")}</h2>
+          <p>{t("accountingSummary.header.description")}</p>
         </div>
 
         <button onClick={loadSummary}>
           <RefreshCcw size={18} />
-          Actualizar
+          {t("accountingSummary.header.refresh")}
         </button>
       </section>
 
       <section className="accounting-stats-grid">
         <div className="accounting-card main">
           <Wallet />
-          <span>Ingresos del mes</span>
+          <span>{t("accountingSummary.stats.incomeMonth")}</span>
           <strong>{formatMoney(summary.incomeMonth)}</strong>
-          <small>Total facturado este mes</small>
+          <small>{t("accountingSummary.stats.incomeMonthHint")}</small>
         </div>
 
         <div className="accounting-card">
           <ReceiptText />
-          <span>Cobrado este mes</span>
+          <span>{t("accountingSummary.stats.collectedMonth")}</span>
           <strong>{formatMoney(summary.collectedMonth)}</strong>
-          <small>Recibos pagados</small>
+          <small>{t("accountingSummary.stats.collectedMonthHint")}</small>
         </div>
 
         <div className="accounting-card success">
           <TrendingUp />
-          <span>Ganancia estimada</span>
+          <span>{t("accountingSummary.stats.netProfit")}</span>
           <strong>{formatMoney(summary.netProfit)}</strong>
-          <small>Ingresos cobrados - gastos</small>
+          <small>{t("accountingSummary.stats.netProfitHint")}</small>
         </div>
 
         <div className="accounting-card danger">
           <AlertTriangle />
-          <span>Cuentas por cobrar</span>
+          <span>{t("accountingSummary.stats.accountsReceivable")}</span>
           <strong>{formatMoney(summary.accountsReceivable)}</strong>
-          <small>{summary.openInvoices || 0} facturas pendientes</small>
+          <small>
+            {t("accountingSummary.stats.pendingInvoices", "", {
+              count: summary.openInvoices || 0,
+            })}
+          </small>
         </div>
       </section>
 
@@ -113,14 +132,16 @@ export default function AccountingSummary() {
         <div className="accounting-panel">
           <div className="accounting-panel-header">
             <div>
-              <h3>Flujo de caja reciente</h3>
-              <p>Cobros recibidos en los últimos 7 días</p>
+              <h3>{t("accountingSummary.cashFlow.title")}</h3>
+              <p>{t("accountingSummary.cashFlow.description")}</p>
             </div>
           </div>
 
           <div className="accounting-chart">
             {(data?.cashFlowTrend || []).length === 0 ? (
-              <div className="accounting-empty">Aún no hay cobros recientes.</div>
+              <div className="accounting-empty">
+                {t("accountingSummary.cashFlow.empty")}
+              </div>
             ) : (
               data.cashFlowTrend.map((item) => {
                 const height = Math.max(
@@ -153,29 +174,29 @@ export default function AccountingSummary() {
         <div className="accounting-panel">
           <div className="accounting-panel-header">
             <div>
-              <h3>Estado financiero</h3>
-              <p>Indicadores rápidos</p>
+              <h3>{t("accountingSummary.financialStatus.title")}</h3>
+              <p>{t("accountingSummary.financialStatus.description")}</p>
             </div>
           </div>
 
           <div className="accounting-kpi-list">
             <div>
-              <span>Gastos registrados</span>
+              <span>{t("accountingSummary.financialStatus.expenses")}</span>
               <strong>{formatMoney(summary.expensesMonth)}</strong>
             </div>
 
             <div>
-              <span>Cuentas por pagar</span>
+              <span>{t("accountingSummary.financialStatus.accountsPayable")}</span>
               <strong>{formatMoney(summary.accountsPayable)}</strong>
             </div>
 
             <div>
-              <span>Facturas vencidas</span>
+              <span>{t("accountingSummary.financialStatus.overdueReceivable")}</span>
               <strong>{formatMoney(summary.overdueReceivable)}</strong>
             </div>
 
             <div>
-              <span>Órdenes pendientes</span>
+              <span>{t("accountingSummary.financialStatus.openPurchaseOrders")}</span>
               <strong>{summary.openPurchaseOrders || 0}</strong>
             </div>
           </div>
@@ -185,14 +206,16 @@ export default function AccountingSummary() {
       <section className="accounting-panel">
         <div className="accounting-panel-header">
           <div>
-            <h3>Últimos cobros</h3>
-            <p>Recibos más recientes registrados</p>
+            <h3>{t("accountingSummary.recentReceipts.title")}</h3>
+            <p>{t("accountingSummary.recentReceipts.description")}</p>
           </div>
         </div>
 
         <div className="accounting-table-list">
           {(data?.recentReceipts || []).length === 0 ? (
-            <div className="accounting-empty">No hay recibos registrados.</div>
+            <div className="accounting-empty">
+              {t("accountingSummary.recentReceipts.empty")}
+            </div>
           ) : (
             data.recentReceipts.map((receipt) => (
               <div className="accounting-row" key={receipt.id}>

@@ -910,7 +910,1208 @@
       "minStock": "Minimum stock",
       "status": "Status"
     }
+  },
+
+  "inventoryCount": {
+  "status": {
+    "draft": "Draft",
+    "completed": "Completed",
+    "applied": "Applied"
+  },
+  "header": {
+    "eyebrow": "Inventory management",
+    "title": "Inventory count",
+    "description": "Compare system stock against physical count and apply controlled inventory adjustments."
+  },
+  "actions": {
+    "refresh": "Refresh",
+    "newCount": "New count",
+    "createCount": "Create count",
+    "saveDraft": "Save draft",
+    "markCompleted": "Mark completed",
+    "applyAdjustments": "Apply adjustments",
+    "cancel": "Cancel",
+    "creating": "Creating..."
+  },
+  "sidebar": {
+    "recentCounts": "Recent counts",
+    "loading": "Loading counts...",
+    "empty": "No counts yet. Create the first one."
+  },
+  "hero": {
+    "title": "Select or create a count",
+    "description": "Register physical quantities, review differences, and apply inventory adjustments."
+  },
+  "stats": {
+    "progress": "Progress",
+    "products": "Products",
+    "pending": "Pending",
+    "differences": "Differences",
+    "netDifference": "Net difference"
+  },
+  "filters": {
+    "search": "Search product, SKU, barcode or category...",
+    "onlyDifferences": "Only differences",
+    "onlyPending": "Only pending"
+  },
+  "table": {
+    "product": "Product",
+    "system": "System",
+    "physicalCount": "Physical count",
+    "difference": "Difference",
+    "notes": "Notes",
+    "empty": "No products match those filters.",
+    "uncategorized": "Uncategorized",
+    "unit": "unit",
+    "pending": "Pending",
+    "exact": "Exact",
+    "optional": "Optional"
+  },
+  "detail": {
+    "createdOn": "Created on",
+    "by": "by",
+    "notes": "Notes"
+  },
+  "modal": {
+    "title": "New inventory count",
+    "description": "Corex will take a snapshot of current stock to compare it with the physical count.",
+    "countName": "Count name",
+    "countPlaceholder": "Example: June 2026 full count",
+    "notes": "Notes",
+    "category": "Specific category",
+    "searchProducts": "Search products",
+    "searchPlaceholder": "Name, SKU or barcode",
+    "info": "If filters are empty, all active stock-controlled products will be included."
+  },
+  "messages": {
+    "loadError": "Error loading counts",
+    "loadDetailError": "Error loading count details",
+    "nameRequired": "Count name is required",
+    "created": "Count created successfully",
+    "createError": "Error creating count",
+    "saved": "Count saved successfully",
+    "saveError": "Error saving count",
+    "pendingProducts": "There are pending products",
+    "pendingProductsMessage": "You still have {{count}} product(s) not counted. Do you want to mark it as completed anyway?",
+    "cannotApply": "You cannot apply a count with pending products.",
+    "applied": "Count applied successfully",
+    "applyError": "Error applying count",
+    "deleted": "Count deleted successfully",
+    "deleteError": "Error deleting count",
+    "loadingDetail": "Loading details..."
+  },
+  "confirm": {
+    "complete": "Yes, complete",
+    "applyTitle": "Apply inventory count",
+    "applyMessage": "This will adjust actual product stock and create inventory movements. This action cannot be undone.",
+    "applyButton": "Apply count",
+    "deleteTitle": "Delete count",
+    "deleteMessage": "Are you sure you want to delete \"{{name}}\"?",
+    "deleteButton": "Delete"
   }
-
-
+},
+"catalogPublic": {
+  "title": "Catálogo",
+  "fallbackTitle": "Catálogo",
+  "defaultAddress": "Productos disponibles",
+  "searchPlaceholder": "Buscar producto...",
+  "loading": "Cargando catálogo...",
+  "unavailable": "Catálogo no disponible",
+  "empty": "No hay productos para mostrar.",
+  "defaultCategory": "Producto"
+},
+"productCatalog": {
+  "title": "Catalog",
+  "subtitle": "Public product catalog",
+  "description": "Share a link with your customers so they can view image, name, and price of active inventory products.",
+  "linkLabel": "Catalog link",
+  "generatePlaceholder": "Generate a link to share",
+  "regenerate": "Regenerate / activate",
+  "generating": "Generating...",
+  "generate": "Generate link",
+  "viewCatalog": "View catalog",
+  "preview": "Preview",
+  "visibleProducts": "{{count}} products visible in the catalog.",
+  "searchPlaceholder": "Search product...",
+  "loading": "Loading catalog...",
+  "empty": "No visible products.",
+  "defaultCategory": "Product",
+  "note": "To change the image or remove a product from the catalog, edit it from Inventory.",
+  "alerts": {
+    "loadError": "Could not load catalog",
+    "generateError": "Could not generate link",
+    "copied": "Link copied to clipboard"
+  }
+},
+"pos": {
+  "title": "POS / Cash register",
+  "openCash": "Open cash register",
+  "openCashDescription": "Select a cash register and enter the opening amount.",
+  "cashRegister": "Cash register",
+  "selectCashRegister": "Select a cash register",
+  "openingAmount": "Opening amount",
+  "cashOpen": "Open cash register",
+  "closeCash": "Close cash register",
+  "cashSold": "Cash sales",
+  "card": "Card",
+  "transfer": "Transfer",
+  "expectedCash": "Expected cash",
+  "scanOrSearch": "Scan or search for a product...",
+  "ticket": "Ticket",
+  "emptyTicket": "No products added.",
+  "productDiscount": "Product discount",
+  "subtotal": "Subtotal",
+  "generalDiscount": "General discount",
+  "discounts": "Discounts",
+  "total": "Total",
+  "stateTax": "State Tax",
+  "countyTax": "County Tax",
+  "cityTax": "City Tax",
+  "totalTaxes": "Total Taxes",
+  "invoiceType": "Invoice type",
+  "consumerFinalFiscal": "Electronic final consumer invoice",
+  "creditFiscal": "Electronic fiscal credit invoice",
+  "customerRnc": "Customer Tax ID",
+  "customerBusinessName": "Customer business name",
+  "customerNameOptional": "Customer name (optional)",
+  "customerName": "Customer name",
+  "paymentMethod": "Payment method",
+  "cash": "Cash",
+  "check": "Check",
+  "mixed": "Mixed",
+  "amountReceived": "Amount received",
+  "change": "Change",
+  "charge": "Charge",
+  "cashCount": "Cash count",
+  "cashClosing": "Cash closing",
+  "physicalCashCount": "Physical cash counted",
+  "difference": "Difference",
+  "cancel": "Cancel",
+  "confirmClose": "Confirm closing",
+  "totalSold": "Total sold",
+  "counted": "Counted",
+  "closedSuccessfully": "Cash register closed successfully",
+  "errors": {
+    "load": "Could not load POS",
+    "openCash": "Could not open cash register",
+    "closeCash": "Could not close cash register",
+    "openFirst": "You must open a cash register first",
+    "addProducts": "Add products to the ticket",
+    "fiscalRequired": "Customer Tax ID and business name are required for fiscal credit",
+    "saleSuccess": "Sale registered successfully",
+    "charge": "Could not charge"
+  },
+  "receipt": {
+  "modalTitle": "Receipt",
+  "rnc": "Tax ID",
+  "phone": "Phone",
+  "customer": "Customer",
+  "customerRnc": "Tax ID",
+  "customerBusinessName": "Business Name",
+  "issueDate": "Date",
+  "cashRegister": "Cash Register",
+  "cashier": "Cashier",
+  "payment": "Payment",
+  "subtotal": "Subtotal",
+  "discount": "Discount",
+  "total": "Total",
+  "paid": "Paid",
+  "change": "Change",
+  "totalItems": "Items:",
+  "scanQr": "Scan to view this receipt",
+  "qrAlt": "QR Code",
+  "thanks": "Thank you for your purchase",
+  "issuedBy": "Issued by Corex",
+  "print": "Print",
+  "close": "Close",
+  "discountShort": "Disc.",
+  "stateTax": "State Tax",
+  "countyTax": "County Tax",
+  "cityTax": "City Tax",
+  "totalTaxes": "Total Taxes",
+  "consumerFinal": "Final Consumer",
+  "creditFiscal": "Fiscal Credit",
+  "saleReceipt": "Sales Receipt"
+},
+"cashRegistersPage": {
+  "eyebrow": "POS / Cash register",
+  "title": "Cash registers",
+  "description": "Create cash registers and assign which users can open them.",
+  "placeholder": "Example: Main Register",
+  "create": "Create register",
+  "loading": "Loading cash registers...",
+  "empty": "No cash registers created.",
+  "active": "Active",
+  "inactive": "Inactive",
+  "users": "Users",
+  "activate": "Activate",
+  "deactivate": "Deactivate",
+  "assignedUsers": "{{count}} assigned user(s)",
+  "noAssignedUsers": "No assigned users",
+  "assignUsers": "Assign users",
+  "saveAssignments": "Save assignments",
+  "errors": {
+    "load": "Could not load cash registers",
+    "nameRequired": "Enter the cash register name",
+    "create": "Could not create cash register",
+    "update": "Could not update cash register",
+    "assign": "Could not assign users"
+  }
+},
+"cashSessionReports": {
+  "eyebrow": "POS / Cash register",
+  "title": "Cash closing and count history",
+  "description": "Cash register reports based on each closing count.",
+  "stats": {
+    "closures": "Closings",
+    "totalSold": "Total sold",
+    "expectedCash": "Expected cash",
+    "totalDifference": "Total difference"
+  },
+  "filters": {
+    "cashRegister": "Cash register",
+    "all": "All",
+    "from": "From",
+    "to": "To",
+    "filter": "Filter"
+  },
+  "table": {
+    "closure": "Closing",
+    "cashRegister": "Cash register",
+    "user": "User",
+    "opening": "Opening",
+    "expected": "Expected",
+    "counted": "Counted",
+    "difference": "Difference",
+    "totalSold": "Total sold",
+    "actions": "Actions",
+    "viewReport": "View report"
+  },
+  "mobile": {
+    "cashClosure": "Cash closing",
+    "cashRegisterFallback": "Cash register",
+    "user": "User",
+    "totalSold": "Total sold",
+    "difference": "Difference",
+    "counted": "Counted",
+    "viewReport": "View report"
+  },
+  "report": {
+    "modalTitle": "Closing report",
+    "title": "Cash count report",
+    "cashRegister": "Cash register",
+    "user": "User",
+    "opening": "Opening",
+    "closure": "Closing",
+    "openingAmount": "Opening amount",
+    "expectedCash": "Expected cash",
+    "counted": "Counted",
+    "difference": "Difference",
+    "sales": "Sales",
+    "soldProducts": "Products sold",
+    "subtotal": "Subtotal",
+    "discounts": "Discounts",
+    "totalSold": "Total sold",
+    "cash": "Cash",
+    "card": "Card",
+    "transfer": "Transfer",
+    "check": "Check",
+    "time": "Time",
+    "sale": "Sale",
+    "method": "Method",
+    "total": "Total",
+    "print": "Print report"
+  },
+  "messages": {
+    "loading": "Loading closings...",
+    "empty": "No cash closings to show.",
+    "loadError": "Could not load cash closing history",
+    "openReportError": "Could not open the report"
+  }
+},
+"salesPage": {
+  "eyebrow": "POS / Cash register",
+  "title": "POS Sales",
+  "description": "Review sales by cash register, date, and payment method.",
+  "stats": {
+    "sales": "Sales",
+    "totalSold": "Total sold",
+    "cash": "Cash",
+    "card": "Card",
+    "transfer": "Transfer"
+  },
+  "filters": {
+    "from": "From",
+    "to": "To",
+    "cashRegister": "Cash register",
+    "allCashRegisters": "All",
+    "method": "Method",
+    "all": "All",
+    "filter": "Filter",
+    "clear": "Clear"
+  },
+  "payment": {
+    "cash": "Cash",
+    "card": "Card",
+    "transfer": "Transfer",
+    "check": "Check",
+    "mixed": "Mixed"
+  },
+  "table": {
+    "date": "Date",
+    "sale": "Sale",
+    "cashRegister": "Cash register",
+    "user": "User",
+    "method": "Method",
+    "total": "Total",
+    "viewDetail": "View details",
+    "reprintTicket": "Reprint ticket"
+  },
+  "detail": {
+    "title": "Sale details",
+    "cashRegister": "Cash register",
+    "user": "User",
+    "method": "Method",
+    "total": "Total",
+    "soldProducts": "Products sold",
+    "printTicket": "Print ticket"
+  },
+  "messages": {
+    "loading": "Loading sales...",
+    "empty": "No POS sales to show.",
+    "loadError": "Could not load POS sales",
+    "detailError": "Could not load the details"
+  }
+}
+},
+"receipt": {
+  "modalTitle": "POS receipt",
+  "saleReceipt": "Sales receipt",
+  "rnc": "Tax ID",
+  "phone": "Phone",
+  "consumerFinal": "Electronic final consumer invoice",
+  "creditFiscal": "Electronic fiscal credit invoice",
+  "customerRnc": "Customer Tax ID",
+  "customerBusinessName": "Customer business name",
+  "customer": "Customer",
+  "issueDate": "Issue date",
+  "cashRegister": "Cash register",
+  "cashier": "Cashier",
+  "payment": "Payment",
+  "discountShort": "Disc",
+  "subtotal": "SUBTOTAL",
+  "discount": "DISCOUNT",
+  "stateTax": "State Tax",
+  "countyTax": "County Tax",
+  "cityTax": "City Tax",
+  "totalTaxes": "Total Taxes",
+  "total": "TOTAL",
+  "paid": "PAID",
+  "change": "CHANGE",
+  "totalItems": "TOTAL ITEMS",
+  "qrAlt": "Receipt QR",
+  "scanQr": "Scan to view",
+  "thanks": "Thank you for your purchase",
+  "issuedBy": "Issued by Corex",
+  "print": "Print",
+  "close": "Close"
+},
+"deliveryNotes": {
+  "status": {
+    "draft": "Draft",
+    "issued": "Issued",
+    "delivered": "Delivered",
+    "cancelled": "Cancelled"
+  },
+  "header": {
+    "eyebrow": "Delivery Notes",
+    "title": "Dispatches and deliveries",
+    "description": "Create delivery notes, deduct inventory when issued, and convert deliveries to invoices.",
+    "new": "New delivery note"
+  },
+  "stats": {
+    "total": "Total",
+    "drafts": "Drafts",
+    "issued": "Issued",
+    "delivered": "Delivered"
+  },
+  "toolbar": {
+    "title": "Delivery note list",
+    "description": "Manage drafts, deliveries, cancellations, and billing.",
+    "all": "All",
+    "search": "Search delivery note..."
+  },
+  "table": {
+    "deliveryNote": "Delivery note",
+    "customer": "Customer",
+    "customerPurchaseOrder": "Customer PO",
+    "delivery": "Delivery",
+    "total": "Total",
+    "status": "Status",
+    "createdBy": "Created by",
+    "actions": "Actions"
+  },
+  "actions": {
+    "print": "Print",
+    "issue": "Issue",
+    "markDelivered": "Mark delivered",
+    "convertToInvoice": "Convert to invoice",
+    "cancel": "Cancel",
+    "close": "Close",
+    "saveDraft": "Save draft",
+    "issueDeliveryNote": "Issue delivery note"
+  },
+  "messages": {
+    "loading": "Loading delivery notes...",
+    "empty": "No delivery notes registered.",
+    "loadError": "Error loading delivery notes",
+    "customerRequired": "Customer is required",
+    "purchaseOrderRequired": "The customer's purchase order is required",
+    "itemsRequired": "Add at least one product",
+    "stockError": "Some products have insufficient stock",
+    "saveError": "Error saving delivery note",
+    "issueError": "Error issuing delivery note",
+    "deliveredError": "Error marking as delivered",
+    "cancelError": "Error cancelling delivery note",
+    "convertError": "Error converting to invoice",
+    "convertedSuccess": "Delivery note converted to draft invoice"
+  },
+  "confirm": {
+    "issueTitle": "Issue delivery note",
+    "issueMessage": "Issue {{number}}? This will deduct inventory.",
+    "issueButton": "Issue",
+    "cancelTitle": "Cancel delivery note",
+    "cancelMessage": "Cancel {{number}}?",
+    "cancelButton": "Cancel",
+    "convertTitle": "Convert to invoice",
+    "convertMessage": "Convert {{number}} to invoice?",
+    "convertButton": "Convert"
+  },
+  "prompts": {
+    "receivedByName": "Name of the person who received:",
+    "receivedById": "ID of the person who received:"
+  },
+  "form": {
+    "modalEyebrow": "New delivery note",
+    "title": "Create delivery note",
+    "customer": "Customer *",
+    "customerName": "Customer name",
+    "rnc": "Tax ID",
+    "phone": "Phone",
+    "email": "Email",
+    "customerPurchaseOrder": "Customer purchase order *",
+    "purchaseOrderPlaceholder": "PO-0001",
+    "warehouse": "Warehouse",
+    "issueDate": "Issue date",
+    "deliveryDate": "Delivery date",
+    "driver": "Driver",
+    "driverId": "Driver ID",
+    "vehiclePlate": "Plate / vehicle",
+    "deliveryAddress": "Delivery address",
+    "deliveryInstructions": "Special instructions"
+  },
+  "items": {
+    "title": "Products",
+    "description": "Requested quantity vs dispatched quantity.",
+    "addProduct": "Add product",
+    "empty": "No products added.",
+    "product": "Product",
+    "service": "Service",
+    "stock": "Stock",
+    "requested": "Requested",
+    "dispatched": "Dispatched",
+    "price": "Price",
+    "discount": "Disc. %"
+  },
+  "summary": {
+    "subtotal": "Subtotal",
+    "total": "Total"
+  },
+  "print": {
+    "title": "DELIVERY NOTE",
+    "subtitle": "Delivery document. This is not a fiscal invoice.",
+    "companyFallback": "My company",
+    "rnc": "Tax ID",
+    "customer": "Customer",
+    "customerRnc": "Tax ID",
+    "phone": "Phone",
+    "customerPurchaseOrder": "Purchase order",
+    "deliveryAddress": "Delivery address",
+    "warehouse": "Warehouse",
+    "warehouseFallback": "Main",
+    "driver": "Driver",
+    "driverId": "ID",
+    "vehiclePlate": "Vehicle/Plate",
+    "issueDate": "Issue date",
+    "deliveryDate": "Delivery date",
+    "code": "Code",
+    "product": "Product",
+    "description": "Description",
+    "unit": "Unit",
+    "requested": "Requested",
+    "dispatched": "Dispatched",
+    "instructions": "Instructions",
+    "deliveredBy": "Delivered by",
+    "receivedBy": "Received by",
+    "signatureDelivered": "Name / Signature / ID",
+    "signatureReceived": "Name / Signature / ID / Stamp"
+  },
+  "common": {
+    "system": "System",
+    "warehouseDefault": "Main",
+    "unitDefault": "UNIT"
+  }
+},
+"purchaseOrders": {
+  "status": {
+    "draft": "Draft",
+    "sent": "Sent",
+    "received": "Received",
+    "cancelled": "Cancelled"
+  },
+  "header": {
+    "eyebrow": "Purchase order",
+    "title": "Supplier purchases",
+    "description": "Create purchase orders, register requested products, and increase inventory when the order is received.",
+    "new": "New order"
+  },
+  "stats": {
+    "orders": "Orders",
+    "totalPurchases": "Total purchases",
+    "received": "Received",
+    "drafts": "Drafts"
+  },
+  "toolbar": {
+    "title": "Order list",
+    "description": "Search, print, receive, or delete purchase orders.",
+    "search": "Search order or supplier..."
+  },
+  "table": {
+    "order": "Order",
+    "supplier": "Supplier",
+    "date": "Date",
+    "expectedDelivery": "Expected delivery",
+    "subtotal": "Subtotal",
+    "total": "Total",
+    "createdBy": "Created by",
+    "status": "Status",
+    "receiveInventory": "Receive inventory"
+  },
+  "modal": {
+    "eyebrow": "New order",
+    "title": "Create purchase order"
+  },
+  "form": {
+    "supplier": "Supplier *",
+    "selectSupplier": "Select supplier",
+    "selectedSupplier": "Selected supplier",
+    "rnc": "Tax ID",
+    "phone": "Phone",
+    "email": "Email",
+    "registeredOrders": "Registered orders",
+    "totalPurchased": "Total purchased",
+    "pendingOrders": "Pending orders",
+    "pendingBalance": "Pending balance",
+    "lastPurchases": "Latest purchases",
+    "emptySupplierHistory": "This supplier does not have registered purchases yet.",
+    "expectedDelivery": "Expected delivery",
+    "notes": "Notes",
+    "notesPlaceholder": "Terms, observations, instructions for the supplier...",
+    "cancel": "Cancel",
+    "saving": "Saving...",
+    "save": "Save order"
+  },
+  "items": {
+    "title": "Products to purchase",
+    "description": "Add inventory products or create manual product lines.",
+    "add": "Add product",
+    "empty": "No products added to this order.",
+    "selectProduct": "Select product",
+    "stock": "Stock",
+    "manualProduct": "Manual product",
+    "quantity": "Quantity",
+    "cost": "Cost",
+    "lastCost": "Last cost"
+  },
+  "summary": {
+    "subtotal": "Subtotal",
+    "total": "Total"
+  },
+  "messages": {
+    "loadError": "Error loading purchase orders",
+    "supplierRequired": "Supplier is required",
+    "itemsRequired": "You must add at least one product",
+    "completeItems": "You must complete the added products",
+    "createError": "Error creating purchase order",
+    "statusError": "Error changing status",
+    "deleteError": "Error deleting purchase order",
+    "loading": "Loading purchase orders...",
+    "empty": "No purchase orders registered."
+  },
+  "confirm": {
+    "receiveTitle": "Receive order",
+    "receiveMessage": "Are you sure you want to receive order {{number}}? This will increase inventory.",
+    "receiveButton": "Receive order",
+    "deleteTitle": "Delete order",
+    "deleteMessage": "Are you sure you want to delete order {{number}}? This action cannot be undone.",
+    "deleteButton": "Delete"
+  },
+  "print": {
+    "title": "PURCHASE ORDER",
+    "date": "Date",
+    "expectedDelivery": "Expected delivery",
+    "supplier": "Supplier",
+    "rnc": "Tax ID",
+    "phone": "Phone",
+    "email": "Email",
+    "status": "Status",
+    "product": "Product",
+    "quantity": "Quantity",
+    "cost": "Cost",
+    "total": "Total",
+    "subtotal": "Subtotal",
+    "notes": "Notes"
+  },
+  "common": {
+    "system": "System"
+  }
+},
+"suppliers": {
+  "header": {
+    "eyebrow": "Suppliers",
+    "title": "Supplier management",
+    "description": "Register suppliers, tax information, and contact details for future purchase orders.",
+    "new": "New supplier"
+  },
+  "stats": {
+    "total": "Total suppliers",
+    "active": "Active",
+    "withRnc": "With Tax ID",
+    "inactive": "Inactive"
+  },
+  "toolbar": {
+    "title": "Supplier list",
+    "description": "Search, edit, deactivate, or reactivate suppliers.",
+    "search": "Search supplier..."
+  },
+  "filters": {
+    "active": "Active",
+    "inactive": "Inactive",
+    "all": "All"
+  },
+  "table": {
+    "supplier": "Supplier",
+    "rnc": "Tax ID",
+    "phone": "Phone",
+    "email": "Email",
+    "status": "Status",
+    "actions": "Actions"
+  },
+  "status": {
+    "active": "Active",
+    "inactive": "Inactive"
+  },
+  "actions": {
+    "edit": "Edit",
+    "disable": "Disable",
+    "reactivate": "Reactivate",
+    "deleteForever": "Delete permanently",
+    "cancel": "Cancel",
+    "saveChanges": "Save changes",
+    "create": "Create supplier",
+    "saving": "Saving..."
+  },
+  "modal": {
+    "editEyebrow": "Edit supplier",
+    "newEyebrow": "New supplier",
+    "editTitle": "Update supplier",
+    "newTitle": "Register supplier"
+  },
+  "fields": {
+    "name": "Name *",
+    "rnc": "Tax ID",
+    "phone": "Phone",
+    "email": "Email",
+    "address": "Address",
+    "notes": "Notes"
+  },
+  "placeholders": {
+    "name": "Supplier name",
+    "rnc": "Tax ID",
+    "phone": "809-000-0000",
+    "email": "supplier@email.com",
+    "address": "Supplier address",
+    "notes": "Terms, internal contact, observations..."
+  },
+  "messages": {
+    "loading": "Loading suppliers...",
+    "empty": "No suppliers registered.",
+    "loadError": "Error loading suppliers",
+    "nameRequired": "Supplier name is required",
+    "saveError": "Error saving supplier",
+    "deactivateError": "Error deactivating supplier",
+    "reactivateError": "Error reactivating supplier"
+  },
+  "confirm": {
+    "deactivateTitle": "Deactivate supplier",
+    "deactivateMessage": "Deactivate supplier \"{{name}}\"?",
+    "deactivateButton": "Deactivate",
+    "deleteTitle": "Delete supplier",
+    "deleteMessage": "This will permanently delete the supplier. This action cannot be undone.",
+    "deleteButton": "Delete"
+  }
+},
+"accountingSummary": {
+  "loading": "Loading accounting summary...",
+  "header": {
+    "eyebrow": "Accounting",
+    "title": "Accounting Summary",
+    "description": "View income, collections, pending balances, and the overall financial health of the business.",
+    "refresh": "Refresh"
+  },
+  "stats": {
+    "incomeMonth": "Monthly income",
+    "incomeMonthHint": "Total billed this month",
+    "collectedMonth": "Collected this month",
+    "collectedMonthHint": "Paid receipts",
+    "netProfit": "Estimated profit",
+    "netProfitHint": "Collected income - expenses",
+    "accountsReceivable": "Accounts receivable",
+    "pendingInvoices": "{{count}} pending invoices"
+  },
+  "cashFlow": {
+    "title": "Recent cash flow",
+    "description": "Collections received in the last 7 days",
+    "empty": "There are no recent collections yet."
+  },
+  "financialStatus": {
+    "title": "Financial status",
+    "description": "Quick indicators",
+    "expenses": "Registered expenses",
+    "accountsPayable": "Accounts payable",
+    "overdueReceivable": "Overdue invoices",
+    "openPurchaseOrders": "Pending orders"
+  },
+  "recentReceipts": {
+    "title": "Latest collections",
+    "description": "Most recent registered receipts",
+    "empty": "No receipts registered."
+  },
+  "messages": {
+    "loadError": "Could not load accounting"
+  }
+},
+"accountsReceivable": {
+  "status": {
+    "issued": "Pending",
+    "partial": "Partial",
+    "paid": "Paid",
+    "cancelled": "Cancelled",
+    "draft": "Draft"
+  },
+  "header": {
+    "eyebrow": "Accounting",
+    "title": "Accounts Receivable",
+    "description": "Track pending invoices, overdue balances, and payments received by customer.",
+    "refresh": "Refresh"
+  },
+  "stats": {
+    "totalReceivable": "Total receivable",
+    "openInvoices": "{{count}} open invoices",
+    "overdue": "Overdue",
+    "overdueHint": "Invoices past due",
+    "current": "Current",
+    "currentHint": "Current balance",
+    "partialInvoices": "Partial invoices",
+    "partialHint": "With payments applied"
+  },
+  "filters": {
+    "search": "Search invoice, customer, Tax ID, phone or email",
+    "allStatuses": "All statuses",
+    "pending": "Pending",
+    "partial": "Partial",
+    "allAging": "All",
+    "overdue": "Overdue",
+    "current": "Current",
+    "filter": "Filter"
+  },
+  "table": {
+    "invoice": "Invoice",
+    "customer": "Customer",
+    "issued": "Issued",
+    "due": "Due",
+    "total": "Total",
+    "paid": "Paid",
+    "balance": "Balance",
+    "status": "Status",
+    "progress": "Progress",
+    "daysOverdue": "{{days}} days overdue",
+    "paidPercent": "{{percent}}% paid",
+    "viewInvoice": "View invoice",
+    "registerPayment": "Register payment"
+  },
+  "messages": {
+    "loadError": "Could not load accounts receivable",
+    "loading": "Loading accounts receivable...",
+    "empty": "No pending invoices to collect."
+  },
+  "recentPayments": {
+    "title": "Recent payments",
+    "description": "Latest registered receipts",
+    "empty": "No recent payments."
+  },
+  "recommendation": {
+    "title": "Recommendation",
+    "subtitle": "Practical use",
+    "text": "Prioritize collecting overdue invoices and invoices with the highest balance first. This module is automatically fed by issued or partially paid invoices."
+  }
+},
+"accountsPayable": {
+  "status": {
+    "draft": "Draft",
+    "sent": "Sent",
+    "received": "Received",
+    "cancelled": "Cancelled",
+    "paid": "Paid"
+  },
+  "header": {
+    "eyebrow": "Accounting",
+    "title": "Accounts Payable",
+    "description": "Track pending purchase orders, suppliers, due dates, and payment commitments.",
+    "refresh": "Refresh"
+  },
+  "stats": {
+    "totalPayable": "Total payable",
+    "openOrders": "{{count}} open orders",
+    "overdue": "Overdue",
+    "overdueHint": "Orders past due",
+    "current": "Current",
+    "currentHint": "Current balance",
+    "receivedOrders": "Received orders",
+    "receivedHint": "Pending closing/payment"
+  },
+  "filters": {
+    "search": "Search order, supplier or Tax ID",
+    "allSuppliers": "All suppliers",
+    "allStatuses": "All statuses",
+    "sent": "Sent",
+    "received": "Received",
+    "allAging": "All",
+    "overdue": "Overdue",
+    "current": "Current",
+    "filter": "Filter"
+  },
+  "table": {
+    "order": "Order",
+    "supplier": "Supplier",
+    "date": "Date",
+    "due": "Due",
+    "total": "Total",
+    "balance": "Balance",
+    "status": "Status",
+    "reference": "Reference",
+    "daysOverdue": "{{days}} days overdue",
+    "viewDetail": "View details",
+    "markPaid": "Mark as paid",
+    "goToExpenses": "Go to expenses"
+  },
+  "messages": {
+    "loadError": "Could not load accounts payable",
+    "markPaidError": "Could not mark as paid",
+    "loading": "Loading accounts payable...",
+    "empty": "No pending orders to pay.",
+    "noSuppliers": "No suppliers registered."
+  },
+  "confirm": {
+    "markPaidTitle": "Mark order as paid",
+    "markPaidMessage": "Mark order {{number}} as paid?",
+    "markPaidButton": "Mark as paid"
+  },
+  "suppliersPanel": {
+    "title": "Related suppliers",
+    "description": "Quick filter by supplier",
+    "filter": "Filter"
+  },
+  "recommendation": {
+    "title": "Recommendation",
+    "subtitle": "Practical use",
+    "text": "This module is fed by sent or received purchase orders. Later we can add partial supplier payments so the payable balance is exact."
+  },
+  "detail": {
+    "title": "Accounts payable detail",
+    "supplier": "Supplier",
+    "rnc": "Tax ID",
+    "date": "Date",
+    "due": "Due",
+    "total": "Total",
+    "balance": "Balance",
+    "status": "Status",
+    "reference": "Reference",
+    "markPaid": "Mark as paid",
+    "close": "Close"
+  }
+},
+"expenses": {
+  "header": {
+    "eyebrow": "Accounting",
+    "title": "Expenses",
+    "refresh": "Refresh",
+    "new": "New expense"
+  },
+  "stats": {
+    "monthTotal": "Monthly expenses",
+    "pending": "Pending",
+    "filteredResult": "Filtered result"
+  },
+  "filters": {
+    "search": "Search expense, issuer, e-NCF or category",
+    "filter": "Filter"
+  },
+  "table": {
+    "number": "No.",
+    "date": "Date",
+    "ncf": "e-NCF",
+    "category": "Category",
+    "description": "Description",
+    "issuerName": "Issuer business name",
+    "total": "Total",
+    "view": "View details",
+    "edit": "Edit",
+    "delete": "Delete"
+  },
+  "messages": {
+    "loadError": "Could not load expenses",
+    "loading": "Loading expenses...",
+    "empty": "No expenses registered.",
+    "dgiiUrlRequired": "Paste the DGII verification link",
+    "dgiiImportError": "Could not import the invoice from DGII",
+    "saveError": "Could not save the expense",
+    "duplicateTitle": "Duplicate e-NCF",
+    "duplicateMessage": "This e-NCF is already registered in expenses.",
+    "understood": "Understood",
+    "close": "Close",
+    "deleteError": "Could not delete the expense"
+  },
+  "confirm": {
+    "deleteTitle": "Delete expense",
+    "deleteMessage": "Delete expense {{number}}? This action cannot be undone.",
+    "deleteButton": "Delete"
+  },
+  "detail": {
+    "title": "Expense details",
+    "total": "Total",
+    "date": "Date",
+    "category": "Category",
+    "description": "Description",
+    "ncf": "e-NCF",
+    "issuerName": "Issuer business name",
+    "issuerRnc": "Issuer Tax ID",
+    "taxTotal": "Total {{taxLabel}}",
+    "notes": "Notes",
+    "close": "Close"
+  },
+  "form": {
+    "editTitle": "Edit expense",
+    "newTitle": "New expense",
+    "category": "Category",
+    "issueDate": "Issue date",
+    "description": "Description / Concept",
+    "ncf": "e-NCF",
+    "issuerName": "Issuer business name",
+    "issuerNamePlaceholder": "Issuer business name",
+    "issuerRnc": "Issuer Tax ID",
+    "paymentMethod": "Method",
+    "taxTotal": "Total {{taxLabel}}",
+    "totalAmount": "Total amount",
+    "notes": "Notes",
+    "cancel": "Cancel",
+    "saving": "Saving...",
+    "save": "Save expense"
+  },
+  "categories": {
+    "operational": "Operational",
+    "payroll": "Payroll",
+    "services": "Services",
+    "transport": "Transport",
+    "materials": "Materials",
+    "rent": "Rent",
+    "marketing": "Marketing",
+    "inventory": "Inventory",
+    "other": "Other"
+  },
+  "paymentMethods": {
+    "cash": "Cash",
+    "card": "Card",
+    "transfer": "Transfer",
+    "check": "Check",
+    "credit": "Credit",
+    "other": "Other"
+  },
+  "dgii": {
+    "title": "Import invoice from DGII QR",
+    "description": "Scan the electronic invoice QR code and paste the DGII validation link here.",
+    "label": "DGII validation link",
+    "placeholder": "https://ecf.dgii.gov.do/ecf/consultatimbre?...",
+    "importing": "Importing...",
+    "import": "Import data",
+    "autoData": "Data completed automatically:",
+    "issuerRnc": "Issuer Tax ID",
+    "ncf": "e-NCF",
+    "date": "Date",
+    "total": "Total",
+    "help": "Verify the imported information before saving the expense."
+  }
+},
+"reports": {
+  "status": {
+    "issued": "Issued",
+    "partial": "Partial",
+    "paid": "Paid",
+    "draft": "Draft",
+    "cancelled": "Cancelled",
+    "pending": "Pending"
+  },
+  "header": {
+    "eyebrow": "Accounting",
+    "title": "Reports",
+    "description": "Analyze sales, collections, expenses, estimated profit, inventory, and recent business movements.",
+    "refresh": "Refresh"
+  },
+  "messages": {
+    "loadError": "Could not load reports",
+    "loading": "Loading reports..."
+  },
+  "stats": {
+    "sales": "Sales",
+    "invoices": "{{count}} invoices",
+    "collected": "Collected",
+    "receipts": "{{count}} receipts",
+    "expenses": "Expenses",
+    "expenseCount": "{{count}} expenses",
+    "netProfit": "Estimated profit",
+    "netProfitHint": "Collected - expenses",
+    "accountsReceivable": "Accounts receivable",
+    "accountsReceivableHint": "Pending balance",
+    "pendingExpenses": "Pending expenses",
+    "pendingExpensesHint": "Pending status"
+  },
+  "charts": {
+    "salesByDay": "Sales by day",
+    "salesByDayHint": "Billing in selected range",
+    "noSales": "No sales in this range.",
+    "expensesByCategory": "Expenses by category",
+    "expensesByCategoryHint": "Expense distribution",
+    "noExpenses": "No expenses in this range.",
+    "topProducts": "Best-selling products",
+    "topProductsHint": "Based on issued invoices",
+    "noProducts": "No products sold.",
+    "expensesBySupplier": "Expenses by supplier",
+    "expensesBySupplierHint": "Suppliers with the highest expense",
+    "noSupplierExpenses": "No supplier expenses.",
+    "supplier": "Supplier"
+  },
+  "tables": {
+    "recentInvoices": "Recent invoices",
+    "recentInvoicesHint": "Latest sales movements",
+    "invoiceNumber": "Invoice #",
+    "customer": "Customer",
+    "status": "Status",
+    "total": "Total",
+    "balance": "Balance",
+    "recentExpenses": "Recent expenses",
+    "recentExpensesHint": "Latest registered expenses",
+    "noRecentExpenses": "No recent expenses.",
+    "lowStock": "Low stock",
+    "lowStockHint": "Products that require attention",
+    "noLowStock": "No low-stock products.",
+    "sku": "SKU"
+  }
+},
+"usersManagement": {
+  "accessDenied": {
+    "title": "Restricted access",
+    "description": "Only the master user can manage users."
+  },
+  "header": {
+    "eyebrow": "Team",
+    "title": "Users",
+    "description": "Create administrators and employees for this company.",
+    "new": "New user"
+  },
+  "stats": {
+    "total": "Total users",
+    "active": "Active",
+    "admins": "Admins",
+    "employees": "Employees"
+  },
+  "table": {
+    "title": "Team members",
+    "refresh": "Refresh",
+    "user": "User",
+    "email": "Email",
+    "role": "Role",
+    "status": "Status",
+    "created": "Created"
+  },
+  "status": {
+    "active": "Active",
+    "inactive": "Inactive"
+  },
+  "roles": {
+    "master": "Master",
+    "admin": "Admin",
+    "employee": "Employee"
+  },
+  "actions": {
+    "deactivate": "Deactivate",
+    "cancel": "Cancel",
+    "saving": "Saving...",
+    "create": "Create user"
+  },
+  "modal": {
+    "title": "New user",
+    "description": "You can only create admin or employee users."
+  },
+  "fields": {
+    "name": "Name",
+    "email": "Email",
+    "password": "Temporary password",
+    "role": "Role"
+  },
+  "placeholders": {
+    "name": "Example: Maria Lopez",
+    "email": "user@company.com",
+    "password": "Recommended minimum 8 characters"
+  },
+  "messages": {
+    "loadError": "Error loading users",
+    "loading": "Loading users...",
+    "empty": "No users created.",
+    "required": "Complete name, email and password",
+    "createError": "Error creating user",
+    "cannotDeactivateMaster": "You cannot deactivate the master user",
+    "deactivateError": "Error deactivating user"
+  },
+  "confirm": {
+    "deactivateTitle": "Deactivate user",
+    "deactivateMessage": "Are you sure you want to deactivate {{name}}?",
+    "deactivateButton": "Deactivate"
+  }
+},
+"activityLog": {
+  "header": {
+    "eyebrow": "Audit",
+    "title": "System activity",
+    "description": "View the actions performed by users.",
+    "refresh": "Refresh"
+  },
+  "messages": {
+    "loadError": "Error loading activity",
+    "loading": "Loading activity...",
+    "empty": "No activity registered."
+  },
+  "common": {
+    "system": "System"
+  }
+}
 }

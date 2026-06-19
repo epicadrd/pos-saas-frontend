@@ -2,11 +2,15 @@ import { useEffect, useMemo, useState } from "react";
 import { Eye, Filter, Printer, X } from "lucide-react";
 import { api } from "../../api/axios";
 import { useAuth } from "../../context/AuthContext";
+import es from "../../i18n/locales/es.json";
+import en from "../../i18n/locales/en.json";
 import { getTaxLabel, isDominicanTenant } from "../../utils/taxConfig";
 import "../../styles/pos.css";
 
 export default function CashSessionReports() {
-  const { tenant } = useAuth();
+  const { tenant, language } = useAuth();
+
+  const dictionary = language === "en" ? en : es;
   const isDO = isDominicanTenant(tenant);
   const locale = isDO ? "es-DO" : "en-US";
   const currency = isDO ? "DOP" : "USD";
@@ -22,6 +26,14 @@ export default function CashSessionReports() {
     dateFrom: "",
     dateTo: "",
   });
+
+  const t = (path, fallback = "") => {
+    const value = path
+      .split(".")
+      .reduce((acc, key) => acc?.[key], dictionary);
+
+    return value || fallback || path;
+  };
 
   const money = useMemo(
     () =>
@@ -75,7 +87,7 @@ export default function CashSessionReports() {
     } catch (error) {
       alert(
         error.response?.data?.message ||
-          "No se pudo cargar el historial de cierres"
+          t("pos.cashSessionReports.messages.loadError")
       );
     } finally {
       setLoading(false);
@@ -87,7 +99,10 @@ export default function CashSessionReports() {
       const { data } = await api.get(`/pos/sessions/${sessionId}/report`);
       setSelectedReport(data);
     } catch (error) {
-      alert(error.response?.data?.message || "No se pudo abrir el reporte");
+      alert(
+        error.response?.data?.message ||
+          t("pos.cashSessionReports.messages.openReportError")
+      );
     }
   };
 
@@ -111,30 +126,30 @@ export default function CashSessionReports() {
     <div className="pos-page">
       <section className="pos-header">
         <div>
-          <span>POS / Caja</span>
-          <h2>Historial de cierres y arqueos</h2>
-          <p>Reportes por caja basados en el arqueo de cada cierre.</p>
+          <span>{t("pos.cashSessionReports.eyebrow")}</span>
+          <h2>{t("pos.cashSessionReports.title")}</h2>
+          <p>{t("pos.cashSessionReports.description")}</p>
         </div>
       </section>
 
       <section className="pos-summary-grid">
         <article className="pos-summary-card">
-          <span>Cierres</span>
+          <span>{t("pos.cashSessionReports.stats.closures")}</span>
           <strong>{closures.length}</strong>
         </article>
 
         <article className="pos-summary-card">
-          <span>Total vendido</span>
+          <span>{t("pos.cashSessionReports.stats.totalSold")}</span>
           <strong>{money.format(totals.totalSales)}</strong>
         </article>
 
         <article className="pos-summary-card">
-          <span>Esperado efectivo</span>
+          <span>{t("pos.cashSessionReports.stats.expectedCash")}</span>
           <strong>{money.format(totals.expected)}</strong>
         </article>
 
         <article className="pos-summary-card">
-          <span>Diferencia total</span>
+          <span>{t("pos.cashSessionReports.stats.totalDifference")}</span>
           <strong>{money.format(totals.difference)}</strong>
         </article>
       </section>
@@ -142,7 +157,7 @@ export default function CashSessionReports() {
       <section className="pos-panel">
         <div className="pos-filters">
           <div>
-            <label>Caja</label>
+            <label>{t("pos.cashSessionReports.filters.cashRegister")}</label>
             <select
               value={filters.cashRegisterId}
               onChange={(e) =>
@@ -152,7 +167,7 @@ export default function CashSessionReports() {
                 }))
               }
             >
-              <option value="">Todas</option>
+              <option value="">{t("pos.cashSessionReports.filters.all")}</option>
               {registers.map((register) => (
                 <option key={register.id} value={register.id}>
                   {register.name}
@@ -162,7 +177,7 @@ export default function CashSessionReports() {
           </div>
 
           <div>
-            <label>Desde</label>
+            <label>{t("pos.cashSessionReports.filters.from")}</label>
             <input
               type="date"
               value={filters.dateFrom}
@@ -173,7 +188,7 @@ export default function CashSessionReports() {
           </div>
 
           <div>
-            <label>Hasta</label>
+            <label>{t("pos.cashSessionReports.filters.to")}</label>
             <input
               type="date"
               value={filters.dateTo}
@@ -185,31 +200,31 @@ export default function CashSessionReports() {
 
           <button type="button" className="primary-btn" onClick={loadClosures}>
             <Filter size={17} />
-            Filtrar
+            {t("pos.cashSessionReports.filters.filter")}
           </button>
         </div>
       </section>
 
       <section className="pos-panel">
         {loading ? (
-          <p>Cargando cierres...</p>
+          <p>{t("pos.cashSessionReports.messages.loading")}</p>
         ) : closures.length === 0 ? (
-          <p>No hay cierres de caja para mostrar.</p>
+          <p>{t("pos.cashSessionReports.messages.empty")}</p>
         ) : (
           <>
             <div className="pos-table-wrap cash-closures-desktop">
               <table className="pos-table">
                 <thead>
                   <tr>
-                    <th>Cierre</th>
-                    <th>Caja</th>
-                    <th>Usuario</th>
-                    <th>Inicial</th>
-                    <th>Esperado</th>
-                    <th>Contado</th>
-                    <th>Diferencia</th>
-                    <th>Total vendido</th>
-                    <th>Acciones</th>
+                    <th>{t("pos.cashSessionReports.table.closure")}</th>
+                    <th>{t("pos.cashSessionReports.table.cashRegister")}</th>
+                    <th>{t("pos.cashSessionReports.table.user")}</th>
+                    <th>{t("pos.cashSessionReports.table.opening")}</th>
+                    <th>{t("pos.cashSessionReports.table.expected")}</th>
+                    <th>{t("pos.cashSessionReports.table.counted")}</th>
+                    <th>{t("pos.cashSessionReports.table.difference")}</th>
+                    <th>{t("pos.cashSessionReports.table.totalSold")}</th>
+                    <th>{t("pos.cashSessionReports.table.actions")}</th>
                   </tr>
                 </thead>
 
@@ -239,7 +254,7 @@ export default function CashSessionReports() {
                           type="button"
                           className="table-icon-btn"
                           onClick={() => openReport(session.id)}
-                          title="Ver reporte"
+                          title={t("pos.cashSessionReports.table.viewReport")}
                         >
                           <Eye size={17} />
                         </button>
@@ -260,35 +275,39 @@ export default function CashSessionReports() {
                 >
                   <div className="cash-closure-top">
                     <div>
-                      <span>Cierre de caja</span>
-                      <strong>{session.cashRegister?.name || "Caja"}</strong>
+                      <span>{t("pos.cashSessionReports.mobile.cashClosure")}</span>
+                      <strong>
+                        {session.cashRegister?.name ||
+                          t("pos.cashSessionReports.mobile.cashRegisterFallback")}
+                      </strong>
                     </div>
 
                     <small>{formatDate(session.closedAt)}</small>
                   </div>
 
                   <div className="cash-closure-user">
-                    <span>Usuario</span>
+                    <span>{t("pos.cashSessionReports.mobile.user")}</span>
                     <strong>{session.user?.name || "-"}</strong>
                   </div>
 
                   <div className="cash-closure-grid">
                     <div>
-                      <span>Total vendido</span>
+                      <span>{t("pos.cashSessionReports.mobile.totalSold")}</span>
                       <strong>{money.format(Number(session.totalSales || 0))}</strong>
                     </div>
 
                     <div>
-                      <span>Diferencia</span>
+                      <span>{t("pos.cashSessionReports.mobile.difference")}</span>
                       <strong>{money.format(Number(session.difference || 0))}</strong>
                     </div>
                   </div>
 
                   <div className="cash-closure-footer">
                     <span>
-                      Contado {money.format(Number(session.closingAmount || 0))}
+                      {t("pos.cashSessionReports.mobile.counted")}{" "}
+                      {money.format(Number(session.closingAmount || 0))}
                     </span>
-                    <strong>Ver reporte</strong>
+                    <strong>{t("pos.cashSessionReports.mobile.viewReport")}</strong>
                   </div>
                 </button>
               ))}
@@ -308,8 +327,11 @@ export default function CashSessionReports() {
           >
             <div className="pos-sale-detail-header no-print">
               <div>
-                <span>Reporte de cierre</span>
-                <h3>{selectedReport.session.cashRegister?.name || "Caja"}</h3>
+                <span>{t("pos.cashSessionReports.report.modalTitle")}</span>
+                <h3>
+                  {selectedReport.session.cashRegister?.name ||
+                    t("pos.cashSessionReports.report.cashRegister")}
+                </h3>
                 <p>
                   {formatDate(selectedReport.session.openedAt)} -{" "}
                   {formatDate(selectedReport.session.closedAt)}
@@ -323,37 +345,49 @@ export default function CashSessionReports() {
 
             <div className="cash-report-print">
               <div className="cash-report-title">
-                <h2>Reporte de arqueo de caja</h2>
-                <p>Caja: {selectedReport.session.cashRegister?.name || "-"}</p>
-                <p>Usuario: {selectedReport.session.user?.name || "-"}</p>
-                <p>Apertura: {formatDate(selectedReport.session.openedAt)}</p>
-                <p>Cierre: {formatDate(selectedReport.session.closedAt)}</p>
+                <h2>{t("pos.cashSessionReports.report.title")}</h2>
+                <p>
+                  {t("pos.cashSessionReports.report.cashRegister")}:{" "}
+                  {selectedReport.session.cashRegister?.name || "-"}
+                </p>
+                <p>
+                  {t("pos.cashSessionReports.report.user")}:{" "}
+                  {selectedReport.session.user?.name || "-"}
+                </p>
+                <p>
+                  {t("pos.cashSessionReports.report.opening")}:{" "}
+                  {formatDate(selectedReport.session.openedAt)}
+                </p>
+                <p>
+                  {t("pos.cashSessionReports.report.closure")}:{" "}
+                  {formatDate(selectedReport.session.closedAt)}
+                </p>
               </div>
 
               <div className="pos-summary-grid">
                 <article className="pos-summary-card">
-                  <span>Monto inicial</span>
+                  <span>{t("pos.cashSessionReports.report.openingAmount")}</span>
                   <strong>
                     {money.format(Number(selectedReport.summary.openingAmount || 0))}
                   </strong>
                 </article>
 
                 <article className="pos-summary-card">
-                  <span>Esperado efectivo</span>
+                  <span>{t("pos.cashSessionReports.report.expectedCash")}</span>
                   <strong>
                     {money.format(Number(selectedReport.summary.expectedAmount || 0))}
                   </strong>
                 </article>
 
                 <article className="pos-summary-card">
-                  <span>Contado</span>
+                  <span>{t("pos.cashSessionReports.report.counted")}</span>
                   <strong>
                     {money.format(Number(selectedReport.summary.closingAmount || 0))}
                   </strong>
                 </article>
 
                 <article className="pos-summary-card">
-                  <span>Diferencia</span>
+                  <span>{t("pos.cashSessionReports.report.difference")}</span>
                   <strong>
                     {money.format(Number(selectedReport.summary.difference || 0))}
                   </strong>
@@ -362,24 +396,24 @@ export default function CashSessionReports() {
 
               <div className="pos-sale-detail-info">
                 <div>
-                  <span>Ventas</span>
+                  <span>{t("pos.cashSessionReports.report.sales")}</span>
                   <strong>{selectedReport.summary.salesCount}</strong>
                 </div>
 
                 <div>
-                  <span>Productos vendidos</span>
+                  <span>{t("pos.cashSessionReports.report.soldProducts")}</span>
                   <strong>{selectedReport.summary.itemsCount}</strong>
                 </div>
 
                 <div>
-                  <span>Subtotal</span>
+                  <span>{t("pos.cashSessionReports.report.subtotal")}</span>
                   <strong>
                     {money.format(Number(selectedReport.summary.subtotal || 0))}
                   </strong>
                 </div>
 
                 <div>
-                  <span>Descuentos</span>
+                  <span>{t("pos.cashSessionReports.report.discounts")}</span>
                   <strong>
                     {money.format(Number(selectedReport.summary.discountTotal || 0))}
                   </strong>
@@ -393,35 +427,35 @@ export default function CashSessionReports() {
                 </div>
 
                 <div>
-                  <span>Total vendido</span>
+                  <span>{t("pos.cashSessionReports.report.totalSold")}</span>
                   <strong>
                     {money.format(Number(selectedReport.summary.totalSales || 0))}
                   </strong>
                 </div>
 
                 <div>
-                  <span>Efectivo</span>
+                  <span>{t("pos.cashSessionReports.report.cash")}</span>
                   <strong>
                     {money.format(Number(selectedReport.summary.cashSales || 0))}
                   </strong>
                 </div>
 
                 <div>
-                  <span>Tarjeta</span>
+                  <span>{t("pos.cashSessionReports.report.card")}</span>
                   <strong>
                     {money.format(Number(selectedReport.summary.cardSales || 0))}
                   </strong>
                 </div>
 
                 <div>
-                  <span>Transferencia</span>
+                  <span>{t("pos.cashSessionReports.report.transfer")}</span>
                   <strong>
                     {money.format(Number(selectedReport.summary.transferSales || 0))}
                   </strong>
                 </div>
 
                 <div>
-                  <span>Cheque</span>
+                  <span>{t("pos.cashSessionReports.report.check")}</span>
                   <strong>
                     {money.format(Number(selectedReport.summary.checkSales || 0))}
                   </strong>
@@ -432,12 +466,12 @@ export default function CashSessionReports() {
                 <table className="pos-table">
                   <thead>
                     <tr>
-                      <th>Hora</th>
-                      <th>Venta</th>
-                      <th>Método</th>
-                      <th>Subtotal</th>
+                      <th>{t("pos.cashSessionReports.report.time")}</th>
+                      <th>{t("pos.cashSessionReports.report.sale")}</th>
+                      <th>{t("pos.cashSessionReports.report.method")}</th>
+                      <th>{t("pos.cashSessionReports.report.subtotal")}</th>
                       <th>{taxLabel}</th>
-                      <th>Total</th>
+                      <th>{t("pos.cashSessionReports.report.total")}</th>
                     </tr>
                   </thead>
 
@@ -463,7 +497,7 @@ export default function CashSessionReports() {
                   <div className="cash-report-sale-card" key={sale.id}>
                     <div className="cash-report-sale-top">
                       <div>
-                        <span>Venta</span>
+                        <span>{t("pos.cashSessionReports.report.sale")}</span>
                         <strong>{sale.saleNumber}</strong>
                       </div>
 
@@ -472,12 +506,12 @@ export default function CashSessionReports() {
 
                     <div className="cash-report-sale-grid">
                       <div>
-                        <span>Método</span>
+                        <span>{t("pos.cashSessionReports.report.method")}</span>
                         <strong>{sale.paymentMethod}</strong>
                       </div>
 
                       <div>
-                        <span>Subtotal</span>
+                        <span>{t("pos.cashSessionReports.report.subtotal")}</span>
                         <strong>{money.format(Number(sale.subtotal || 0))}</strong>
                       </div>
 
@@ -487,7 +521,7 @@ export default function CashSessionReports() {
                       </div>
 
                       <div>
-                        <span>Total</span>
+                        <span>{t("pos.cashSessionReports.report.total")}</span>
                         <strong>{money.format(Number(sale.total || 0))}</strong>
                       </div>
                     </div>
@@ -502,7 +536,7 @@ export default function CashSessionReports() {
               onClick={() => window.print()}
             >
               <Printer size={17} />
-              Imprimir reporte
+              {t("pos.cashSessionReports.report.print")}
             </button>
           </div>
         </div>

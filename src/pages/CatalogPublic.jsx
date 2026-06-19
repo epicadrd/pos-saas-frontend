@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { ImagePlus, Search } from "lucide-react";
 import { useParams } from "react-router-dom";
 import { api } from "../api/axios";
+import es from "../i18n/locales/es.json";
+import en from "../i18n/locales/en.json";
 import "../styles/product-catalog.css";
 
 export default function CatalogPublic() {
@@ -15,6 +17,15 @@ export default function CatalogPublic() {
   const isDO = (business?.country || "DO") === "DO";
   const locale = isDO ? "es-DO" : "en-US";
   const currency = isDO ? "DOP" : "USD";
+  const dictionary = isDO ? es : en;
+
+  const t = (path, fallback = "") => {
+    const value = path
+      .split(".")
+      .reduce((acc, key) => acc?.[key], dictionary);
+
+    return value || fallback || path;
+  };
 
   const money = useMemo(
     () =>
@@ -34,7 +45,7 @@ export default function CatalogPublic() {
         setProducts(data.products || []);
       } catch (error) {
         console.log(error);
-        setError(error.response?.data?.message || "Catálogo no disponible");
+        setError(t("catalogPublic.unavailable"));
       } finally {
         setLoading(false);
       }
@@ -48,18 +59,31 @@ export default function CatalogPublic() {
 
     if (!term) return products;
 
-    return products.filter((product) =>
-      product.name?.toLowerCase().includes(term) ||
-      product.category?.toLowerCase().includes(term) ||
-      product.description?.toLowerCase().includes(term)
+    return products.filter(
+      (product) =>
+        product.name?.toLowerCase().includes(term) ||
+        product.category?.toLowerCase().includes(term) ||
+        product.description?.toLowerCase().includes(term)
     );
   }, [products, search]);
 
-  if (loading) return <div className="public-catalog-state">Cargando catálogo...</div>;
-  if (error) return <div className="public-catalog-state">{error}</div>;
+  if (loading) {
+    return (
+      <div className="public-catalog-state">
+        {t("catalogPublic.loading")}
+      </div>
+    );
+  }
+
+  if (error) {
+    return <div className="public-catalog-state">{error}</div>;
+  }
 
   return (
-    <main className="public-catalog-page" style={{ "--catalog-accent": business?.primaryColor || "#111827" }}>
+    <main
+      className="public-catalog-page"
+      style={{ "--catalog-accent": business?.primaryColor || "#111827" }}
+    >
       <header className="public-catalog-header">
         <div className="public-catalog-brand">
           {business?.logoDataUrl ? (
@@ -69,16 +93,16 @@ export default function CatalogPublic() {
           )}
 
           <section>
-            <span>Catálogo</span>
-            <h1>{business?.businessName || "Catálogo"}</h1>
-            <p>{business?.address || "Productos disponibles"}</p>
+            <span>{t("catalogPublic.title")}</span>
+            <h1>{business?.businessName || t("catalogPublic.fallbackTitle")}</h1>
+            <p>{business?.address || t("catalogPublic.defaultAddress")}</p>
           </section>
         </div>
 
         <div className="public-catalog-search">
           <Search size={18} />
           <input
-            placeholder="Buscar producto..."
+            placeholder={t("catalogPublic.searchPlaceholder")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -86,7 +110,7 @@ export default function CatalogPublic() {
       </header>
 
       {filteredProducts.length === 0 ? (
-        <div className="catalog-empty">No hay productos para mostrar.</div>
+        <div className="catalog-empty">{t("catalogPublic.empty")}</div>
       ) : (
         <section className="public-catalog-grid">
           {filteredProducts.map((product) => (
@@ -100,7 +124,7 @@ export default function CatalogPublic() {
               </div>
 
               <div className="public-product-info">
-                <span>{product.category || "Producto"}</span>
+                <span>{product.category || t("catalogPublic.defaultCategory")}</span>
                 <h2>{product.name}</h2>
                 {product.description && <p>{product.description}</p>}
                 <strong>{money.format(Number(product.salePrice || 0))}</strong>

@@ -13,20 +13,39 @@ import {
 import { useNavigate } from "react-router-dom";
 import { api } from "../../api/axios";
 import { useAuth } from "../../context/AuthContext";
+import es from "../../i18n/locales/es.json";
+import en from "../../i18n/locales/en.json";
 import { isDominicanTenant } from "../../utils/taxConfig";
 import { useConfirm } from "../../components/ConfirmProvider";
 
-
-const statusLabels = {
-  draft: "Borrador",
-  sent: "Enviada",
-  received: "Recibida",
-  cancelled: "Cancelada",
-  paid: "Pagada",
-};
-
 export default function AccountsPayable() {
-    const { tenant } = useAuth();
+  const { tenant, language } = useAuth();
+  const navigate = useNavigate();
+  const { confirm } = useConfirm();
+
+  const dictionary = language === "en" ? en : es;
+
+  const t = (path, fallback = "", vars = {}) => {
+    let value = path
+      .split(".")
+      .reduce((acc, key) => acc?.[key], dictionary);
+
+    value = value || fallback || path;
+
+    Object.entries(vars).forEach(([key, val]) => {
+      value = String(value).replace(`{{${key}}}`, val);
+    });
+
+    return value;
+  };
+
+  const statusLabels = {
+    draft: t("accountsPayable.status.draft"),
+    sent: t("accountsPayable.status.sent"),
+    received: t("accountsPayable.status.received"),
+    cancelled: t("accountsPayable.status.cancelled"),
+    paid: t("accountsPayable.status.paid"),
+  };
 
   const isDO = isDominicanTenant(tenant);
   const locale = isDO ? "es-DO" : "en-US";
@@ -37,8 +56,7 @@ export default function AccountsPayable() {
       style: "currency",
       currency,
     }).format(Number(value || 0));
-  const navigate = useNavigate();
-  const { confirm } = useConfirm();
+
   const [loading, setLoading] = useState(true);
 
   const [data, setData] = useState({
@@ -56,14 +74,17 @@ export default function AccountsPayable() {
     to: "",
   });
 
+  const [selectedPayment, setSelectedPayment] = useState(null);
+
   const summary = data.summary || {};
   const purchaseOrders = data.purchaseOrders || [];
   const suppliers = data.suppliers || [];
-  const [selectedPayment, setSelectedPayment] = useState(null);
 
   const maxBalance = useMemo(() => {
     return Math.max(
-      ...purchaseOrders.map((item) => Number(item.payableBalance || item.total || 0)),
+      ...purchaseOrders.map((item) =>
+        Number(item.payableBalance || item.total || 0)
+      ),
       1
     );
   }, [purchaseOrders]);
@@ -84,31 +105,36 @@ export default function AccountsPayable() {
     } catch (error) {
       alert(
         error.response?.data?.message ||
-          "No se pudieron cargar las cuentas por pagar"
+          t("accountsPayable.messages.loadError")
       );
     } finally {
       setLoading(false);
     }
   };
 
- const markAsPaid = async (order) => {
-  const ok = await confirm({
-  title: "Marcar orden como pagada",
-  message: `¿Marcar como pagada la orden ${order.orderNumber}?`,
-  confirmText: "Marcar como pagada",
-  variant: "success",
-});
+  const markAsPaid = async (order) => {
+    const ok = await confirm({
+      title: t("accountsPayable.confirm.markPaidTitle"),
+      message: t("accountsPayable.confirm.markPaidMessage", "", {
+        number: order.orderNumber,
+      }),
+      confirmText: t("accountsPayable.confirm.markPaidButton"),
+      variant: "success",
+    });
 
-if (!ok) return;
+    if (!ok) return;
 
-  try {
-    await api.patch(`/accounts-payable/${order.id}/mark-paid`);
-    setSelectedPayment(null);
-    await loadAccountsPayable();
-  } catch (error) {
-    alert(error.response?.data?.message || "No se pudo marcar como pagada");
-  }
-};
+    try {
+      await api.patch(`/accounts-payable/${order.id}/mark-paid`);
+      setSelectedPayment(null);
+      await loadAccountsPayable();
+    } catch (error) {
+      alert(
+        error.response?.data?.message ||
+          t("accountsPayable.messages.markPaidError")
+      );
+    }
+  };
 
   useEffect(() => {
     loadAccountsPayable();
@@ -118,47 +144,48 @@ if (!ok) return;
     <div className="accounts-payable-page">
       <section className="ap-hero">
         <div>
-          <span>Contabilidad</span>
-          <h2>Cuentas por pagar</h2>
-          <p>
-            Controla órdenes de compra pendientes, proveedores, vencimientos y
-            compromisos de pago.
-          </p>
+          <span>{t("accountsPayable.header.eyebrow")}</span>
+          <h2>{t("accountsPayable.header.title")}</h2>
+          <p>{t("accountsPayable.header.description")}</p>
         </div>
 
         <button onClick={loadAccountsPayable}>
           <RefreshCcw size={18} />
-          Actualizar
+          {t("accountsPayable.header.refresh")}
         </button>
       </section>
 
       <section className="ap-stats-grid">
         <div className="ap-stat main">
           <WalletCards />
-          <span>Total por pagar</span>
+          <span>{t("accountsPayable.stats.totalPayable")}</span>
           <strong>{formatMoney(summary.totalPayable)}</strong>
-          <small>{summary.openOrders || 0} órdenes abiertas</small>
+          <small>
+            {t("accountsPayable.stats.openOrders", "", {
+              count: summary.openOrders || 0,
+            })}
+          </small>
         </div>
 
         <div className="ap-stat danger">
           <AlertTriangle />
-          <span>Vencido</span>
+          <span>{t("accountsPayable.stats.overdue")}</span>
           <strong>{formatMoney(summary.overduePayable)}</strong>
-          <small>Órdenes fuera de plazo</small>
+          <small>{t("accountsPayable.stats.overdueHint")}</small>
         </div>
 
         <div className="ap-stat success">
           <CalendarClock />
-          <span>No vencido</span>
+          <span>{t("accountsPayable.stats.current")}</span>
           <strong>{formatMoney(summary.currentPayable)}</strong>
-          <small>Balance vigente</small>
+          <small>{t("accountsPayable.stats.currentHint")}</small>
         </div>
 
         <div className="ap-stat">
           <PackageCheck />
-          <span>Órdenes recibidas</span>
+          <span>{t("accountsPayable.stats.receivedOrders")}</span>
           <strong>{summary.receivedOrders || 0}</strong>
-          <small>Pendientes de cerrar/pagar</small>
+          <small>{t("accountsPayable.stats.receivedHint")}</small>
         </div>
       </section>
 
@@ -167,7 +194,7 @@ if (!ok) return;
           <div className="ap-search">
             <Search size={17} />
             <input
-              placeholder="Buscar orden, proveedor o RNC"
+              placeholder={t("accountsPayable.filters.search")}
               value={filters.search}
               onChange={(e) =>
                 setFilters({
@@ -187,7 +214,7 @@ if (!ok) return;
               })
             }
           >
-            <option value="">Todos los proveedores</option>
+            <option value="">{t("accountsPayable.filters.allSuppliers")}</option>
             {suppliers.map((supplier) => (
               <option key={supplier.id} value={supplier.id}>
                 {supplier.name}
@@ -204,9 +231,9 @@ if (!ok) return;
               })
             }
           >
-            <option value="">Todos los estados</option>
-            <option value="sent">Enviada</option>
-            <option value="received">Recibida</option>
+            <option value="">{t("accountsPayable.filters.allStatuses")}</option>
+            <option value="sent">{t("accountsPayable.filters.sent")}</option>
+            <option value="received">{t("accountsPayable.filters.received")}</option>
           </select>
 
           <select
@@ -218,9 +245,9 @@ if (!ok) return;
               })
             }
           >
-            <option value="">Todas</option>
-            <option value="overdue">Vencidas</option>
-            <option value="current">No vencidas</option>
+            <option value="">{t("accountsPayable.filters.allAging")}</option>
+            <option value="overdue">{t("accountsPayable.filters.overdue")}</option>
+            <option value="current">{t("accountsPayable.filters.current")}</option>
           </select>
 
           <input
@@ -245,28 +272,30 @@ if (!ok) return;
             }
           />
 
-          <button onClick={loadAccountsPayable}>Filtrar</button>
+          <button onClick={loadAccountsPayable}>
+            {t("accountsPayable.filters.filter")}
+          </button>
         </div>
 
         {loading ? (
-          <div className="ap-empty">Cargando cuentas por pagar...</div>
-        ) : purchaseOrders.length === 0 ? (
           <div className="ap-empty">
-            No hay órdenes pendientes por pagar.
+            {t("accountsPayable.messages.loading")}
           </div>
+        ) : purchaseOrders.length === 0 ? (
+          <div className="ap-empty">{t("accountsPayable.messages.empty")}</div>
         ) : (
           <div className="ap-table-wrap">
             <table className="ap-table">
               <thead>
                 <tr>
-                  <th>Orden</th>
-                  <th>Proveedor</th>
-                  <th>Fecha</th>
-                  <th>Vence</th>
-                  <th>Total</th>
-                  <th>Balance</th>
-                  <th>Estado</th>
-                  <th>Referencia</th>
+                  <th>{t("accountsPayable.table.order")}</th>
+                  <th>{t("accountsPayable.table.supplier")}</th>
+                  <th>{t("accountsPayable.table.date")}</th>
+                  <th>{t("accountsPayable.table.due")}</th>
+                  <th>{t("accountsPayable.table.total")}</th>
+                  <th>{t("accountsPayable.table.balance")}</th>
+                  <th>{t("accountsPayable.table.status")}</th>
+                  <th>{t("accountsPayable.table.reference")}</th>
                   <th></th>
                 </tr>
               </thead>
@@ -281,7 +310,9 @@ if (!ok) return;
                       <strong>{order.orderNumber}</strong>
                       {order.isOverdue && (
                         <small className="ap-overdue-text">
-                          {order.daysOverdue} días vencida
+                          {t("accountsPayable.table.daysOverdue", "", {
+                            days: order.daysOverdue,
+                          })}
                         </small>
                       )}
                     </td>
@@ -299,16 +330,17 @@ if (!ok) return;
                     </td>
 
                     <td>
-                    {order.orderDate
-                      ? new Date(order.orderDate).toLocaleDateString(locale)
-                      : "—"}
-                  </td>
+                      {order.orderDate
+                        ? new Date(order.orderDate).toLocaleDateString(locale)
+                        : "—"}
+                    </td>
 
-                  <td>
-                    {order.dueDate
-                      ? new Date(order.dueDate).toLocaleDateString(locale)
-                      : "—"}
-                  </td>
+                    <td>
+                      {order.dueDate
+                        ? new Date(order.dueDate).toLocaleDateString(locale)
+                        : "—"}
+                    </td>
+
                     <td>{formatMoney(order.total)}</td>
 
                     <td>
@@ -335,21 +367,21 @@ if (!ok) return;
 
                     <td className="ap-actions">
                       <button
-                        title="Ver detalle"
+                        title={t("accountsPayable.table.viewDetail")}
                         onClick={() => setSelectedPayment(order)}
-                        >
+                      >
                         <Eye size={16} />
                       </button>
 
                       <button
-                        title="Marcar como pagada"
+                        title={t("accountsPayable.table.markPaid")}
                         onClick={() => markAsPaid(order)}
-                        >
+                      >
                         <PackageCheck size={16} />
                       </button>
 
                       <button
-                        title="Ir a gastos"
+                        title={t("accountsPayable.table.goToExpenses")}
                         onClick={() => navigate("/dashboard/contabilidad/gastos")}
                       >
                         <Truck size={16} />
@@ -366,13 +398,15 @@ if (!ok) return;
       <section className="ap-grid-two">
         <div className="ap-panel">
           <div className="ap-panel-header">
-            <h3>Proveedores involucrados</h3>
-            <span>Filtro rápido por proveedor</span>
+            <h3>{t("accountsPayable.suppliersPanel.title")}</h3>
+            <span>{t("accountsPayable.suppliersPanel.description")}</span>
           </div>
 
           <div className="ap-list">
             {suppliers.length === 0 ? (
-              <div className="ap-empty small">No hay proveedores registrados.</div>
+              <div className="ap-empty small">
+                {t("accountsPayable.messages.noSuppliers")}
+              </div>
             ) : (
               suppliers.slice(0, 8).map((supplier) => (
                 <button
@@ -391,7 +425,7 @@ if (!ok) return;
                     <span>{supplier.rnc || supplier.phone || supplier.email || "—"}</span>
                   </div>
 
-                  <b>Filtrar</b>
+                  <b>{t("accountsPayable.suppliersPanel.filter")}</b>
                 </button>
               ))
             )}
@@ -400,106 +434,107 @@ if (!ok) return;
 
         <div className="ap-panel">
           <div className="ap-panel-header">
-            <h3>Recomendación</h3>
-            <span>Uso práctico</span>
+            <h3>{t("accountsPayable.recommendation.title")}</h3>
+            <span>{t("accountsPayable.recommendation.subtitle")}</span>
           </div>
 
           <div className="ap-note">
-            Este módulo se alimenta de órdenes de compra enviadas o recibidas.
-            Más adelante podemos agregar pagos parciales a proveedores para que
-            el balance por pagar sea exacto.
+            {t("accountsPayable.recommendation.text")}
           </div>
         </div>
       </section>
 
       {selectedPayment && (
-  <div className="ap-modal-backdrop">
-    <div className="ap-modal">
-      <div className="ap-modal-header">
-        <div>
-          <span>Detalle de cuenta por pagar</span>
-          <h3>{selectedPayment.orderNumber}</h3>
+        <div className="ap-modal-backdrop">
+          <div className="ap-modal">
+            <div className="ap-modal-header">
+              <div>
+                <span>{t("accountsPayable.detail.title")}</span>
+                <h3>{selectedPayment.orderNumber}</h3>
+              </div>
+
+              <button type="button" onClick={() => setSelectedPayment(null)}>
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="ap-detail-grid">
+              <div>
+                <span>{t("accountsPayable.detail.supplier")}</span>
+                <strong>
+                  {selectedPayment.supplier?.name ||
+                    selectedPayment.supplierName ||
+                    "—"}
+                </strong>
+              </div>
+
+              <div>
+                <span>{t("accountsPayable.detail.rnc")}</span>
+                <strong>
+                  {selectedPayment.supplier?.rnc ||
+                    selectedPayment.supplierRnc ||
+                    "—"}
+                </strong>
+              </div>
+
+              <div>
+                <span>{t("accountsPayable.detail.date")}</span>
+                <strong>
+                  {selectedPayment.orderDate
+                    ? new Date(selectedPayment.orderDate).toLocaleDateString(locale)
+                    : "—"}
+                </strong>
+              </div>
+
+              <div>
+                <span>{t("accountsPayable.detail.due")}</span>
+                <strong>
+                  {selectedPayment.dueDate
+                    ? new Date(selectedPayment.dueDate).toLocaleDateString(locale)
+                    : "—"}
+                </strong>
+              </div>
+
+              <div>
+                <span>{t("accountsPayable.detail.total")}</span>
+                <strong>{formatMoney(selectedPayment.total)}</strong>
+              </div>
+
+              <div>
+                <span>{t("accountsPayable.detail.balance")}</span>
+                <strong>{formatMoney(selectedPayment.payableBalance)}</strong>
+              </div>
+
+              <div>
+                <span>{t("accountsPayable.detail.status")}</span>
+                <strong>
+                  {statusLabels[selectedPayment.status] || selectedPayment.status}
+                </strong>
+              </div>
+
+              <div>
+                <span>{t("accountsPayable.detail.reference")}</span>
+                <strong>{selectedPayment.reference || "—"}</strong>
+              </div>
+            </div>
+
+            <div className="ap-modal-actions">
+              <button type="button" onClick={() => markAsPaid(selectedPayment)}>
+                <PackageCheck size={16} />
+                {t("accountsPayable.detail.markPaid")}
+              </button>
+
+              <button
+                type="button"
+                className="secondary"
+                onClick={() => setSelectedPayment(null)}
+              >
+                {t("accountsPayable.detail.close")}
+              </button>
+            </div>
+          </div>
         </div>
-
-        <button type="button" onClick={() => setSelectedPayment(null)}>
-          <X size={18} />
-        </button>
-      </div>
-
-      <div className="ap-detail-grid">
-        <div>
-          <span>Proveedor</span>
-          <strong>
-            {selectedPayment.supplier?.name || selectedPayment.supplierName || "—"}
-          </strong>
-        </div>
-
-        <div>
-          <span>RNC</span>
-          <strong>
-            {selectedPayment.supplier?.rnc || selectedPayment.supplierRnc || "—"}
-          </strong>
-        </div>
-
-        <div>
-          <span>Fecha</span>
-          <strong>
-            {selectedPayment.orderDate
-              ? new Date(selectedPayment.orderDate).toLocaleDateString(locale)
-              : "—"}
-          </strong>
-        </div>
-
-        <div>
-          <span>Vence</span>
-          <strong>
-            {selectedPayment.dueDate
-              ? new Date(selectedPayment.dueDate).toLocaleDateString(locale)
-              : "—"}
-          </strong>
-        </div>
-
-        <div>
-          <span>Total</span>
-          <strong>{formatMoney(selectedPayment.total)}</strong>
-        </div>
-
-        <div>
-          <span>Balance</span>
-          <strong>{formatMoney(selectedPayment.payableBalance)}</strong>
-        </div>
-
-        <div>
-          <span>Estado</span>
-          <strong>{statusLabels[selectedPayment.status] || selectedPayment.status}</strong>
-        </div>
-
-        <div>
-          <span>Referencia</span>
-          <strong>{selectedPayment.reference || "—"}</strong>
-        </div>
-      </div>
-
-      <div className="ap-modal-actions">
-        <button
-          type="button"
-          onClick={() => markAsPaid(selectedPayment)}
-        >
-          <PackageCheck size={16} />
-          Marcar como pagada
-        </button>
-
-        <button
-          type="button"
-          className="secondary"
-          onClick={() => setSelectedPayment(null)}
-        >
-          Cerrar
-        </button>
-      </div>
-    </div>
-  </div>
-)}
+      )}
     </div>
   );
 }

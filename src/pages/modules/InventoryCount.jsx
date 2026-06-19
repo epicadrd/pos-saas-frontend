@@ -15,27 +15,14 @@ import {
 } from "lucide-react";
 import { api } from "../../api/axios";
 import { useConfirm } from "../../components/ConfirmProvider";
-
-const statusLabels = {
-  draft: "Borrador",
-  completed: "Completado",
-  applied: "Aplicado",
-};
+import { useAuth } from "../../context/AuthContext";
+import es from "../../i18n/locales/es.json";
+import en from "../../i18n/locales/en.json";
 
 const statusClasses = {
   draft: "inventory-count-status draft",
   completed: "inventory-count-status completed",
   applied: "inventory-count-status applied",
-};
-
-const formatDate = (value) => {
-  if (!value) return "-";
-
-  return new Date(value).toLocaleDateString("es-DO", {
-    day: "numeric",
-    month: "numeric",
-    year: "numeric",
-  });
 };
 
 const toIntOrEmpty = (value) => {
@@ -46,6 +33,42 @@ const toIntOrEmpty = (value) => {
 
 export default function InventoryCount() {
   const { confirm } = useConfirm();
+  const { language } = useAuth();
+
+  const dictionary = language === "en" ? en : es;
+  const locale = language === "en" ? "en-US" : "es-DO";
+
+  const t = (path, fallback = "", vars = {}) => {
+    const value = path
+      .split(".")
+      .reduce((acc, key) => acc?.[key], dictionary);
+
+    const text = value || fallback || path;
+
+    return Object.entries(vars).reduce(
+      (acc, [key, val]) => acc.replaceAll(`{{${key}}}`, val),
+      text
+    );
+  };
+
+  const statusLabels = useMemo(
+    () => ({
+      draft: t("inventoryCount.status.draft"),
+      completed: t("inventoryCount.status.completed"),
+      applied: t("inventoryCount.status.applied"),
+    }),
+    [language]
+  );
+
+  const formatDate = (value) => {
+    if (!value) return "-";
+
+    return new Date(value).toLocaleDateString(locale, {
+      day: "numeric",
+      month: "numeric",
+      year: "numeric",
+    });
+  };
 
   const [counts, setCounts] = useState([]);
   const [selectedCount, setSelectedCount] = useState(null);
@@ -74,7 +97,7 @@ export default function InventoryCount() {
       const { data } = await api.get("/inventory-counts");
       setCounts(Array.isArray(data) ? data : []);
     } catch (error) {
-      alert(error.response?.data?.message || "Error cargando conteos");
+      alert(t("inventoryCount.messages.loadError"));
     } finally {
       setLoading(false);
     }
@@ -98,7 +121,7 @@ export default function InventoryCount() {
         }))
       );
     } catch (error) {
-      alert(error.response?.data?.message || "Error cargando detalle del conteo");
+      alert(t("inventoryCount.messages.loadDetailError"));
     } finally {
       setDetailLoading(false);
     }
@@ -169,7 +192,7 @@ export default function InventoryCount() {
     e.preventDefault();
 
     if (!newCount.name.trim()) {
-      alert("El nombre del conteo es obligatorio");
+      alert(t("inventoryCount.messages.nameRequired"));
       return;
     }
 
@@ -183,7 +206,7 @@ export default function InventoryCount() {
         search: newCount.search,
       });
 
-      alert(data.message || "Conteo creado correctamente");
+      alert(t("inventoryCount.messages.created"));
 
       setCreateOpen(false);
       setNewCount({
@@ -199,7 +222,7 @@ export default function InventoryCount() {
         await loadCountDetail(data.count.id);
       }
     } catch (error) {
-      alert(error.response?.data?.message || "Error creando conteo");
+      alert(t("inventoryCount.messages.createError"));
     } finally {
       setCreating(false);
     }
@@ -213,7 +236,8 @@ export default function InventoryCount() {
         if (field === "countedStock") {
           return {
             ...item,
-            countedStock: value === "" ? "" : String(Math.max(0, parseInt(value, 10) || 0)),
+            countedStock:
+              value === "" ? "" : String(Math.max(0, parseInt(value, 10) || 0)),
           };
         }
 
@@ -242,12 +266,12 @@ export default function InventoryCount() {
 
       const { data } = await api.put(`/inventory-counts/${selectedCount.id}`, payload);
 
-      alert(data.message || "Conteo guardado correctamente");
+      alert(t("inventoryCount.messages.saved"));
 
       await loadCounts();
       await loadCountDetail(selectedCount.id);
     } catch (error) {
-      alert(error.response?.data?.message || "Error guardando conteo");
+      alert(t("inventoryCount.messages.saveError"));
     } finally {
       setSaving(false);
     }
@@ -256,10 +280,12 @@ export default function InventoryCount() {
   const completeCount = async () => {
     if (summary.pending > 0) {
       const ok = await confirm({
-        title: "Hay productos pendientes",
-        message: `Todavía tienes ${summary.pending} producto(s) sin contar. ¿Quieres marcarlo como completado de todos modos?`,
-        confirmText: "Sí, completar",
-        cancelText: "Cancelar",
+        title: t("inventoryCount.messages.pendingProducts"),
+        message: t("inventoryCount.messages.pendingProductsMessage", "", {
+          count: summary.pending,
+        }),
+        confirmText: t("inventoryCount.confirm.complete"),
+        cancelText: t("inventoryCount.actions.cancel"),
         variant: "warning",
       });
 
@@ -273,16 +299,15 @@ export default function InventoryCount() {
     if (!selectedCount) return;
 
     if (summary.pending > 0) {
-      alert("No puedes aplicar un conteo con productos pendientes.");
+      alert(t("inventoryCount.messages.cannotApply"));
       return;
     }
 
     const ok = await confirm({
-      title: "Aplicar conteo de inventario",
-      message:
-        "Esto ajustará el stock real de los productos y creará movimientos de inventario. Esta acción no se puede deshacer.",
-      confirmText: "Aplicar conteo",
-      cancelText: "Cancelar",
+      title: t("inventoryCount.confirm.applyTitle"),
+      message: t("inventoryCount.confirm.applyMessage"),
+      confirmText: t("inventoryCount.confirm.applyButton"),
+      cancelText: t("inventoryCount.actions.cancel"),
       variant: "danger",
     });
 
@@ -295,12 +320,12 @@ export default function InventoryCount() {
 
       const { data } = await api.post(`/inventory-counts/${selectedCount.id}/apply`);
 
-      alert(data.message || "Conteo aplicado correctamente");
+      alert(t("inventoryCount.messages.applied"));
 
       await loadCounts();
       await loadCountDetail(selectedCount.id);
     } catch (error) {
-      alert(error.response?.data?.message || "Error aplicando conteo");
+      alert(t("inventoryCount.messages.applyError"));
     } finally {
       setSaving(false);
     }
@@ -308,10 +333,12 @@ export default function InventoryCount() {
 
   const deleteCount = async (count) => {
     const ok = await confirm({
-      title: "Eliminar conteo",
-      message: `¿Seguro que deseas eliminar "${count.name}"?`,
-      confirmText: "Eliminar",
-      cancelText: "Cancelar",
+      title: t("inventoryCount.confirm.deleteTitle"),
+      message: t("inventoryCount.confirm.deleteMessage", "", {
+        name: count.name,
+      }),
+      confirmText: t("inventoryCount.confirm.deleteButton"),
+      cancelText: t("inventoryCount.actions.cancel"),
       variant: "danger",
     });
 
@@ -320,7 +347,7 @@ export default function InventoryCount() {
     try {
       const { data } = await api.delete(`/inventory-counts/${count.id}`);
 
-      alert(data.message || "Conteo eliminado correctamente");
+      alert(t("inventoryCount.messages.deleted"));
 
       if (selectedCount?.id === count.id) {
         setSelectedCount(null);
@@ -329,7 +356,7 @@ export default function InventoryCount() {
 
       await loadCounts();
     } catch (error) {
-      alert(error.response?.data?.message || "Error eliminando conteo");
+      alert(t("inventoryCount.messages.deleteError"));
     }
   };
 
@@ -341,15 +368,12 @@ export default function InventoryCount() {
         <div>
           <div className="inventory-count-eyebrow">
             <ClipboardCheck size={18} />
-            Gestión de inventario
+            {t("inventoryCount.header.eyebrow")}
           </div>
 
-          <h1>Conteo de inventario</h1>
+          <h1>{t("inventoryCount.header.title")}</h1>
 
-          <p>
-            Compara el stock del sistema contra el conteo físico y aplica ajustes
-            controlados al inventario.
-          </p>
+          <p>{t("inventoryCount.header.description")}</p>
         </div>
 
         <div className="inventory-count-actions">
@@ -359,7 +383,7 @@ export default function InventoryCount() {
             onClick={loadCounts}
           >
             <RefreshCcw size={18} />
-            Actualizar
+            {t("inventoryCount.actions.refresh")}
           </button>
 
           <button
@@ -368,7 +392,7 @@ export default function InventoryCount() {
             onClick={() => setCreateOpen(true)}
           >
             <Plus size={18} />
-            Nuevo conteo
+            {t("inventoryCount.actions.newCount")}
           </button>
         </div>
       </div>
@@ -377,14 +401,16 @@ export default function InventoryCount() {
         <aside className="inventory-count-sidebar">
           <div className="inventory-count-panel-title">
             <ClipboardList size={18} />
-            Conteos recientes
+            {t("inventoryCount.sidebar.recentCounts")}
           </div>
 
           {loading ? (
-            <div className="inventory-count-empty">Cargando conteos...</div>
+            <div className="inventory-count-empty">
+              {t("inventoryCount.sidebar.loading")}
+            </div>
           ) : counts.length === 0 ? (
             <div className="inventory-count-empty">
-              No hay conteos todavía. Crea el primero.
+              {t("inventoryCount.sidebar.empty")}
             </div>
           ) : (
             <div className="inventory-count-list">
@@ -409,8 +435,14 @@ export default function InventoryCount() {
                   </span>
 
                   <div className="inventory-count-card-meta">
-                    <span>{count.countedItems || 0}/{count.totalItems || 0} contados</span>
-                    <span>{count.differences || 0} diferencias</span>
+                    <span>
+                      {count.countedItems || 0}/{count.totalItems || 0}{" "}
+                      {language === "en" ? "counted" : "contados"}
+                    </span>
+                    <span>
+                      {count.differences || 0}{" "}
+                      {t("inventoryCount.stats.differences").toLowerCase()}
+                    </span>
                   </div>
 
                   {count.status !== "applied" && (
@@ -437,11 +469,8 @@ export default function InventoryCount() {
                 <Package size={42} />
               </div>
 
-              <h2>Selecciona o crea un conteo</h2>
-              <p>
-                Aquí podrás registrar cantidades físicas, ver diferencias y aplicar
-                ajustes al inventario.
-              </p>
+              <h2>{t("inventoryCount.hero.title")}</h2>
+              <p>{t("inventoryCount.hero.description")}</p>
 
               <button
                 type="button"
@@ -449,20 +478,23 @@ export default function InventoryCount() {
                 onClick={() => setCreateOpen(true)}
               >
                 <Plus size={18} />
-                Crear conteo
+                {t("inventoryCount.actions.createCount")}
               </button>
             </div>
           ) : detailLoading ? (
-            <div className="inventory-count-empty">Cargando detalle...</div>
+            <div className="inventory-count-empty">
+              {t("inventoryCount.messages.loadingDetail")}
+            </div>
           ) : (
             <>
               <div className="inventory-count-detail-header">
                 <div>
                   <h2>{selectedCount.name}</h2>
                   <p>
-                    Creado el {formatDate(selectedCount.createdAt)}
+                    {t("inventoryCount.detail.createdOn")}{" "}
+                    {formatDate(selectedCount.createdAt)}
                     {selectedCount.creator?.name
-                      ? ` por ${selectedCount.creator.name}`
+                      ? ` ${t("inventoryCount.detail.by")} ${selectedCount.creator.name}`
                       : ""}
                   </p>
                 </div>
@@ -474,13 +506,14 @@ export default function InventoryCount() {
 
               {selectedCount.notes && (
                 <div className="inventory-count-note">
-                  <strong>Notas:</strong> {selectedCount.notes}
+                  <strong>{t("inventoryCount.detail.notes")}:</strong>{" "}
+                  {selectedCount.notes}
                 </div>
               )}
 
               <div className="inventory-count-stats">
                 <div className="inventory-count-stat">
-                  <span>Progreso</span>
+                  <span>{t("inventoryCount.stats.progress")}</span>
                   <strong>{summary.progress}%</strong>
                   <div className="inventory-count-progress">
                     <div style={{ width: `${summary.progress}%` }} />
@@ -488,22 +521,22 @@ export default function InventoryCount() {
                 </div>
 
                 <div className="inventory-count-stat">
-                  <span>Productos</span>
+                  <span>{t("inventoryCount.stats.products")}</span>
                   <strong>{summary.total}</strong>
                 </div>
 
                 <div className="inventory-count-stat">
-                  <span>Pendientes</span>
+                  <span>{t("inventoryCount.stats.pending")}</span>
                   <strong>{summary.pending}</strong>
                 </div>
 
                 <div className="inventory-count-stat">
-                  <span>Diferencias</span>
+                  <span>{t("inventoryCount.stats.differences")}</span>
                   <strong>{summary.differences}</strong>
                 </div>
 
                 <div className="inventory-count-stat">
-                  <span>Diferencia neta</span>
+                  <span>{t("inventoryCount.stats.netDifference")}</span>
                   <strong className={summary.unitsDifference < 0 ? "danger-text" : "ok-text"}>
                     {summary.unitsDifference > 0 ? "+" : ""}
                     {summary.unitsDifference}
@@ -517,208 +550,233 @@ export default function InventoryCount() {
                   <input
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    placeholder="Buscar producto, SKU, código o categoría..."
+                    placeholder={t("inventoryCount.filters.search")}
                   />
                 </div>
 
                 <button
                   type="button"
-                  className={onlyDifferences ? "inventory-count-chip active" : "inventory-count-chip"}
+                  className={
+                    onlyDifferences
+                      ? "inventory-count-chip active"
+                      : "inventory-count-chip"
+                  }
                   onClick={() => setOnlyDifferences((prev) => !prev)}
                 >
-                  Solo diferencias
+                  {t("inventoryCount.filters.onlyDifferences")}
                 </button>
 
                 <button
                   type="button"
-                  className={onlyPending ? "inventory-count-chip active" : "inventory-count-chip"}
+                  className={
+                    onlyPending
+                      ? "inventory-count-chip active"
+                      : "inventory-count-chip"
+                  }
                   onClick={() => setOnlyPending((prev) => !prev)}
                 >
-                  Solo pendientes
+                  {t("inventoryCount.filters.onlyPending")}
                 </button>
               </div>
 
               <div className="inventory-count-table-wrap inventory-count-desktop-list">
-  <table className="inventory-count-table">
-    <thead>
-      <tr>
-        <th>Producto</th>
-        <th>SKU</th>
-        <th>Sistema</th>
-        <th>Conteo físico</th>
-        <th>Diferencia</th>
-        <th>Notas</th>
-      </tr>
-    </thead>
+                <table className="inventory-count-table">
+                  <thead>
+                    <tr>
+                      <th>{t("inventoryCount.table.product")}</th>
+                      <th>SKU</th>
+                      <th>{t("inventoryCount.table.system")}</th>
+                      <th>{t("inventoryCount.table.physicalCount")}</th>
+                      <th>{t("inventoryCount.table.difference")}</th>
+                      <th>{t("inventoryCount.table.notes")}</th>
+                    </tr>
+                  </thead>
 
-    <tbody>
-      {filteredItems.length === 0 ? (
-        <tr>
-          <td colSpan="6" className="inventory-count-table-empty">
-            No hay productos con esos filtros.
-          </td>
-        </tr>
-      ) : (
-        filteredItems.map((item) => {
-          const product = item.product || {};
-          const countedStock = toIntOrEmpty(item.countedStock);
-          const difference =
-            countedStock === ""
-              ? null
-              : countedStock - Number(item.systemStock || 0);
+                  <tbody>
+                    {filteredItems.length === 0 ? (
+                      <tr>
+                        <td colSpan="6" className="inventory-count-table-empty">
+                          {t("inventoryCount.table.empty")}
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredItems.map((item) => {
+                        const product = item.product || {};
+                        const countedStock = toIntOrEmpty(item.countedStock);
+                        const difference =
+                          countedStock === ""
+                            ? null
+                            : countedStock - Number(item.systemStock || 0);
 
-          return (
-            <tr key={item.id}>
-              <td>
-                <div className="inventory-count-product">
-                  <strong>{product.name}</strong>
-                  <span>{product.category || "Sin categoría"}</span>
-                </div>
-              </td>
+                        return (
+                          <tr key={item.id}>
+                            <td>
+                              <div className="inventory-count-product">
+                                <strong>{product.name}</strong>
+                                <span>
+                                  {product.category ||
+                                    t("inventoryCount.table.uncategorized")}
+                                </span>
+                              </div>
+                            </td>
 
-              <td>{product.sku || "-"}</td>
+                            <td>{product.sku || "-"}</td>
 
-              <td>
-                <strong>{item.systemStock}</strong>{" "}
-                <span className="muted">{product.unit || "unidad"}</span>
-              </td>
+                            <td>
+                              <strong>{item.systemStock}</strong>{" "}
+                              <span className="muted">
+                                {product.unit || t("inventoryCount.table.unit")}
+                              </span>
+                            </td>
 
-              <td>
-                <input
-                  type="number"
-                  min="0"
-                  disabled={disabled}
-                  value={item.countedStock}
-                  onChange={(e) =>
-                    updateItem(item.id, "countedStock", e.target.value)
-                  }
-                  className="inventory-count-input"
-                  placeholder="0"
-                />
-              </td>
+                            <td>
+                              <input
+                                type="number"
+                                min="0"
+                                disabled={disabled}
+                                value={item.countedStock}
+                                onChange={(e) =>
+                                  updateItem(item.id, "countedStock", e.target.value)
+                                }
+                                className="inventory-count-input"
+                                placeholder="0"
+                              />
+                            </td>
 
-              <td>
-                {difference === null ? (
-                  <span className="inventory-count-pill pending">Pendiente</span>
-                ) : difference === 0 ? (
-                  <span className="inventory-count-pill ok">Exacto</span>
+                            <td>
+                              {difference === null ? (
+                                <span className="inventory-count-pill pending">
+                                  {t("inventoryCount.table.pending")}
+                                </span>
+                              ) : difference === 0 ? (
+                                <span className="inventory-count-pill ok">
+                                  {t("inventoryCount.table.exact")}
+                                </span>
+                              ) : (
+                                <span
+                                  className={
+                                    difference > 0
+                                      ? "inventory-count-pill positive"
+                                      : "inventory-count-pill negative"
+                                  }
+                                >
+                                  {difference > 0 ? "+" : ""}
+                                  {difference}
+                                </span>
+                              )}
+                            </td>
+
+                            <td>
+                              <input
+                                type="text"
+                                disabled={disabled}
+                                value={item.notes}
+                                onChange={(e) =>
+                                  updateItem(item.id, "notes", e.target.value)
+                                }
+                                className="inventory-count-note-input"
+                                placeholder={t("inventoryCount.table.optional")}
+                              />
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="inventory-count-mobile-list">
+                {filteredItems.length === 0 ? (
+                  <div className="inventory-count-mobile-empty">
+                    {t("inventoryCount.table.empty")}
+                  </div>
                 ) : (
-                  <span
-                    className={
-                      difference > 0
-                        ? "inventory-count-pill positive"
-                        : "inventory-count-pill negative"
-                    }
-                  >
-                    {difference > 0 ? "+" : ""}
-                    {difference}
-                  </span>
+                  filteredItems.map((item) => {
+                    const product = item.product || {};
+                    const countedStock = toIntOrEmpty(item.countedStock);
+                    const difference =
+                      countedStock === ""
+                        ? null
+                        : countedStock - Number(item.systemStock || 0);
+
+                    return (
+                      <div className="inventory-count-mobile-card" key={item.id}>
+                        <div className="inventory-count-mobile-top">
+                          <div>
+                            <span>{t("inventoryCount.table.product")}</span>
+                            <strong>{product.name}</strong>
+                          </div>
+
+                          {difference === null ? (
+                            <span className="inventory-count-pill pending">
+                              {t("inventoryCount.table.pending")}
+                            </span>
+                          ) : difference === 0 ? (
+                            <span className="inventory-count-pill ok">
+                              {t("inventoryCount.table.exact")}
+                            </span>
+                          ) : (
+                            <span
+                              className={
+                                difference > 0
+                                  ? "inventory-count-pill positive"
+                                  : "inventory-count-pill negative"
+                              }
+                            >
+                              {difference > 0 ? "+" : ""}
+                              {difference}
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="inventory-count-mobile-meta">
+                          <span>
+                            {product.category ||
+                              t("inventoryCount.table.uncategorized")}
+                          </span>
+                          <strong>SKU {product.sku || "-"}</strong>
+                        </div>
+
+                        <div className="inventory-count-mobile-grid">
+                          <div>
+                            <span>{t("inventoryCount.table.system")}</span>
+                            <strong>
+                              {item.systemStock}{" "}
+                              {product.unit || t("inventoryCount.table.unit")}
+                            </strong>
+                          </div>
+
+                          <label>
+                            <span>{t("inventoryCount.table.physicalCount")}</span>
+                            <input
+                              type="number"
+                              min="0"
+                              disabled={disabled}
+                              value={item.countedStock}
+                              onChange={(e) =>
+                                updateItem(item.id, "countedStock", e.target.value)
+                              }
+                              placeholder="0"
+                            />
+                          </label>
+                        </div>
+
+                        <label className="inventory-count-mobile-notes">
+                          <span>{t("inventoryCount.table.notes")}</span>
+                          <input
+                            type="text"
+                            disabled={disabled}
+                            value={item.notes}
+                            onChange={(e) => updateItem(item.id, "notes", e.target.value)}
+                            placeholder={t("inventoryCount.table.optional")}
+                          />
+                        </label>
+                      </div>
+                    );
+                  })
                 )}
-              </td>
-
-              <td>
-                <input
-                  type="text"
-                  disabled={disabled}
-                  value={item.notes}
-                  onChange={(e) =>
-                    updateItem(item.id, "notes", e.target.value)
-                  }
-                  className="inventory-count-note-input"
-                  placeholder="Opcional"
-                />
-              </td>
-            </tr>
-          );
-        })
-      )}
-    </tbody>
-  </table>
-</div>
-
-<div className="inventory-count-mobile-list">
-  {filteredItems.length === 0 ? (
-    <div className="inventory-count-mobile-empty">
-      No hay productos con esos filtros.
-    </div>
-  ) : (
-    filteredItems.map((item) => {
-      const product = item.product || {};
-      const countedStock = toIntOrEmpty(item.countedStock);
-      const difference =
-        countedStock === ""
-          ? null
-          : countedStock - Number(item.systemStock || 0);
-
-      return (
-        <div className="inventory-count-mobile-card" key={item.id}>
-          <div className="inventory-count-mobile-top">
-            <div>
-              <span>Producto</span>
-              <strong>{product.name}</strong>
-            </div>
-
-            {difference === null ? (
-              <span className="inventory-count-pill pending">Pendiente</span>
-            ) : difference === 0 ? (
-              <span className="inventory-count-pill ok">Exacto</span>
-            ) : (
-              <span
-                className={
-                  difference > 0
-                    ? "inventory-count-pill positive"
-                    : "inventory-count-pill negative"
-                }
-              >
-                {difference > 0 ? "+" : ""}
-                {difference}
-              </span>
-            )}
-          </div>
-
-          <div className="inventory-count-mobile-meta">
-            <span>{product.category || "Sin categoría"}</span>
-            <strong>SKU {product.sku || "-"}</strong>
-          </div>
-
-          <div className="inventory-count-mobile-grid">
-            <div>
-              <span>Stock sistema</span>
-              <strong>
-                {item.systemStock} {product.unit || "unidad"}
-              </strong>
-            </div>
-
-            <label>
-              <span>Conteo físico</span>
-              <input
-                type="number"
-                min="0"
-                disabled={disabled}
-                value={item.countedStock}
-                onChange={(e) =>
-                  updateItem(item.id, "countedStock", e.target.value)
-                }
-                placeholder="0"
-              />
-            </label>
-          </div>
-
-          <label className="inventory-count-mobile-notes">
-            <span>Notas</span>
-            <input
-              type="text"
-              disabled={disabled}
-              value={item.notes}
-              onChange={(e) => updateItem(item.id, "notes", e.target.value)}
-              placeholder="Opcional"
-            />
-          </label>
-        </div>
-      );
-    })
-  )}
-</div>
+              </div>
 
               <div className="inventory-count-footer-actions">
                 <button
@@ -728,7 +786,7 @@ export default function InventoryCount() {
                   onClick={() => saveCount("draft")}
                 >
                   <Save size={18} />
-                  Guardar borrador
+                  {t("inventoryCount.actions.saveDraft")}
                 </button>
 
                 <button
@@ -738,7 +796,7 @@ export default function InventoryCount() {
                   onClick={completeCount}
                 >
                   <CheckCircle2 size={18} />
-                  Marcar completado
+                  {t("inventoryCount.actions.markCompleted")}
                 </button>
 
                 <button
@@ -748,7 +806,7 @@ export default function InventoryCount() {
                   onClick={applyCount}
                 >
                   <AlertTriangle size={18} />
-                  Aplicar ajustes
+                  {t("inventoryCount.actions.applyAdjustments")}
                 </button>
               </div>
             </>
@@ -761,11 +819,8 @@ export default function InventoryCount() {
           <div className="inventory-count-modal">
             <div className="inventory-count-modal-header">
               <div>
-                <h2>Nuevo conteo de inventario</h2>
-                <p>
-                  Corex tomará una foto del stock actual para compararlo con el
-                  conteo físico.
-                </p>
+                <h2>{t("inventoryCount.modal.title")}</h2>
+                <p>{t("inventoryCount.modal.description")}</p>
               </div>
 
               <button
@@ -779,30 +834,30 @@ export default function InventoryCount() {
 
             <form onSubmit={createCount} className="inventory-count-form">
               <label>
-                Nombre del conteo
+                {t("inventoryCount.modal.countName")}
                 <input
                   value={newCount.name}
                   onChange={(e) =>
                     setNewCount((prev) => ({ ...prev, name: e.target.value }))
                   }
-                  placeholder="Ej: Conteo general junio 2026"
+                  placeholder={t("inventoryCount.modal.countPlaceholder")}
                 />
               </label>
 
               <label>
-                Notas
+                {t("inventoryCount.modal.notes")}
                 <textarea
                   value={newCount.notes}
                   onChange={(e) =>
                     setNewCount((prev) => ({ ...prev, notes: e.target.value }))
                   }
-                  placeholder="Opcional"
+                  placeholder={t("inventoryCount.table.optional")}
                 />
               </label>
 
               <div className="inventory-count-form-grid">
                 <label>
-                  Categoría exacta
+                  {t("inventoryCount.modal.category")}
                   <input
                     value={newCount.category}
                     onChange={(e) =>
@@ -811,26 +866,25 @@ export default function InventoryCount() {
                         category: e.target.value,
                       }))
                     }
-                    placeholder="Opcional"
+                    placeholder={t("inventoryCount.table.optional")}
                   />
                 </label>
 
                 <label>
-                  Buscar productos
+                  {t("inventoryCount.modal.searchProducts")}
                   <input
                     value={newCount.search}
                     onChange={(e) =>
                       setNewCount((prev) => ({ ...prev, search: e.target.value }))
                     }
-                    placeholder="Nombre, SKU o código"
+                    placeholder={t("inventoryCount.modal.searchPlaceholder")}
                   />
                 </label>
               </div>
 
               <div className="inventory-count-modal-info">
                 <Eye size={18} />
-                Si dejas los filtros vacíos, se incluirán todos los productos activos
-                que controlan stock.
+                {t("inventoryCount.modal.info")}
               </div>
 
               <div className="inventory-count-modal-actions">
@@ -839,7 +893,7 @@ export default function InventoryCount() {
                   className="inventory-count-btn secondary"
                   onClick={() => setCreateOpen(false)}
                 >
-                  Cancelar
+                  {t("inventoryCount.actions.cancel")}
                 </button>
 
                 <button
@@ -848,7 +902,9 @@ export default function InventoryCount() {
                   disabled={creating}
                 >
                   <Plus size={18} />
-                  {creating ? "Creando..." : "Crear conteo"}
+                  {creating
+                    ? t("inventoryCount.actions.creating")
+                    : t("inventoryCount.actions.createCount")}
                 </button>
               </div>
             </form>

@@ -1,27 +1,14 @@
 import { useEffect, useState } from "react";
 import { Printer, X } from "lucide-react";
 import QRCode from "qrcode";
+import { useAuth } from "../context/AuthContext";
+import es from "../i18n/locales/es.json";
+import en from "../i18n/locales/en.json";
 import {
   getTaxRate,
   getTaxLabel,
   isDominicanTenant,
 } from "../utils/taxConfig";
-
-const paymentLabels = {
-  cash: "EFECTIVO",
-  card: "TARJETA",
-  transfer: "TRANSFERENCIA",
-  check: "CHEQUE",
-  mixed: "MIXTO",
-};
-
-const receiptTypeLabels = {
-  consumer_final: "FACTURA DE CONSUMO FISCAL ELECTRONICA",
-  credit_fiscal: "FACTURA DE CREDITO FISCAL ELECTRONICA",
-};
-
-const getReceiptTypeLabel = (type) =>
-  receiptTypeLabels[type] || receiptTypeLabels.consumer_final;
 
 const getReceiptQrTarget = (sale) => {
   if (sale?.dgiiQrUrl) return sale.dgiiQrUrl;
@@ -37,10 +24,10 @@ const formatMoney = (value, tenant = {}) => {
   }).format(Number(value || 0));
 };
 
-const formatDate = (value) => {
+const formatDate = (value, language = "es") => {
   if (!value) return "-";
 
-  return new Intl.DateTimeFormat("es-DO", {
+  return new Intl.DateTimeFormat(language === "en" ? "en-US" : "es-DO", {
     day: "2-digit",
     month: "2-digit",
     year: "2-digit",
@@ -64,9 +51,18 @@ const getFiscalNumber = (sale) => {
   );
 };
 
-
 export default function PosReceipt({ sale, onClose }) {
+  const { language } = useAuth();
+  const dictionary = language === "en" ? en : es;
   const [qrDataUrl, setQrDataUrl] = useState("");
+
+  const t = (path, fallback = "") => {
+    const value = path
+      .split(".")
+      .reduce((acc, key) => acc?.[key], dictionary);
+
+    return value || fallback || path;
+  };
 
   if (!sale) return null;
 
@@ -74,6 +70,22 @@ export default function PosReceipt({ sale, onClose }) {
   const taxLabel = getTaxLabel(tenant);
   const isDO = isDominicanTenant(tenant);
   const taxRate = getTaxRate(tenant);
+
+  const paymentLabels = {
+    cash: t("pos.cash").toUpperCase(),
+    card: t("pos.card").toUpperCase(),
+    transfer: t("pos.transfer").toUpperCase(),
+    check: t("pos.check").toUpperCase(),
+    mixed: t("pos.mixed").toUpperCase(),
+  };
+
+  const receiptTypeLabels = {
+    consumer_final: t("pos.receipt.consumerFinal").toUpperCase(),
+    credit_fiscal: t("pos.receipt.creditFiscal").toUpperCase(),
+  };
+
+  const getReceiptTypeLabel = (type) =>
+    receiptTypeLabels[type] || receiptTypeLabels.consumer_final;
 
   const usTaxBreakdown = {
     stateRate: Number(tenant?.usStateTaxRate || 0),
@@ -83,13 +95,9 @@ export default function PosReceipt({ sale, onClose }) {
 
   const getTaxAmount = (rate, base = 0) =>
     Math.round(
-      (
-        Number(base || 0) *
-        (Number(rate || 0) / 100) +
-        Number.EPSILON
-      ) *
-        100
+      (Number(base || 0) * (Number(rate || 0) / 100) + Number.EPSILON) * 100
     ) / 100;
+
   const items = sale.items || [];
   const receiptType = sale.receiptType || sale.invoiceType || "consumer_final";
 
@@ -119,7 +127,7 @@ export default function PosReceipt({ sale, onClose }) {
       <div className="receipt-modal" onClick={(event) => event.stopPropagation()}>
         <div className="receipt-modal-header no-print">
           <div>
-            <span>Comprobante POS</span>
+            <span>{t("pos.receipt.modalTitle")}</span>
             <h3>{sale.saleNumber}</h3>
           </div>
 
@@ -133,8 +141,8 @@ export default function PosReceipt({ sale, onClose }) {
             <div className="receipt-center">
               <h2>{tenant.businessName || "COREX POS"}</h2>
 
-              {isDO && tenant.rnc && <p>RNC: {tenant.rnc}</p>}
-              {tenant.phone && <p>Tel: {tenant.phone}</p>}
+              {isDO && tenant.rnc && <p>{t("pos.receipt.rnc")}: {tenant.rnc}</p>}
+              {tenant.phone && <p>{t("pos.receipt.phone")}: {tenant.phone}</p>}
               {tenant.address && <p>{tenant.address}</p>}
             </div>
 
@@ -142,7 +150,9 @@ export default function PosReceipt({ sale, onClose }) {
 
             <div className="receipt-center">
               <h3 className="receipt-type-title">
-                {isDO ? getReceiptTypeLabel(receiptType) : "COMPROBANTE DE VENTA"}
+                {isDO
+                  ? getReceiptTypeLabel(receiptType)
+                  : t("pos.receipt.saleReceipt").toUpperCase()}
               </h3>
             </div>
 
@@ -151,32 +161,45 @@ export default function PosReceipt({ sale, onClose }) {
 
               {isDO && receiptType === "credit_fiscal" && (
                 <>
-                  {sale.customerRnc && <p>RNC Comprador: {sale.customerRnc}</p>}
-                  {sale.customerName && <p>Razón social comprador: {sale.customerName}</p>}
+                  {sale.customerRnc && (
+                    <p>{t("pos.receipt.customerRnc")}: {sale.customerRnc}</p>
+                  )}
+                  {sale.customerName && (
+                    <p>
+                      {t("pos.receipt.customerBusinessName")}: {sale.customerName}
+                    </p>
+                  )}
                 </>
               )}
 
-              {!isDO && sale.customerName && <p>Cliente: {sale.customerName}</p>}
+              {!isDO && sale.customerName && (
+                <p>{t("pos.receipt.customer")}: {sale.customerName}</p>
+              )}
 
-              <p>Fecha emisión: {formatDate(sale.createdAt)}</p>
+              <p>
+                {t("pos.receipt.issueDate")}:{" "}
+                {formatDate(sale.createdAt, language)}
+              </p>
             </div>
 
             <div className="receipt-separator" />
 
             <div className="receipt-info-block">
               <p>
-                <span>Caja:</span>
+                <span>{t("pos.receipt.cashRegister")}:</span>
                 <strong>{sale.cashRegister?.name || "-"}</strong>
               </p>
 
               <p>
-                <span>Cajero:</span>
+                <span>{t("pos.receipt.cashier")}:</span>
                 <strong>{sale.user?.name || "-"}</strong>
               </p>
 
               <p>
-                <span>Pago:</span>
-                <strong>{paymentLabels[sale.paymentMethod] || sale.paymentMethod || "-"}</strong>
+                <span>{t("pos.receipt.payment")}:</span>
+                <strong>
+                  {paymentLabels[sale.paymentMethod] || sale.paymentMethod || "-"}
+                </strong>
               </p>
             </div>
 
@@ -192,11 +215,16 @@ export default function PosReceipt({ sale, onClose }) {
                     </span>
 
                     {Number(item.discountAmount || 0) > 0 && (
-                      <span>Desc: {formatMoney(item.discountAmount, tenant)}</span>
+                      <span>
+                        {t("pos.receipt.discountShort")}:{" "}
+                        {formatMoney(item.discountAmount, tenant)}
+                      </span>
                     )}
                   </div>
 
-                  <strong className="receipt-item-total">{formatMoney(item.total, tenant)}</strong>
+                  <strong className="receipt-item-total">
+                    {formatMoney(item.total, tenant)}
+                  </strong>
                 </div>
               ))}
             </div>
@@ -205,71 +233,77 @@ export default function PosReceipt({ sale, onClose }) {
 
             <div className="receipt-totals">
               <p>
-                <span>SUBTOTAL</span>
+                <span>{t("pos.receipt.subtotal")}</span>
                 <strong>{formatMoney(sale.subtotal, tenant)}</strong>
               </p>
 
               <p>
-                <span>DESCUENTO</span>
+                <span>{t("pos.receipt.discount")}</span>
                 <strong>{formatMoney(sale.discountTotal, tenant)}</strong>
               </p>
 
               {isDO ? (
-  <p>
-    <span>{taxLabel} ({taxRate}%)</span>
-    <strong>{formatMoney(sale.taxTotal, tenant)}</strong>
-  </p>
-) : (
-  <>
-    <p>
-      <span>State Tax ({usTaxBreakdown.stateRate}%)</span>
-      <strong>
-        {formatMoney(
-          getTaxAmount(usTaxBreakdown.stateRate, sale.subtotal),
-          tenant
-        )}
-      </strong>
-    </p>
+                <p>
+                  <span>{taxLabel} ({taxRate}%)</span>
+                  <strong>{formatMoney(sale.taxTotal, tenant)}</strong>
+                </p>
+              ) : (
+                <>
+                  <p>
+                    <span>
+                      {t("pos.receipt.stateTax")} ({usTaxBreakdown.stateRate}%)
+                    </span>
+                    <strong>
+                      {formatMoney(
+                        getTaxAmount(usTaxBreakdown.stateRate, sale.subtotal),
+                        tenant
+                      )}
+                    </strong>
+                  </p>
 
-    <p>
-      <span>County Tax ({usTaxBreakdown.countyRate}%)</span>
-      <strong>
-        {formatMoney(
-          getTaxAmount(usTaxBreakdown.countyRate, sale.subtotal),
-          tenant
-        )}
-      </strong>
-    </p>
+                  <p>
+                    <span>
+                      {t("pos.receipt.countyTax")} ({usTaxBreakdown.countyRate}%)
+                    </span>
+                    <strong>
+                      {formatMoney(
+                        getTaxAmount(usTaxBreakdown.countyRate, sale.subtotal),
+                        tenant
+                      )}
+                    </strong>
+                  </p>
 
-    <p>
-      <span>City Tax ({usTaxBreakdown.cityRate}%)</span>
-      <strong>
-        {formatMoney(
-          getTaxAmount(usTaxBreakdown.cityRate, sale.subtotal),
-          tenant
-        )}
-      </strong>
-    </p>
+                  <p>
+                    <span>
+                      {t("pos.receipt.cityTax")} ({usTaxBreakdown.cityRate}%)
+                    </span>
+                    <strong>
+                      {formatMoney(
+                        getTaxAmount(usTaxBreakdown.cityRate, sale.subtotal),
+                        tenant
+                      )}
+                    </strong>
+                  </p>
 
-    <p>
-      <span>Total Taxes ({taxRate}%)</span>
-      <strong>{formatMoney(sale.taxTotal, tenant)}</strong>
-    </p>
-  </>
-)}
+                  <p>
+                    <span>{t("pos.receipt.totalTaxes")} ({taxRate}%)</span>
+                    <strong>{formatMoney(sale.taxTotal, tenant)}</strong>
+                  </p>
+                </>
+              )}
 
               <p className="receipt-total-line">
-                <span>TOTAL</span>
+                <span>{t("pos.receipt.total")}</span>
                 <strong>{formatMoney(sale.total, tenant)}</strong>
               </p>
 
               <p>
-                <span>PAGADO</span>
+                <span>{t("pos.receipt.paid")}</span>
                 <strong>{formatMoney(sale.amountPaid, tenant)}</strong>
               </p>
 
               <p>
-                <span>CAMBIO</span>
+                <span>{t("pos.receipt.change")}</span>
                 <strong>{formatMoney(sale.changeAmount, tenant)}</strong>
               </p>
             </div>
@@ -277,21 +311,21 @@ export default function PosReceipt({ sale, onClose }) {
             <div className="receipt-separator" />
 
             <div className="receipt-center">
-              <p>TOTAL ITEMS {items.length}</p>
+              <p>{t("pos.receipt.totalItems")} {items.length}</p>
             </div>
 
             {isDO && qrDataUrl && (
               <div className="receipt-qr">
-                <img src={qrDataUrl} alt="QR del comprobante" />
-                <p>Escanee para consultar</p>
+                <img src={qrDataUrl} alt={t("pos.receipt.qrAlt")} />
+                <p>{t("pos.receipt.scanQr")}</p>
               </div>
             )}
 
             <div className="receipt-separator" />
 
             <div className="receipt-footer">
-              <p>Gracias por su compra</p>
-              <small>Emitido desde Corex</small>
+              <p>{t("pos.receipt.thanks")}</p>
+              <small>{t("pos.receipt.issuedBy")}</small>
             </div>
           </div>
         </div>
@@ -299,11 +333,11 @@ export default function PosReceipt({ sale, onClose }) {
         <div className="receipt-modal-actions no-print">
           <button type="button" className="primary-btn" onClick={handlePrint}>
             <Printer size={18} />
-            Imprimir
+            {t("pos.receipt.print")}
           </button>
 
           <button type="button" className="danger-btn" onClick={onClose}>
-            Cerrar
+            {t("pos.receipt.close")}
           </button>
         </div>
       </div>

@@ -10,11 +10,13 @@ import {
   Trash2,
   Users,
   X,
-  Ban, // 🔥 agrégalo aquí
+  Ban,
 } from "lucide-react";
 import { api } from "../../api/axios";
+import { useAuth } from "../../context/AuthContext";
+import es from "../../i18n/locales/es.json";
+import en from "../../i18n/locales/en.json";
 import { useConfirm } from "../../components/ConfirmProvider";
-
 
 const emptyForm = {
   name: "",
@@ -27,6 +29,24 @@ const emptyForm = {
 
 export default function Suppliers() {
   const { confirm } = useConfirm();
+  const { language } = useAuth();
+
+  const dictionary = language === "en" ? en : es;
+
+  const t = (path, fallback = "", vars = {}) => {
+    let value = path
+      .split(".")
+      .reduce((acc, key) => acc?.[key], dictionary);
+
+    value = value || fallback || path;
+
+    Object.entries(vars).forEach(([key, val]) => {
+      value = String(value).replace(`{{${key}}}`, val);
+    });
+
+    return value;
+  };
+
   const [suppliers, setSuppliers] = useState([]);
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState(null);
@@ -42,7 +62,7 @@ export default function Suppliers() {
       const { data } = await api.get("/suppliers");
       setSuppliers(Array.isArray(data) ? data : []);
     } catch (error) {
-      alert(error.response?.data?.message || "Error cargando proveedores");
+      alert(error.response?.data?.message || t("suppliers.messages.loadError"));
     } finally {
       setLoading(false);
     }
@@ -107,7 +127,7 @@ export default function Suppliers() {
     e.preventDefault();
 
     if (!form.name.trim()) {
-      alert("El nombre del proveedor es obligatorio");
+      alert(t("suppliers.messages.nameRequired"));
       return;
     }
 
@@ -123,7 +143,7 @@ export default function Suppliers() {
       closeModal();
       await loadSuppliers();
     } catch (error) {
-      alert(error.response?.data?.message || "Error guardando proveedor");
+      alert(error.response?.data?.message || t("suppliers.messages.saveError"));
     } finally {
       setSaving(false);
     }
@@ -131,9 +151,11 @@ export default function Suppliers() {
 
   const deactivateSupplier = async (supplier) => {
     const ok = await confirm({
-      title: "Desactivar proveedor",
-      message: `¿Desactivar proveedor "${supplier.name}"?`,
-      confirmText: "Desactivar",
+      title: t("suppliers.confirm.deactivateTitle"),
+      message: t("suppliers.confirm.deactivateMessage", "", {
+        name: supplier.name,
+      }),
+      confirmText: t("suppliers.confirm.deactivateButton"),
       variant: "danger",
     });
 
@@ -143,7 +165,10 @@ export default function Suppliers() {
       await api.delete(`/suppliers/${supplier.id}`);
       await loadSuppliers();
     } catch (error) {
-      alert(error.response?.data?.message || "Error desactivando proveedor");
+      alert(
+        error.response?.data?.message ||
+          t("suppliers.messages.deactivateError")
+      );
     }
   };
 
@@ -155,44 +180,52 @@ export default function Suppliers() {
       });
       await loadSuppliers();
     } catch (error) {
-      alert(error.response?.data?.message || "Error reactivando proveedor");
+      alert(
+        error.response?.data?.message ||
+          t("suppliers.messages.reactivateError")
+      );
     }
   };
 
-    const toggleSupplier = async (supplier) => {
-    await api.patch(`/suppliers/${supplier.id}/toggle`);
-    loadSuppliers();
-};
+  const toggleSupplier = async (supplier) => {
+    try {
+      await api.patch(`/suppliers/${supplier.id}/toggle`);
+      await loadSuppliers();
+    } catch (error) {
+      alert(error.response?.data?.message || t("suppliers.messages.saveError"));
+    }
+  };
 
-    const deleteSupplier = async (supplier) => {
+  const deleteSupplier = async (supplier) => {
     const ok = await confirm({
-      title: "Eliminar proveedor",
-      message: "Esto eliminará el proveedor permanentemente. Esta acción no se puede deshacer.",
-      confirmText: "Eliminar",
+      title: t("suppliers.confirm.deleteTitle"),
+      message: t("suppliers.confirm.deleteMessage"),
+      confirmText: t("suppliers.confirm.deleteButton"),
       variant: "danger",
     });
 
     if (!ok) return;
 
-    await api.delete(`/suppliers/${supplier.id}`);
-    loadSuppliers();
-    };
+    try {
+      await api.delete(`/suppliers/${supplier.id}`);
+      await loadSuppliers();
+    } catch (error) {
+      alert(error.response?.data?.message || t("suppliers.messages.saveError"));
+    }
+  };
 
   return (
     <div className="quote-page">
       <section className="quote-header">
         <div>
-          <span>Proveedores</span>
-          <h2>Gestión de proveedores</h2>
-          <p>
-            Registra suplidores, datos fiscales y contactos para futuras órdenes
-            de compra.
-          </p>
+          <span>{t("suppliers.header.eyebrow")}</span>
+          <h2>{t("suppliers.header.title")}</h2>
+          <p>{t("suppliers.header.description")}</p>
         </div>
 
         <button className="primary-btn" onClick={openCreateModal}>
           <Plus size={18} />
-          Nuevo proveedor
+          {t("suppliers.header.new")}
         </button>
       </section>
 
@@ -202,7 +235,7 @@ export default function Suppliers() {
             <Users size={22} />
           </div>
           <div>
-            <span>Total proveedores</span>
+            <span>{t("suppliers.stats.total")}</span>
             <strong>{stats.total}</strong>
           </div>
         </div>
@@ -212,7 +245,7 @@ export default function Suppliers() {
             <CheckCircle size={22} />
           </div>
           <div>
-            <span>Activos</span>
+            <span>{t("suppliers.stats.active")}</span>
             <strong>{stats.active}</strong>
           </div>
         </div>
@@ -222,7 +255,7 @@ export default function Suppliers() {
             <Building2 size={22} />
           </div>
           <div>
-            <span>Con RNC</span>
+            <span>{t("suppliers.stats.withRnc")}</span>
             <strong>{stats.withRnc}</strong>
           </div>
         </div>
@@ -232,7 +265,7 @@ export default function Suppliers() {
             <X size={22} />
           </div>
           <div>
-            <span>Inactivos</span>
+            <span>{t("suppliers.stats.inactive")}</span>
             <strong>{stats.inactive}</strong>
           </div>
         </div>
@@ -241,8 +274,8 @@ export default function Suppliers() {
       <section className="quote-panel">
         <div className="quote-toolbar">
           <div>
-            <h3>Listado de proveedores</h3>
-            <p>Busca, edita, desactiva o reactiva proveedores.</p>
+            <h3>{t("suppliers.toolbar.title")}</h3>
+            <p>{t("suppliers.toolbar.description")}</p>
           </div>
 
           <div className="quote-toolbar-actions">
@@ -251,15 +284,15 @@ export default function Suppliers() {
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
             >
-              <option value="active">Activos</option>
-              <option value="inactive">Inactivos</option>
-              <option value="all">Todos</option>
+              <option value="active">{t("suppliers.filters.active")}</option>
+              <option value="inactive">{t("suppliers.filters.inactive")}</option>
+              <option value="all">{t("suppliers.filters.all")}</option>
             </select>
 
             <div className="quote-search">
               <Search size={18} />
               <input
-                placeholder="Buscar proveedor..."
+                placeholder={t("suppliers.toolbar.search")}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
@@ -271,12 +304,12 @@ export default function Suppliers() {
           <table className="quote-table">
             <thead>
               <tr>
-                <th>Proveedor</th>
-                <th>RNC</th>
-                <th>Teléfono</th>
-                <th>Email</th>
-                <th>Estado</th>
-                <th>Acciones</th>
+                <th>{t("suppliers.table.supplier")}</th>
+                <th>{t("suppliers.table.rnc")}</th>
+                <th>{t("suppliers.table.phone")}</th>
+                <th>{t("suppliers.table.email")}</th>
+                <th>{t("suppliers.table.status")}</th>
+                <th>{t("suppliers.table.actions")}</th>
               </tr>
             </thead>
 
@@ -284,13 +317,13 @@ export default function Suppliers() {
               {loading ? (
                 <tr>
                   <td colSpan="6" className="table-empty">
-                    Cargando proveedores...
+                    {t("suppliers.messages.loading")}
                   </td>
                 </tr>
               ) : filteredSuppliers.length === 0 ? (
                 <tr>
                   <td colSpan="6" className="table-empty">
-                    No hay proveedores registrados.
+                    {t("suppliers.messages.empty")}
                   </td>
                 </tr>
               ) : (
@@ -338,34 +371,44 @@ export default function Suppliers() {
                             : "badge ok"
                         }
                       >
-                        {supplier.isActive === false ? "Inactivo" : "Activo"}
+                        {supplier.isActive === false
+                          ? t("suppliers.status.inactive")
+                          : t("suppliers.status.active")}
                       </span>
                     </td>
 
                     <td>
                       <div className="table-actions quote-actions">
                         <button
-                            title="Editar"
-                            onClick={() => openEditModal(supplier)}
+                          title={t("suppliers.actions.edit")}
+                          onClick={() => openEditModal(supplier)}
                         >
-                            <Pencil size={16} />
+                          <Pencil size={16} />
                         </button>
 
                         <button
-                            title={supplier.isActive ? "Inhabilitar" : "Reactivar"}
-                            onClick={() => toggleSupplier(supplier)}
+                          title={
+                            supplier.isActive
+                              ? t("suppliers.actions.disable")
+                              : t("suppliers.actions.reactivate")
+                          }
+                          onClick={() => toggleSupplier(supplier)}
                         >
-                            {supplier.isActive ? <Ban size={16} /> : <CheckCircle size={16} />}
+                          {supplier.isActive ? (
+                            <Ban size={16} />
+                          ) : (
+                            <CheckCircle size={16} />
+                          )}
                         </button>
 
                         <button
-                            className="danger-btn"
-                            title="Eliminar definitivamente"
-                            onClick={() => deleteSupplier(supplier)}
+                          className="danger-btn"
+                          title={t("suppliers.actions.deleteForever")}
+                          onClick={() => deleteSupplier(supplier)}
                         >
-                            <Trash2 size={16} />
+                          <Trash2 size={16} />
                         </button>
-                        </div>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -380,8 +423,16 @@ export default function Suppliers() {
           <div className="quote-modal">
             <div className="modal-header">
               <div>
-                <span>{editingId ? "Editar proveedor" : "Nuevo proveedor"}</span>
-                <h3>{editingId ? "Actualizar proveedor" : "Registrar proveedor"}</h3>
+                <span>
+                  {editingId
+                    ? t("suppliers.modal.editEyebrow")
+                    : t("suppliers.modal.newEyebrow")}
+                </span>
+                <h3>
+                  {editingId
+                    ? t("suppliers.modal.editTitle")
+                    : t("suppliers.modal.newTitle")}
+                </h3>
               </div>
 
               <button onClick={closeModal} className="modal-close">
@@ -392,81 +443,81 @@ export default function Suppliers() {
             <form onSubmit={saveSupplier} className="quote-form">
               <div className="quote-form-grid">
                 <div className="form-row">
-                  <label>Nombre *</label>
+                  <label>{t("suppliers.fields.name")}</label>
                   <input
                     value={form.name}
                     onChange={(e) =>
                       setForm({ ...form, name: e.target.value })
                     }
-                    placeholder="Nombre del proveedor"
+                    placeholder={t("suppliers.placeholders.name")}
                   />
                 </div>
 
                 <div className="form-row">
-                  <label>RNC</label>
+                  <label>{t("suppliers.fields.rnc")}</label>
                   <input
                     value={form.rnc}
                     onChange={(e) => setForm({ ...form, rnc: e.target.value })}
-                    placeholder="RNC o identificación fiscal"
+                    placeholder={t("suppliers.placeholders.rnc")}
                   />
                 </div>
 
                 <div className="form-row">
-                  <label>Teléfono</label>
+                  <label>{t("suppliers.fields.phone")}</label>
                   <input
                     value={form.phone}
                     onChange={(e) =>
                       setForm({ ...form, phone: e.target.value })
                     }
-                    placeholder="809-000-0000"
+                    placeholder={t("suppliers.placeholders.phone")}
                   />
                 </div>
 
                 <div className="form-row">
-                  <label>Email</label>
+                  <label>{t("suppliers.fields.email")}</label>
                   <input
                     value={form.email}
                     onChange={(e) =>
                       setForm({ ...form, email: e.target.value })
                     }
-                    placeholder="proveedor@email.com"
+                    placeholder={t("suppliers.placeholders.email")}
                   />
                 </div>
 
                 <div className="form-row full">
-                  <label>Dirección</label>
+                  <label>{t("suppliers.fields.address")}</label>
                   <textarea
                     value={form.address}
                     onChange={(e) =>
                       setForm({ ...form, address: e.target.value })
                     }
-                    placeholder="Dirección del proveedor"
+                    placeholder={t("suppliers.placeholders.address")}
                   />
                 </div>
 
                 <div className="form-row full">
-                  <label>Notas</label>
+                  <label>{t("suppliers.fields.notes")}</label>
                   <textarea
                     value={form.notes}
                     onChange={(e) =>
                       setForm({ ...form, notes: e.target.value })
                     }
-                    placeholder="Condiciones, contacto interno, observaciones..."
+                    placeholder={t("suppliers.placeholders.notes")}
                   />
                 </div>
               </div>
 
               <div className="modal-actions">
                 <button type="button" onClick={closeModal} className="cancel-btn">
-                  Cancelar
+                  {t("suppliers.actions.cancel")}
                 </button>
 
                 <button disabled={saving} className="primary-btn">
                   {saving
-                    ? "Guardando..."
+                    ? t("suppliers.actions.saving")
                     : editingId
-                    ? "Guardar cambios"
-                    : "Crear proveedor"}
+                    ? t("suppliers.actions.saveChanges")
+                    : t("suppliers.actions.create")}
                 </button>
               </div>
             </form>

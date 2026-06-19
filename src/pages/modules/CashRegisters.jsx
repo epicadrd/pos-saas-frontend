@@ -1,9 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
 import { Plus, Save, Users } from "lucide-react";
 import { api } from "../../api/axios";
+import { useAuth } from "../../context/AuthContext";
+import es from "../../i18n/locales/es.json";
+import en from "../../i18n/locales/en.json";
 import "../../styles/pos.css";
 
 export default function CashRegisters() {
+  const { language } = useAuth();
+  const dictionary = language === "en" ? en : es;
+
   const [registers, setRegisters] = useState([]);
   const [users, setUsers] = useState([]);
   const [name, setName] = useState("");
@@ -11,13 +17,27 @@ export default function CashRegisters() {
   const [selectedUserIds, setSelectedUserIds] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const t = (path, fallback = "", vars = {}) => {
+    let value = path
+      .split(".")
+      .reduce((acc, key) => acc?.[key], dictionary);
+
+    value = value || fallback || path;
+
+    Object.entries(vars).forEach(([key, val]) => {
+      value = value.replace(`{{${key}}}`, val);
+    });
+
+    return value;
+  };
+
   const loadRegisters = async () => {
     try {
       setLoading(true);
       const { data } = await api.get("/pos/cash-registers");
       setRegisters(data || []);
     } catch (error) {
-      alert(error.response?.data?.message || "No se pudieron cargar las cajas");
+      alert(error.response?.data?.message || t("pos.cashRegistersPage.errors.load"));
     } finally {
       setLoading(false);
     }
@@ -41,7 +61,7 @@ export default function CashRegisters() {
     e.preventDefault();
 
     if (!name.trim()) {
-      alert("Coloca el nombre de la caja");
+      alert(t("pos.cashRegistersPage.errors.nameRequired"));
       return;
     }
 
@@ -50,7 +70,7 @@ export default function CashRegisters() {
       setName("");
       loadRegisters();
     } catch (error) {
-      alert(error.response?.data?.message || "No se pudo crear la caja");
+      alert(error.response?.data?.message || t("pos.cashRegistersPage.errors.create"));
     }
   };
 
@@ -63,7 +83,7 @@ export default function CashRegisters() {
 
       loadRegisters();
     } catch (error) {
-      alert(error.response?.data?.message || "No se pudo actualizar la caja");
+      alert(error.response?.data?.message || t("pos.cashRegistersPage.errors.update"));
     }
   };
 
@@ -92,43 +112,48 @@ export default function CashRegisters() {
       setSelectedUserIds([]);
       loadRegisters();
     } catch (error) {
-      alert(error.response?.data?.message || "No se pudieron asignar los usuarios");
+      alert(error.response?.data?.message || t("pos.cashRegistersPage.errors.assign"));
     }
   };
 
   const assignedLabel = useMemo(() => {
-    if (!selectedUserIds.length) return "Ningún usuario asignado";
-    return `${selectedUserIds.length} usuario(s) asignado(s)`;
-  }, [selectedUserIds]);
+    if (!selectedUserIds.length) {
+      return t("pos.cashRegistersPage.noAssignedUsers");
+    }
+
+    return t("pos.cashRegistersPage.assignedUsers", "", {
+      count: selectedUserIds.length,
+    });
+  }, [selectedUserIds, language]);
 
   return (
     <div className="pos-page">
       <section className="pos-header">
         <div>
-          <span>POS / Caja</span>
-          <h2>Cajas</h2>
-          <p>Crea cajas y asigna cuáles usuarios pueden abrirlas.</p>
+          <span>{t("pos.cashRegistersPage.eyebrow")}</span>
+          <h2>{t("pos.cashRegistersPage.title")}</h2>
+          <p>{t("pos.cashRegistersPage.description")}</p>
         </div>
       </section>
 
       <form className="pos-panel pos-form" onSubmit={createRegister}>
         <input
-          placeholder="Ej: Caja Principal"
+          placeholder={t("pos.cashRegistersPage.placeholder")}
           value={name}
           onChange={(e) => setName(e.target.value)}
         />
 
         <button className="primary-btn" type="submit">
           <Plus size={17} />
-          Crear caja
+          {t("pos.cashRegistersPage.create")}
         </button>
       </form>
 
       <section className="pos-panel">
         {loading ? (
-          <p>Cargando cajas...</p>
+          <p>{t("pos.cashRegistersPage.loading")}</p>
         ) : registers.length === 0 ? (
-          <p>No hay cajas creadas.</p>
+          <p>{t("pos.cashRegistersPage.empty")}</p>
         ) : (
           <div className="cash-register-grid">
             {registers.map((register) => (
@@ -136,9 +161,15 @@ export default function CashRegisters() {
                 <div>
                   <span>{register.code}</span>
                   <h3>{register.name}</h3>
-                  <p>{register.isActive ? "Activa" : "Inactiva"}</p>
+                  <p>
+                    {register.isActive
+                      ? t("pos.cashRegistersPage.active")
+                      : t("pos.cashRegistersPage.inactive")}
+                  </p>
                   <small>
-                    {(register.assignedUsers || []).length} usuario(s) asignado(s)
+                    {t("pos.cashRegistersPage.assignedUsers", "", {
+                      count: (register.assignedUsers || []).length,
+                    })}
                   </small>
                 </div>
 
@@ -149,7 +180,7 @@ export default function CashRegisters() {
                     onClick={() => openAssignmentModal(register)}
                   >
                     <Users size={16} />
-                    Usuarios
+                    {t("pos.cashRegistersPage.users")}
                   </button>
 
                   <button
@@ -158,7 +189,9 @@ export default function CashRegisters() {
                     onClick={() => toggleRegister(register)}
                   >
                     <Save size={16} />
-                    {register.isActive ? "Desactivar" : "Activar"}
+                    {register.isActive
+                      ? t("pos.cashRegistersPage.deactivate")
+                      : t("pos.cashRegistersPage.activate")}
                   </button>
                 </div>
               </article>
@@ -169,10 +202,13 @@ export default function CashRegisters() {
 
       {selectedRegister && (
         <div className="pos-modal-backdrop" onClick={() => setSelectedRegister(null)}>
-          <div className="pos-sale-detail-modal" onClick={(event) => event.stopPropagation()}>
+          <div
+            className="pos-sale-detail-modal"
+            onClick={(event) => event.stopPropagation()}
+          >
             <div className="pos-sale-detail-header">
               <div>
-                <span>Asignar usuarios</span>
+                <span>{t("pos.cashRegistersPage.assignUsers")}</span>
                 <h3>{selectedRegister.name}</h3>
                 <p>{assignedLabel}</p>
               </div>
@@ -193,14 +229,20 @@ export default function CashRegisters() {
 
                   <div>
                     <strong>{user.name}</strong>
-                    <span>{user.email} · {user.role}</span>
+                    <span>
+                      {user.email} · {user.role}
+                    </span>
                   </div>
                 </label>
               ))}
             </div>
 
-            <button type="button" className="primary-btn charge-btn" onClick={saveAssignments}>
-              Guardar asignaciones
+            <button
+              type="button"
+              className="primary-btn charge-btn"
+              onClick={saveAssignments}
+            >
+              {t("pos.cashRegistersPage.saveAssignments")}
             </button>
           </div>
         </div>

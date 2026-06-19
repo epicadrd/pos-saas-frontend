@@ -1,21 +1,44 @@
 import { useEffect, useMemo, useState } from "react";
-import { Copy, ExternalLink, ImagePlus, Package, RefreshCcw, Search } from "lucide-react";
+import {
+  Copy,
+  ExternalLink,
+  ImagePlus,
+  Package,
+  RefreshCcw,
+  Search,
+} from "lucide-react";
 import { api } from "../../api/axios";
 import { useAuth } from "../../context/AuthContext";
 import { isDominicanTenant } from "../../utils/taxConfig";
+import es from "../../i18n/locales/es.json";
+import en from "../../i18n/locales/en.json";
 import "../../styles/product-catalog.css";
 
 export default function ProductCatalog() {
-  const { tenant } = useAuth();
+  const { tenant, language } = useAuth();
   const isDO = isDominicanTenant(tenant);
   const locale = isDO ? "es-DO" : "en-US";
   const currency = isDO ? "DOP" : "USD";
+  const dictionary = language === "en" ? en : es;
 
   const [settings, setSettings] = useState(null);
   const [products, setProducts] = useState([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
+
+  const t = (path, fallback = "", vars = {}) => {
+    const value = path
+      .split(".")
+      .reduce((acc, key) => acc?.[key], dictionary);
+
+    const text = value || fallback || path;
+
+    return Object.entries(vars).reduce(
+      (acc, [key, val]) => acc.replaceAll(`{{${key}}}`, val),
+      text
+    );
+  };
 
   const money = useMemo(
     () =>
@@ -36,10 +59,14 @@ export default function ProductCatalog() {
       ]);
 
       setSettings(settingsRes.data);
-      setProducts(Array.isArray(productsRes.data) ? productsRes.data : productsRes.data?.data || []);
+      setProducts(
+        Array.isArray(productsRes.data)
+          ? productsRes.data
+          : productsRes.data?.data || []
+      );
     } catch (error) {
       console.log(error);
-      alert(error.response?.data?.message || "No se pudo cargar el catálogo");
+      alert(t("productCatalog.alerts.loadError"));
     } finally {
       setLoading(false);
     }
@@ -71,7 +98,7 @@ export default function ProductCatalog() {
       setSettings(data);
     } catch (error) {
       console.log(error);
-      alert(error.response?.data?.message || "No se pudo generar el link");
+      alert(t("productCatalog.alerts.generateError"));
     } finally {
       setGenerating(false);
     }
@@ -80,41 +107,62 @@ export default function ProductCatalog() {
   const copyLink = async () => {
     if (!settings?.catalogUrl) return;
     await navigator.clipboard.writeText(settings.catalogUrl);
-    alert("Link copiado al portapapeles");
+    alert(t("productCatalog.alerts.copied"));
   };
 
   return (
     <div className="catalog-admin-page">
       <section className="catalog-admin-hero">
         <div>
-          <span>Catálogo</span>
-          <h2>Catálogo público de productos</h2>
-          <p>
-            Comparte un link con tus clientes para que vean imagen, nombre y precio
-            de los productos activos del inventario.
-          </p>
+          <span>{t("productCatalog.title")}</span>
+          <h2>{t("productCatalog.subtitle")}</h2>
+          <p>{t("productCatalog.description")}</p>
         </div>
 
         <div className="catalog-link-card">
-          <label>Link del catálogo</label>
+          <label>{t("productCatalog.linkLabel")}</label>
 
           <div className="catalog-link-box">
-            <input value={settings?.catalogUrl || "Genera un link para compartir"} readOnly />
-            <button type="button" onClick={copyLink} disabled={!settings?.catalogUrl}>
+            <input
+              value={
+                settings?.catalogUrl ||
+                t("productCatalog.generatePlaceholder")
+              }
+              readOnly
+            />
+            <button
+              type="button"
+              onClick={copyLink}
+              disabled={!settings?.catalogUrl}
+            >
               <Copy size={17} />
             </button>
           </div>
 
           <div className="catalog-link-actions">
-            <button type="button" className="primary-btn" onClick={generateLink} disabled={generating}>
+            <button
+              type="button"
+              className="primary-btn"
+              onClick={generateLink}
+              disabled={generating}
+            >
               <RefreshCcw size={17} />
-              {settings?.catalogUrl ? "Regenerar / activar" : generating ? "Generando..." : "Generar link"}
+              {settings?.catalogUrl
+                ? t("productCatalog.regenerate")
+                : generating
+                ? t("productCatalog.generating")
+                : t("productCatalog.generate")}
             </button>
 
             {settings?.catalogUrl && (
-              <a href={settings.catalogUrl} target="_blank" rel="noreferrer" className="secondary-btn">
+              <a
+                href={settings.catalogUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="secondary-btn"
+              >
                 <ExternalLink size={17} />
-                Ver catálogo
+                {t("productCatalog.viewCatalog")}
               </a>
             )}
           </div>
@@ -124,14 +172,18 @@ export default function ProductCatalog() {
       <section className="catalog-admin-panel">
         <div className="catalog-admin-toolbar">
           <div>
-            <h3>Vista previa</h3>
-            <p>{catalogProducts.length} productos visibles en el catálogo.</p>
+            <h3>{t("productCatalog.preview")}</h3>
+            <p>
+              {t("productCatalog.visibleProducts", "", {
+                count: catalogProducts.length,
+              })}
+            </p>
           </div>
 
           <div className="catalog-search">
             <Search size={18} />
             <input
-              placeholder="Buscar producto..."
+              placeholder={t("productCatalog.searchPlaceholder")}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -139,9 +191,9 @@ export default function ProductCatalog() {
         </div>
 
         {loading ? (
-          <div className="catalog-empty">Cargando catálogo...</div>
+          <div className="catalog-empty">{t("productCatalog.loading")}</div>
         ) : catalogProducts.length === 0 ? (
-          <div className="catalog-empty">No hay productos visibles.</div>
+          <div className="catalog-empty">{t("productCatalog.empty")}</div>
         ) : (
           <div className="catalog-admin-grid">
             {catalogProducts.map((product) => (
@@ -155,7 +207,9 @@ export default function ProductCatalog() {
                 </div>
 
                 <div>
-                  <span>{product.category || "Producto"}</span>
+                  <span>
+                    {product.category || t("productCatalog.defaultCategory")}
+                  </span>
                   <h4>{product.name}</h4>
                   <strong>{money.format(Number(product.salePrice || 0))}</strong>
                 </div>
@@ -167,7 +221,7 @@ export default function ProductCatalog() {
 
       <section className="catalog-note">
         <Package size={19} />
-        <p>Para cambiar imagen o quitar un producto del catálogo, edítalo desde Inventario.</p>
+        <p>{t("productCatalog.note")}</p>
       </section>
     </div>
   );

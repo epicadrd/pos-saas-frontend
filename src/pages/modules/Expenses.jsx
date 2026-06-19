@@ -12,52 +12,15 @@ import {
 } from "lucide-react";
 import { api } from "../../api/axios";
 import { useAuth } from "../../context/AuthContext";
-import {
-  getTaxLabel,
-  isDominicanTenant,
-} from "../../utils/taxConfig";
+import esJson from "../../i18n/locales/es.json";
+import enJson from "../../i18n/locales/en.json";
+import { getTaxLabel, isDominicanTenant } from "../../utils/taxConfig";
 import { useConfirm } from "../../components/ConfirmProvider";
 import DatePicker from "react-datepicker";
-import { es } from "date-fns/locale";
+import { es as datePickerEs } from "date-fns/locale";
 import "react-datepicker/dist/react-datepicker.css";
 
-const initialForm = {
-  category: "Operativo",
-  description: "",
-  supplierId: "",
-  supplierName: "",
-  supplierRnc: "",
-  expenseDate: new Date().toISOString().slice(0, 10),
-  paymentMethod: "cash", 
-  tax: "0",
-  total: "",
-  notes: "",
-  ncf: "",
-};
-
-const categories = [
-  "Operativo",
-  "Nómina",
-  "Servicios",
-  "Transporte",
-  "Materiales",
-  "Renta",
-  "Marketing",
-  "Inventario",
-  "Otros",
-];
-
-const paymentMethods = {
-  cash: "Efectivo",
-  card: "Tarjeta",
-  transfer: "Transferencia",
-  check: "Cheque",
-  credit: "Crédito",
-  other: "Otro",
-};
-
-
-  const formatDateForDB = (date) => {
+const formatDateForDB = (date) => {
   if (!date) return "";
 
   const year = date.getFullYear();
@@ -68,7 +31,64 @@ const paymentMethods = {
 };
 
 export default function Expenses() {
-    const { tenant } = useAuth();
+  const { tenant, language } = useAuth();
+  const { confirm } = useConfirm();
+
+  const dictionary = language === "en" ? enJson : esJson;
+
+  const t = (path, fallback = "", vars = {}) => {
+    let value = path
+      .split(".")
+      .reduce((acc, key) => acc?.[key], dictionary);
+
+    value = value || fallback || path;
+
+    Object.entries(vars).forEach(([key, val]) => {
+      value = String(value).replace(`{{${key}}}`, val);
+    });
+
+    return value;
+  };
+
+  const categoryOptions = [
+    { key: "operational", value: "Operativo" },
+    { key: "payroll", value: "Nómina" },
+    { key: "services", value: "Servicios" },
+    { key: "transport", value: "Transporte" },
+    { key: "materials", value: "Materiales" },
+    { key: "rent", value: "Renta" },
+    { key: "marketing", value: "Marketing" },
+    { key: "inventory", value: "Inventario" },
+    { key: "other", value: "Otros" },
+  ];
+
+  const getCategoryLabel = (category) => {
+    const found = categoryOptions.find((item) => item.value === category);
+    return found ? t(`expenses.categories.${found.key}`) : category;
+  };
+
+  const paymentMethods = {
+    cash: t("expenses.paymentMethods.cash"),
+    card: t("expenses.paymentMethods.card"),
+    transfer: t("expenses.paymentMethods.transfer"),
+    check: t("expenses.paymentMethods.check"),
+    credit: t("expenses.paymentMethods.credit"),
+    other: t("expenses.paymentMethods.other"),
+  };
+
+  const initialForm = {
+    category: "Operativo",
+    description: "",
+    supplierId: "",
+    supplierName: "",
+    supplierRnc: "",
+    expenseDate: new Date().toISOString().slice(0, 10),
+    paymentMethod: "cash",
+    tax: "0",
+    total: "",
+    notes: "",
+    ncf: "",
+  };
 
   const isDO = isDominicanTenant(tenant);
   const locale = isDO ? "es-DO" : "en-US";
@@ -81,8 +101,7 @@ export default function Expenses() {
       style: "currency",
       currency,
     }).format(Number(value || 0));
-    
-  const { confirm } = useConfirm();
+
   const [expenses, setExpenses] = useState([]);
   const [detailExpense, setDetailExpense] = useState(null);
   const [dgiiUrl, setDgiiUrl] = useState("");
@@ -134,50 +153,47 @@ export default function Expenses() {
         }
       );
     } catch (error) {
-      alert(error.response?.data?.message || "No se pudieron cargar los gastos");
+      alert(error.response?.data?.message || t("expenses.messages.loadError"));
     } finally {
       setLoading(false);
     }
   };
 
   const importFromDgii = async () => {
-  if (!dgiiUrl.trim()) {
-    alert("Pega el enlace de verificación de la DGII");
-    return;
-  }
+    if (!dgiiUrl.trim()) {
+      alert(t("expenses.messages.dgiiUrlRequired"));
+      return;
+    }
 
-  try {
-    setImportingDgii(true);
+    try {
+      setImportingDgii(true);
 
-    const { data } = await api.post("/expenses/import-dgii", {
-      url: dgiiUrl.trim(),
-    });
+      const { data } = await api.post("/expenses/import-dgii", {
+        url: dgiiUrl.trim(),
+      });
 
-    setForm((prev) => ({
-      ...prev,
-      ...data,
-      description: "",
-    }));
-  } catch (error) {
-    alert(
-      error.response?.data?.message ||
-        "No se pudo importar la factura desde DGII"
-    );
-  } finally {
-    setImportingDgii(false);
-  }
-};
+      setForm((prev) => ({
+        ...prev,
+        ...data,
+        description: "",
+      }));
+    } catch (error) {
+      alert(error.response?.data?.message || t("expenses.messages.dgiiImportError"));
+    } finally {
+      setImportingDgii(false);
+    }
+  };
 
   useEffect(() => {
     loadExpenses();
   }, []);
-  
-const openCreate = () => {
-  setEditing(null);
-  setForm(initialForm);
-  setDgiiUrl("");
-  setModalOpen(true);
-};
+
+  const openCreate = () => {
+    setEditing(null);
+    setForm(initialForm);
+    setDgiiUrl("");
+    setModalOpen(true);
+  };
 
   const openEdit = (expense) => {
     setEditing(expense);
@@ -202,14 +218,10 @@ const openCreate = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
 
-    setForm((prev) => {
-      const next = {
-        ...prev,
-        [name]: value,
-      };
-
-      return next;
-    });
+    setForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
   const saveExpense = async (e) => {
@@ -234,19 +246,19 @@ const openCreate = () => {
     } catch (error) {
       if (error.response?.status === 409) {
         await confirm({
-          title: "e-NCF duplicado",
+          title: t("expenses.messages.duplicateTitle"),
           message:
             error.response?.data?.message ||
-            "Este e-NCF ya existe registrado en gastos.",
-          confirmText: "Entendido",
-          cancelText: "Cerrar",
+            t("expenses.messages.duplicateMessage"),
+          confirmText: t("expenses.messages.understood"),
+          cancelText: t("expenses.messages.close"),
           variant: "danger",
         });
 
         return;
       }
 
-      alert(error.response?.data?.message || "No se pudo guardar el gasto");
+      alert(error.response?.data?.message || t("expenses.messages.saveError"));
     } finally {
       setSaving(false);
     }
@@ -254,9 +266,11 @@ const openCreate = () => {
 
   const deleteExpense = async (expense) => {
     const ok = await confirm({
-      title: "Eliminar gasto",
-      message: `¿Eliminar el gasto ${expense.expenseNumber}? Esta acción no se puede deshacer.`,
-      confirmText: "Eliminar",
+      title: t("expenses.confirm.deleteTitle"),
+      message: t("expenses.confirm.deleteMessage", "", {
+        number: expense.expenseNumber,
+      }),
+      confirmText: t("expenses.confirm.deleteButton"),
       variant: "danger",
     });
 
@@ -266,7 +280,7 @@ const openCreate = () => {
       await api.delete(`/expenses/${expense.id}`);
       await loadExpenses();
     } catch (error) {
-      alert(error.response?.data?.message || "No se pudo eliminar el gasto");
+      alert(error.response?.data?.message || t("expenses.messages.deleteError"));
     }
   };
 
@@ -274,19 +288,19 @@ const openCreate = () => {
     <div className="expenses-page">
       <section className="expenses-hero">
         <div>
-          <span>Contabilidad</span>
-          <h2>Gastos</h2>
+          <span>{t("expenses.header.eyebrow")}</span>
+          <h2>{t("expenses.header.title")}</h2>
         </div>
 
         <div className="expenses-actions">
           <button className="secondary" onClick={loadExpenses}>
             <RefreshCcw size={18} />
-            Actualizar
+            {t("expenses.header.refresh")}
           </button>
 
           <button onClick={openCreate}>
             <Plus size={18} />
-            Nuevo gasto
+            {t("expenses.header.new")}
           </button>
         </div>
       </section>
@@ -294,17 +308,17 @@ const openCreate = () => {
       <section className="expenses-stats-grid">
         <div className="expense-stat main">
           <WalletCards />
-          <span>Gastos del mes</span>
+          <span>{t("expenses.stats.monthTotal")}</span>
           <strong>{formatMoney(stats.monthTotal)}</strong>
         </div>
 
         <div className="expense-stat">
-          <span>Pendientes</span>
+          <span>{t("expenses.stats.pending")}</span>
           <strong>{formatMoney(stats.pendingTotal)}</strong>
         </div>
 
         <div className="expense-stat">
-          <span>Resultado filtrado</span>
+          <span>{t("expenses.stats.filteredResult")}</span>
           <strong>{formatMoney(totalFiltered)}</strong>
         </div>
       </section>
@@ -314,7 +328,7 @@ const openCreate = () => {
           <div className="expense-search">
             <Search size={17} />
             <input
-              placeholder="Buscar gasto, emisor, e-NCF o categoría"
+              placeholder={t("expenses.filters.search")}
               value={filters.search}
               onChange={(e) =>
                 setFilters({
@@ -326,26 +340,26 @@ const openCreate = () => {
           </div>
 
           <button className="secondary" onClick={loadExpenses}>
-            Filtrar
+            {t("expenses.filters.filter")}
           </button>
         </div>
 
         {loading ? (
-          <div className="expenses-empty">Cargando gastos...</div>
+          <div className="expenses-empty">{t("expenses.messages.loading")}</div>
         ) : expenses.length === 0 ? (
-          <div className="expenses-empty">No hay gastos registrados.</div>
+          <div className="expenses-empty">{t("expenses.messages.empty")}</div>
         ) : (
           <div className="expenses-table-wrap">
             <table className="expenses-table">
               <thead>
                 <tr>
-                  <th>No.</th>
-                  <th>Fecha</th>
-                  <th>e-NCF</th>
-                  <th>Categoría</th>
-                  <th>Descripción</th>
-                  <th>Razón social emisor</th>
-                  <th>Total</th>
+                  <th>{t("expenses.table.number")}</th>
+                  <th>{t("expenses.table.date")}</th>
+                  <th>{t("expenses.table.ncf")}</th>
+                  <th>{t("expenses.table.category")}</th>
+                  <th>{t("expenses.table.description")}</th>
+                  <th>{t("expenses.table.issuerName")}</th>
+                  <th>{t("expenses.table.total")}</th>
                   <th></th>
                 </tr>
               </thead>
@@ -365,16 +379,14 @@ const openCreate = () => {
 
                     <td>
                       <span className="expense-chip">
-                        {expense.category}
+                        {getCategoryLabel(expense.category)}
                       </span>
                     </td>
 
                     <td>{expense.description}</td>
 
                     <td>
-                      {expense.supplier?.name ||
-                        expense.supplierName ||
-                        "—"}
+                      {expense.supplier?.name || expense.supplierName || "—"}
                     </td>
 
                     <td>
@@ -383,16 +395,21 @@ const openCreate = () => {
 
                     <td className="expense-row-actions">
                       <button
+                        title={t("expenses.table.view")}
                         onClick={() => setDetailExpense(expense)}
                       >
                         <Eye size={16} />
                       </button>
 
-                      <button onClick={() => openEdit(expense)}>
+                      <button
+                        title={t("expenses.table.edit")}
+                        onClick={() => openEdit(expense)}
+                      >
                         <Pencil size={16} />
                       </button>
 
                       <button
+                        title={t("expenses.table.delete")}
                         className="danger"
                         onClick={() => deleteExpense(expense)}
                       >
@@ -413,28 +430,25 @@ const openCreate = () => {
             <div className="expense-modal-header">
               <div>
                 <span className="expense-detail-kicker">
-                  Detalle del gasto
+                  {t("expenses.detail.title")}
                 </span>
 
                 <h3>{detailExpense.expenseNumber}</h3>
               </div>
 
-              <button
-                type="button"
-                onClick={() => setDetailExpense(null)}
-              >
+              <button type="button" onClick={() => setDetailExpense(null)}>
                 <X size={18} />
               </button>
             </div>
 
             <div className="expense-detail-summary">
               <div>
-                <span>Total</span>
+                <span>{t("expenses.detail.total")}</span>
                 <strong>{formatMoney(detailExpense.total)}</strong>
               </div>
 
               <div>
-                <span>Fecha</span>
+                <span>{t("expenses.detail.date")}</span>
                 <strong>
                   {new Date(
                     `${detailExpense.expenseDate}T00:00:00`
@@ -443,24 +457,24 @@ const openCreate = () => {
               </div>
 
               <div>
-                <span>Categoría</span>
-                <strong>{detailExpense.category}</strong>
+                <span>{t("expenses.detail.category")}</span>
+                <strong>{getCategoryLabel(detailExpense.category)}</strong>
               </div>
             </div>
 
             <div className="expense-detail-grid">
               <div>
-                <span>Descripción</span>
+                <span>{t("expenses.detail.description")}</span>
                 <strong>{detailExpense.description || "—"}</strong>
               </div>
 
               <div>
-                <span>e-NCF</span>
+                <span>{t("expenses.detail.ncf")}</span>
                 <strong>{detailExpense.ncf || "—"}</strong>
               </div>
 
               <div>
-                <span>Razón social emisor</span>
+                <span>{t("expenses.detail.issuerName")}</span>
                 <strong>
                   {detailExpense.supplier?.name ||
                     detailExpense.supplierName ||
@@ -469,7 +483,7 @@ const openCreate = () => {
               </div>
 
               <div>
-                <span>RNC emisor</span>
+                <span>{t("expenses.detail.issuerRnc")}</span>
                 <strong>
                   {detailExpense.supplier?.rnc ||
                     detailExpense.supplierRnc ||
@@ -478,12 +492,16 @@ const openCreate = () => {
               </div>
 
               <div>
-                <span>Total de {taxLabel}</span>
+                <span>
+                  {t("expenses.detail.taxTotal", "", {
+                    taxLabel,
+                  })}
+                </span>
                 <strong>{formatMoney(detailExpense.tax)}</strong>
               </div>
 
               <div>
-                <span>Notas</span>
+                <span>{t("expenses.detail.notes")}</span>
                 <strong>{detailExpense.notes || "—"}</strong>
               </div>
             </div>
@@ -494,7 +512,7 @@ const openCreate = () => {
                 className="secondary"
                 onClick={() => setDetailExpense(null)}
               >
-                Cerrar
+                {t("expenses.detail.close")}
               </button>
             </div>
           </div>
@@ -505,34 +523,33 @@ const openCreate = () => {
         <div className="expense-modal-backdrop">
           <form className="expense-modal" onSubmit={saveExpense}>
             <div className="expense-modal-header">
-              <h3>{editing ? "Editar gasto" : "Nuevo gasto"}</h3>
+              <h3>
+                {editing ? t("expenses.form.editTitle") : t("expenses.form.newTitle")}
+              </h3>
 
-              <button
-                type="button"
-                onClick={() => setModalOpen(false)}
-              >
+              <button type="button" onClick={() => setModalOpen(false)}>
                 <X size={18} />
               </button>
             </div>
 
             <div className="expense-form-grid">
               <label>
-                Categoría
+                {t("expenses.form.category")}
                 <select
                   name="category"
                   value={form.category}
                   onChange={handleChange}
                 >
-                  {categories.map((category) => (
-                    <option key={category} value={category}>
-                      {category}
+                  {categoryOptions.map((category) => (
+                    <option key={category.value} value={category.value}>
+                      {t(`expenses.categories.${category.key}`)}
                     </option>
                   ))}
                 </select>
               </label>
 
               <label>
-                Fecha de emisión
+                {t("expenses.form.issueDate")}
 
                 <DatePicker
                   selected={
@@ -547,14 +564,14 @@ const openCreate = () => {
                     }));
                   }}
                   dateFormat="d/M/yyyy"
-                  locale={isDO ? es : undefined}
+                  locale={isDO ? datePickerEs : undefined}
                   className="expense-datepicker"
                   required
                 />
               </label>
 
               <label>
-                Descripción / Concepto
+                {t("expenses.form.description")}
                 <input
                   name="description"
                   value={form.description}
@@ -564,7 +581,7 @@ const openCreate = () => {
               </label>
 
               <label>
-                e-NCF
+                {t("expenses.form.ncf")}
                 <input
                   name="ncf"
                   value={form.ncf}
@@ -573,18 +590,18 @@ const openCreate = () => {
                 />
               </label>
 
-                <label>
-                Razón social emisor
+              <label>
+                {t("expenses.form.issuerName")}
                 <input
-                    name="supplierName"
-                    value={form.supplierName}
-                    onChange={handleChange}
-                    placeholder="Razón social del emisor"
+                  name="supplierName"
+                  value={form.supplierName}
+                  onChange={handleChange}
+                  placeholder={t("expenses.form.issuerNamePlaceholder")}
                 />
-                </label>
+              </label>
 
               <label>
-                RNC emisor
+                {t("expenses.form.issuerRnc")}
                 <input
                   name="supplierRnc"
                   value={form.supplierRnc}
@@ -593,25 +610,24 @@ const openCreate = () => {
               </label>
 
               <label>
-                Método
+                {t("expenses.form.paymentMethod")}
                 <select
                   name="paymentMethod"
                   value={form.paymentMethod}
                   onChange={handleChange}
                 >
-                  {Object.entries(paymentMethods).map(
-                    ([key, value]) => (
-                      <option key={key} value={key}>
-                        {value}
-                      </option>
-                    )
-                  )}
+                  {Object.entries(paymentMethods).map(([key, value]) => (
+                    <option key={key} value={key}>
+                      {value}
+                    </option>
+                  ))}
                 </select>
               </label>
 
-
               <label>
-                Total de {taxLabel}
+                {t("expenses.form.taxTotal", "", {
+                  taxLabel,
+                })}
                 <input
                   type="number"
                   step="0.01"
@@ -622,7 +638,7 @@ const openCreate = () => {
               </label>
 
               <label>
-                Monto total
+                {t("expenses.form.totalAmount")}
                 <input
                   type="number"
                   step="0.01"
@@ -634,7 +650,7 @@ const openCreate = () => {
               </label>
 
               <label className="full">
-                Notas
+                {t("expenses.form.notes")}
                 <textarea
                   name="notes"
                   value={form.notes}
@@ -644,62 +660,59 @@ const openCreate = () => {
               </label>
             </div>
 
-          {!editing && (
-            <div className="expense-dgii-import">
-              <div className="expense-dgii-header">
-                <div className="expense-dgii-icon">
-                  <FileSearch size={22} />
+            {!editing && (
+              <div className="expense-dgii-import">
+                <div className="expense-dgii-header">
+                  <div className="expense-dgii-icon">
+                    <FileSearch size={22} />
+                  </div>
+
+                  <div>
+                    <h3>{t("expenses.dgii.title")}</h3>
+                    <p>{t("expenses.dgii.description")}</p>
+                  </div>
                 </div>
 
-                <div>
-                  <h3>Importar factura desde QR DGII</h3>
-                  <p>
-                    Escanea el código QR de la factura electrónica y pega aquí el enlace
-                    de validación de la DGII.
-                  </p>
+                <div className="expense-dgii-field">
+                  <label htmlFor="dgii-url">{t("expenses.dgii.label")}</label>
+
+                  <div className="expense-dgii-row">
+                    <input
+                      id="dgii-url"
+                      type="url"
+                      value={dgiiUrl}
+                      onChange={(e) => setDgiiUrl(e.target.value)}
+                      placeholder={t("expenses.dgii.placeholder")}
+                    />
+
+                    <button
+                      type="button"
+                      className="secondary expense-dgii-button"
+                      onClick={importFromDgii}
+                      disabled={importingDgii || !dgiiUrl.trim()}
+                    >
+                      {importingDgii
+                        ? t("expenses.dgii.importing")
+                        : t("expenses.dgii.import")}
+                    </button>
+                  </div>
                 </div>
+
+                <div className="expense-dgii-info">
+                  <strong>{t("expenses.dgii.autoData")}</strong>
+
+                  <div className="expense-dgii-tags">
+                    <span>{t("expenses.dgii.issuerRnc")}</span>
+                    <span>{t("expenses.dgii.ncf")}</span>
+                    <span>{t("expenses.dgii.date")}</span>
+                    <span>{taxLabel}</span>
+                    <span>{t("expenses.dgii.total")}</span>
+                  </div>
+                </div>
+
+                <small>{t("expenses.dgii.help")}</small>
               </div>
-
-              <div className="expense-dgii-field">
-                <label htmlFor="dgii-url">Enlace de validación DGII</label>
-
-                <div className="expense-dgii-row">
-                  <input
-                    id="dgii-url"
-                    type="url"
-                    value={dgiiUrl}
-                    onChange={(e) => setDgiiUrl(e.target.value)}
-                    placeholder="https://ecf.dgii.gov.do/ecf/consultatimbre?..."
-                  />
-
-                  <button
-                    type="button"
-                    className="secondary expense-dgii-button"
-                    onClick={importFromDgii}
-                    disabled={importingDgii || !dgiiUrl.trim()}
-                  >
-                    {importingDgii ? "Importando..." : "Importar datos"}
-                  </button>
-                </div>
-              </div>
-
-              <div className="expense-dgii-info">
-                <strong>Datos que se completan automáticamente:</strong>
-
-                <div className="expense-dgii-tags">
-                  <span>RNC emisor</span>
-                  <span>e-NCF</span>
-                  <span>Fecha</span>
-                  <span>{taxLabel}</span>
-                  <span>Total</span>
-                </div>
-              </div>
-
-              <small>
-                Verifica la información importada antes de guardar el gasto.
-              </small>
-            </div>
-          )}
+            )}
 
             <div className="expense-modal-actions">
               <button
@@ -707,11 +720,11 @@ const openCreate = () => {
                 className="secondary"
                 onClick={() => setModalOpen(false)}
               >
-                Cancelar
+                {t("expenses.form.cancel")}
               </button>
 
               <button disabled={saving}>
-                {saving ? "Guardando..." : "Guardar gasto"}
+                {saving ? t("expenses.form.saving") : t("expenses.form.save")}
               </button>
             </div>
           </form>

@@ -12,20 +12,38 @@ import {
 import { useNavigate } from "react-router-dom";
 import { api } from "../../api/axios";
 import { useAuth } from "../../context/AuthContext";
+import es from "../../i18n/locales/es.json";
+import en from "../../i18n/locales/en.json";
 import { isDominicanTenant } from "../../utils/taxConfig";
 import { getFiscalNumber } from "../../utils/fiscalNumber";
 
-
-const statusLabels = {
-  issued: "Pendiente",
-  partial: "Parcial",
-  paid: "Pagada",
-  cancelled: "Cancelada",
-  draft: "Borrador",
-};
-
 export default function AccountsReceivable() {
-    const { tenant } = useAuth();
+  const { tenant, language } = useAuth();
+  const navigate = useNavigate();
+
+  const dictionary = language === "en" ? en : es;
+
+  const t = (path, fallback = "", vars = {}) => {
+    let value = path
+      .split(".")
+      .reduce((acc, key) => acc?.[key], dictionary);
+
+    value = value || fallback || path;
+
+    Object.entries(vars).forEach(([key, val]) => {
+      value = String(value).replace(`{{${key}}}`, val);
+    });
+
+    return value;
+  };
+
+  const statusLabels = {
+    issued: t("accountsReceivable.status.issued"),
+    partial: t("accountsReceivable.status.partial"),
+    paid: t("accountsReceivable.status.paid"),
+    cancelled: t("accountsReceivable.status.cancelled"),
+    draft: t("accountsReceivable.status.draft"),
+  };
 
   const isDO = isDominicanTenant(tenant);
   const locale = isDO ? "es-DO" : "en-US";
@@ -36,7 +54,6 @@ export default function AccountsReceivable() {
       style: "currency",
       currency,
     }).format(Number(value || 0));
-  const navigate = useNavigate();
 
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState({
@@ -77,7 +94,7 @@ export default function AccountsReceivable() {
     } catch (error) {
       alert(
         error.response?.data?.message ||
-          "No se pudieron cargar las cuentas por cobrar"
+          t("accountsReceivable.messages.loadError")
       );
     } finally {
       setLoading(false);
@@ -102,47 +119,48 @@ export default function AccountsReceivable() {
     <div className="accounts-receivable-page">
       <section className="ar-hero">
         <div>
-          <span>Contabilidad</span>
-          <h2>Cuentas por cobrar</h2>
-          <p>
-            Controla facturas pendientes, balances vencidos y pagos recibidos por
-            cliente.
-          </p>
+          <span>{t("accountsReceivable.header.eyebrow")}</span>
+          <h2>{t("accountsReceivable.header.title")}</h2>
+          <p>{t("accountsReceivable.header.description")}</p>
         </div>
 
         <button onClick={loadAccountsReceivable}>
           <RefreshCcw size={18} />
-          Actualizar
+          {t("accountsReceivable.header.refresh")}
         </button>
       </section>
 
       <section className="ar-stats-grid">
         <div className="ar-stat main">
           <WalletCards />
-          <span>Total por cobrar</span>
+          <span>{t("accountsReceivable.stats.totalReceivable")}</span>
           <strong>{formatMoney(summary.totalReceivable)}</strong>
-          <small>{summary.openInvoices || 0} facturas abiertas</small>
+          <small>
+            {t("accountsReceivable.stats.openInvoices", "", {
+              count: summary.openInvoices || 0,
+            })}
+          </small>
         </div>
 
         <div className="ar-stat danger">
           <AlertTriangle />
-          <span>Vencido</span>
+          <span>{t("accountsReceivable.stats.overdue")}</span>
           <strong>{formatMoney(summary.overdueReceivable)}</strong>
-          <small>Facturas fuera de plazo</small>
+          <small>{t("accountsReceivable.stats.overdueHint")}</small>
         </div>
 
         <div className="ar-stat success">
           <CalendarClock />
-          <span>No vencido</span>
+          <span>{t("accountsReceivable.stats.current")}</span>
           <strong>{formatMoney(summary.currentReceivable)}</strong>
-          <small>Balance vigente</small>
+          <small>{t("accountsReceivable.stats.currentHint")}</small>
         </div>
 
         <div className="ar-stat">
           <FileText />
-          <span>Facturas parciales</span>
+          <span>{t("accountsReceivable.stats.partialInvoices")}</span>
           <strong>{summary.partialInvoices || 0}</strong>
-          <small>Con pagos aplicados</small>
+          <small>{t("accountsReceivable.stats.partialHint")}</small>
         </div>
       </section>
 
@@ -151,7 +169,7 @@ export default function AccountsReceivable() {
           <div className="ar-search">
             <Search size={17} />
             <input
-              placeholder="Buscar factura, cliente, RNC, teléfono o email"
+              placeholder={t("accountsReceivable.filters.search")}
               value={filters.search}
               onChange={(e) =>
                 setFilters({
@@ -171,9 +189,9 @@ export default function AccountsReceivable() {
               })
             }
           >
-            <option value="">Todos los estados</option>
-            <option value="issued">Pendiente</option>
-            <option value="partial">Parcial</option>
+            <option value="">{t("accountsReceivable.filters.allStatuses")}</option>
+            <option value="issued">{t("accountsReceivable.filters.pending")}</option>
+            <option value="partial">{t("accountsReceivable.filters.partial")}</option>
           </select>
 
           <select
@@ -185,9 +203,9 @@ export default function AccountsReceivable() {
               })
             }
           >
-            <option value="">Todas</option>
-            <option value="overdue">Vencidas</option>
-            <option value="current">No vencidas</option>
+            <option value="">{t("accountsReceivable.filters.allAging")}</option>
+            <option value="overdue">{t("accountsReceivable.filters.overdue")}</option>
+            <option value="current">{t("accountsReceivable.filters.current")}</option>
           </select>
 
           <input
@@ -212,29 +230,33 @@ export default function AccountsReceivable() {
             }
           />
 
-          <button onClick={loadAccountsReceivable}>Filtrar</button>
+          <button onClick={loadAccountsReceivable}>
+            {t("accountsReceivable.filters.filter")}
+          </button>
         </div>
 
         {loading ? (
-          <div className="ar-empty">Cargando cuentas por cobrar...</div>
+          <div className="ar-empty">
+            {t("accountsReceivable.messages.loading")}
+          </div>
         ) : invoices.length === 0 ? (
           <div className="ar-empty">
-            No hay facturas pendientes por cobrar.
+            {t("accountsReceivable.messages.empty")}
           </div>
         ) : (
           <div className="ar-table-wrap">
             <table className="ar-table">
               <thead>
                 <tr>
-                  <th>Factura</th>
-                  <th>Cliente</th>
-                  <th>Emisión</th>
-                  <th>Vence</th>
-                  <th>Total</th>
-                  <th>Pagado</th>
-                  <th>Balance</th>
-                  <th>Estado</th>
-                  <th>Progreso</th>
+                  <th>{t("accountsReceivable.table.invoice")}</th>
+                  <th>{t("accountsReceivable.table.customer")}</th>
+                  <th>{t("accountsReceivable.table.issued")}</th>
+                  <th>{t("accountsReceivable.table.due")}</th>
+                  <th>{t("accountsReceivable.table.total")}</th>
+                  <th>{t("accountsReceivable.table.paid")}</th>
+                  <th>{t("accountsReceivable.table.balance")}</th>
+                  <th>{t("accountsReceivable.table.status")}</th>
+                  <th>{t("accountsReceivable.table.progress")}</th>
                   <th></th>
                 </tr>
               </thead>
@@ -249,7 +271,9 @@ export default function AccountsReceivable() {
                       <strong>{getFiscalNumber(invoice)}</strong>
                       {invoice.isOverdue && (
                         <small className="ar-overdue-text">
-                          {invoice.daysOverdue} días vencida
+                          {t("accountsReceivable.table.daysOverdue", "", {
+                            days: invoice.daysOverdue,
+                          })}
                         </small>
                       )}
                     </td>
@@ -270,6 +294,7 @@ export default function AccountsReceivable() {
                         ? new Date(invoice.dueDate).toLocaleDateString(locale)
                         : "—"}
                     </td>
+
                     <td>{formatMoney(invoice.total)}</td>
                     <td>{formatMoney(invoice.amountPaid)}</td>
 
@@ -278,7 +303,9 @@ export default function AccountsReceivable() {
                       <div className="ar-balance-bar">
                         <div
                           style={{
-                            width: `${(Number(invoice.balance || 0) / maxBalance) * 100}%`,
+                            width: `${
+                              (Number(invoice.balance || 0) / maxBalance) * 100
+                            }%`,
                           }}
                         />
                       </div>
@@ -298,19 +325,23 @@ export default function AccountsReceivable() {
                           }}
                         />
                       </div>
-                      <small>{Math.round(invoice.paidPercent || 0)}% pagado</small>
+                      <small>
+                        {t("accountsReceivable.table.paidPercent", "", {
+                          percent: Math.round(invoice.paidPercent || 0),
+                        })}
+                      </small>
                     </td>
 
                     <td className="ar-actions">
                       <button
-                        title="Ver factura"
+                        title={t("accountsReceivable.table.viewInvoice")}
                         onClick={() => navigate("/dashboard/facturacion")}
                       >
                         <Eye size={16} />
                       </button>
 
                       <button
-                        title="Registrar pago"
+                        title={t("accountsReceivable.table.registerPayment")}
                         onClick={() => goToReceipt(invoice)}
                       >
                         <ReceiptText size={16} />
@@ -327,13 +358,15 @@ export default function AccountsReceivable() {
       <section className="ar-grid-two">
         <div className="ar-panel">
           <div className="ar-panel-header">
-            <h3>Pagos recientes</h3>
-            <span>Últimos recibos registrados</span>
+            <h3>{t("accountsReceivable.recentPayments.title")}</h3>
+            <span>{t("accountsReceivable.recentPayments.description")}</span>
           </div>
 
           <div className="ar-list">
             {(data.recentReceipts || []).length === 0 ? (
-              <div className="ar-empty small">No hay pagos recientes.</div>
+              <div className="ar-empty small">
+                {t("accountsReceivable.recentPayments.empty")}
+              </div>
             ) : (
               data.recentReceipts.map((receipt) => (
                 <div className="ar-list-item" key={receipt.id}>
@@ -353,14 +386,12 @@ export default function AccountsReceivable() {
 
         <div className="ar-panel">
           <div className="ar-panel-header">
-            <h3>Recomendación</h3>
-            <span>Uso práctico</span>
+            <h3>{t("accountsReceivable.recommendation.title")}</h3>
+            <span>{t("accountsReceivable.recommendation.subtitle")}</span>
           </div>
 
           <div className="ar-note">
-            Prioriza cobrar primero las facturas vencidas y las de mayor balance.
-            Este módulo se alimenta automáticamente de facturas emitidas o
-            parcialmente pagadas.
+            {t("accountsReceivable.recommendation.text")}
           </div>
         </div>
       </section>

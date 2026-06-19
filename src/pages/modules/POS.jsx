@@ -4,6 +4,8 @@ import { api } from "../../api/axios";
 import PosReceipt from "../../components/PosReceipt";
 import { useAuth } from "../../context/AuthContext";
 import "../../styles/pos.css";
+import es from "../../i18n/locales/es.json";
+import en from "../../i18n/locales/en.json";
 import {
   getTaxRate,
   getTaxLabel,
@@ -11,7 +13,22 @@ import {
 } from "../../utils/taxConfig";
 
 export default function POS() {
-  const { tenant } = useAuth();
+  const { tenant, language } = useAuth();
+  const dictionary = language === "en" ? en : es;
+
+  const t = (path, fallback = "", vars = {}) => {
+    const value = path
+      .split(".")
+      .reduce((acc, key) => acc?.[key], dictionary);
+
+    const text = value || fallback || path;
+
+    return Object.entries(vars).reduce(
+      (acc, [key, val]) => acc.replaceAll(`{{${key}}}`, val),
+      text
+    );
+  };
+
   const [registers, setRegisters] = useState([]);
   const [session, setSession] = useState(null);
   const [sessionSummary, setSessionSummary] = useState(null);
@@ -30,20 +47,16 @@ export default function POS() {
   const [customerName, setCustomerName] = useState("");
   const [lastSale, setLastSale] = useState(null);
 
-
   const isDO = isDominicanTenant(tenant);
 
-const money = useMemo(
-  () =>
-    new Intl.NumberFormat(
-      isDO ? "es-DO" : "en-US",
-      {
+  const money = useMemo(
+    () =>
+      new Intl.NumberFormat(isDO ? "es-DO" : "en-US", {
         style: "currency",
         currency: isDO ? "DOP" : "USD",
-      }
-    ),
-  [isDO]
-);
+      }),
+    [isDO]
+  );
 
   const loadSessionSummary = async (sessionId) => {
     if (!sessionId) return;
@@ -66,7 +79,11 @@ const money = useMemo(
 
       setRegisters((registerRes.data || []).filter((item) => item.isActive));
       setSession(sessionRes.data || null);
-      setProducts(Array.isArray(productRes.data) ? productRes.data : productRes.data?.data || []);
+      setProducts(
+        Array.isArray(productRes.data)
+          ? productRes.data
+          : productRes.data?.data || []
+      );
 
       if (sessionRes.data?.id) {
         loadSessionSummary(sessionRes.data.id);
@@ -74,7 +91,7 @@ const money = useMemo(
         setSessionSummary(null);
       }
     } catch (error) {
-      alert(error.response?.data?.message || "No se pudo cargar el POS");
+      alert(t("pos.errors.load"));
     }
   };
 
@@ -83,7 +100,10 @@ const money = useMemo(
   }, []);
 
   const subtotal = useMemo(() => {
-    return cart.reduce((sum, item) => sum + Number(item.salePrice || 0) * item.quantity, 0);
+    return cart.reduce(
+      (sum, item) => sum + Number(item.salePrice || 0) * item.quantity,
+      0
+    );
   }, [cart]);
 
   const lineDiscountTotal = useMemo(() => {
@@ -94,16 +114,21 @@ const money = useMemo(
   const taxRate = getTaxRate(tenant);
   const taxLabel = getTaxLabel(tenant);
   const usTaxBreakdown = {
-  stateRate: Number(tenant?.usStateTaxRate || 0),
-  countyRate: Number(tenant?.usCountyTaxRate || 0),
-  cityRate: Number(tenant?.usCityTaxRate || 0),
-};
-  const safeOrderDiscount = Math.min(Number(discountTotal || 0), Math.max(subtotal - lineDiscountTotal, 0));
+    stateRate: Number(tenant?.usStateTaxRate || 0),
+    countyRate: Number(tenant?.usCountyTaxRate || 0),
+    cityRate: Number(tenant?.usCityTaxRate || 0),
+  };
+
+  const safeOrderDiscount = Math.min(
+    Number(discountTotal || 0),
+    Math.max(subtotal - lineDiscountTotal, 0)
+  );
   const totalDiscount = lineDiscountTotal + safeOrderDiscount;
-  const taxableSubtotal = Math.max(subtotal - totalDiscount,0);
+  const taxableSubtotal = Math.max(subtotal - totalDiscount, 0);
   const taxTotal = taxEnabled ? taxableSubtotal * (taxRate / 100) : 0;
   const total = taxableSubtotal + taxTotal;
   const change = Math.max(Number(amountPaid || 0) - total, 0);
+
   const openSession = async (e) => {
     e.preventDefault();
 
@@ -118,7 +143,7 @@ const money = useMemo(
       setOpeningAmount("");
       loadData();
     } catch (error) {
-      alert(error.response?.data?.message || "No se pudo abrir la caja");
+      alert(t("pos.errors.openCash"));
     }
   };
 
@@ -127,21 +152,35 @@ const money = useMemo(
 
     try {
       const { data } = await api.post(`/pos/sessions/${session.id}/close`, {
-        closingAmount
+        closingAmount,
       });
 
       const summary = data.summary;
 
       alert(
-        `Caja cerrada correctamente\n\n` +
-        `Monto inicial: ${money.format(Number(summary.openingAmount || 0))}\n` +
-        `Efectivo vendido: ${money.format(Number(summary.cashSales || 0))}\n` +
-        `Tarjeta: ${money.format(Number(summary.cardSales || 0))}\n` +
-        `Transferencia: ${money.format(Number(summary.transferSales || 0))}\n` +
-        `Total vendido: ${money.format(Number(summary.totalSales || 0))}\n` +
-        `Esperado en efectivo: ${money.format(Number(summary.expectedAmount || 0))}\n` +
-        `Contado: ${money.format(Number(summary.closingAmount || 0))}\n` +
-        `Diferencia: ${money.format(Number(summary.difference || 0))}`
+        `${t("pos.closedSuccessfully")}\n\n` +
+          `${t("pos.openingAmount")}: ${money.format(
+            Number(summary.openingAmount || 0)
+          )}\n` +
+          `${t("pos.cashSold")}: ${money.format(
+            Number(summary.cashSales || 0)
+          )}\n` +
+          `${t("pos.card")}: ${money.format(Number(summary.cardSales || 0))}\n` +
+          `${t("pos.transfer")}: ${money.format(
+            Number(summary.transferSales || 0)
+          )}\n` +
+          `${t("pos.totalSold")}: ${money.format(
+            Number(summary.totalSales || 0)
+          )}\n` +
+          `${t("pos.expectedCash")}: ${money.format(
+            Number(summary.expectedAmount || 0)
+          )}\n` +
+          `${t("pos.counted")}: ${money.format(
+            Number(summary.closingAmount || 0)
+          )}\n` +
+          `${t("pos.difference")}: ${money.format(
+            Number(summary.difference || 0)
+          )}`
       );
 
       setSession(null);
@@ -151,7 +190,7 @@ const money = useMemo(
       setShowCloseModal(false);
       loadData();
     } catch (error) {
-      alert(error.response?.data?.message || "No se pudo cerrar la caja");
+      alert(t("pos.errors.closeCash"));
     }
   };
 
@@ -161,7 +200,9 @@ const money = useMemo(
 
       if (exists) {
         return prev.map((item) =>
-          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+          item.id === product.id
+            ? { ...item, quantity: item.quantity + 1 }
+            : item
         );
       }
 
@@ -170,34 +211,32 @@ const money = useMemo(
   };
 
   const filteredProducts = useMemo(() => {
-  const term = search.trim().toLowerCase();
+    const term = search.trim().toLowerCase();
 
-  return products.filter((product) => {
-    if (!term) return true;
+    return products.filter((product) => {
+      if (!term) return true;
 
-    return (
-      product.name?.toLowerCase().includes(term) ||
-      product.sku?.toLowerCase().includes(term) ||
-      product.barcode?.toLowerCase().includes(term) ||
-      product.category?.toLowerCase().includes(term)
-    );
-  });
-}, [products, search]);
+      return (
+        product.name?.toLowerCase().includes(term) ||
+        product.sku?.toLowerCase().includes(term) ||
+        product.barcode?.toLowerCase().includes(term) ||
+        product.category?.toLowerCase().includes(term)
+      );
+    });
+  }, [products, search]);
 
   useEffect(() => {
-  const code = search.trim();
+    const code = search.trim();
 
-  if (!code) return;
+    if (!code) return;
 
-  const product = products.find(
-    (p) => p.barcode && p.barcode.trim() === code
-  );
+    const product = products.find((p) => p.barcode && p.barcode.trim() === code);
 
-  if (!product) return;
+    if (!product) return;
 
-  addToCart(product);
-  setSearch("");
-}, [search, products]);
+    addToCart(product);
+    setSearch("");
+  }, [search, products]);
 
   const updateQty = (productId, direction) => {
     setCart((prev) =>
@@ -228,12 +267,12 @@ const money = useMemo(
 
   const charge = async () => {
     if (!session) {
-      alert("Primero debes abrir una caja");
+      alert(t("pos.errors.openFirst"));
       return;
     }
 
     if (cart.length === 0) {
-      alert("Agrega productos al ticket");
+      alert(t("pos.errors.addProducts"));
       return;
     }
 
@@ -242,7 +281,7 @@ const money = useMemo(
       receiptType === "credit_fiscal" &&
       (!customerRnc.trim() || !customerName.trim())
     ) {
-      alert("El RNC y la razón social del cliente son obligatorios para crédito fiscal");
+      alert(t("pos.errors.fiscalRequired"));
       return;
     }
 
@@ -253,7 +292,8 @@ const money = useMemo(
         amountPaid: paymentMethod === "cash" ? amountPaid : total,
         discountTotal: safeOrderDiscount,
         receiptType: isDO ? receiptType : "consumer_final",
-        customerRnc: isDO && receiptType === "credit_fiscal" ? customerRnc.trim() : "",
+        customerRnc:
+          isDO && receiptType === "credit_fiscal" ? customerRnc.trim() : "",
         customerName: isDO
           ? receiptType === "credit_fiscal"
             ? customerName.trim()
@@ -267,7 +307,7 @@ const money = useMemo(
       });
 
       setLastSale(data.sale);
-      alert("Venta registrada correctamente");
+      alert(t("pos.errors.saleSuccess"));
       setCart([]);
       setAmountPaid("");
       setDiscountTotal("");
@@ -276,7 +316,7 @@ const money = useMemo(
       setCustomerName("");
       loadData();
     } catch (error) {
-      alert(error.response?.data?.message || "No se pudo cobrar");
+      alert(t("pos.errors.charge"));
     }
   };
 
@@ -285,20 +325,20 @@ const money = useMemo(
       <div className="pos-page">
         <section className="pos-header">
           <div>
-            <span>POS / Caja</span>
-            <h2>Abrir caja</h2>
-            <p>Selecciona una caja y coloca el monto inicial.</p>
+            <span>{t("pos.title")}</span>
+            <h2>{t("pos.openCash")}</h2>
+            <p>{t("pos.openCashDescription")}</p>
           </div>
         </section>
 
         <form className="pos-panel open-cash-form" onSubmit={openSession}>
-          <label>Caja</label>
+          <label>{t("pos.cashRegister")}</label>
           <select
             value={cashRegisterId}
             onChange={(e) => setCashRegisterId(e.target.value)}
             required
           >
-            <option value="">Selecciona una caja</option>
+            <option value="">{t("pos.selectCashRegister")}</option>
             {registers.map((register) => (
               <option value={register.id} key={register.id}>
                 {register.name}
@@ -306,7 +346,7 @@ const money = useMemo(
             ))}
           </select>
 
-          <label>Monto inicial</label>
+          <label>{t("pos.openingAmount")}</label>
           <input
             type="number"
             min="0"
@@ -317,7 +357,7 @@ const money = useMemo(
           />
 
           <button className="primary-btn" type="submit">
-            Abrir caja
+            {t("pos.openCash")}
           </button>
         </form>
       </div>
@@ -328,9 +368,12 @@ const money = useMemo(
     <div className="pos-page">
       <section className="pos-header">
         <div>
-          <span>POS / Caja</span>
-          <h2>{session.cashRegister?.name || "Caja abierta"}</h2>
-          <p>Monto inicial: {money.format(Number(session.openingAmount || 0))}</p>
+          <span>{t("pos.title")}</span>
+          <h2>{session.cashRegister?.name || t("pos.cashOpen")}</h2>
+          <p>
+            {t("pos.openingAmount")}:{" "}
+            {money.format(Number(session.openingAmount || 0))}
+          </p>
         </div>
 
         <div className="close-cash-box">
@@ -342,7 +385,7 @@ const money = useMemo(
               setShowCloseModal(true);
             }}
           >
-            Cerrar caja
+            {t("pos.closeCash")}
           </button>
         </div>
       </section>
@@ -350,23 +393,27 @@ const money = useMemo(
       {sessionSummary && (
         <section className="pos-summary-grid">
           <article className="pos-summary-card">
-            <span>Efectivo vendido</span>
+            <span>{t("pos.cashSold")}</span>
             <strong>{money.format(Number(sessionSummary.cashSales || 0))}</strong>
           </article>
 
           <article className="pos-summary-card">
-            <span>Tarjeta</span>
+            <span>{t("pos.card")}</span>
             <strong>{money.format(Number(sessionSummary.cardSales || 0))}</strong>
           </article>
 
           <article className="pos-summary-card">
-            <span>Transferencia</span>
-            <strong>{money.format(Number(sessionSummary.transferSales || 0))}</strong>
+            <span>{t("pos.transfer")}</span>
+            <strong>
+              {money.format(Number(sessionSummary.transferSales || 0))}
+            </strong>
           </article>
 
           <article className="pos-summary-card">
-            <span>Esperado en efectivo</span>
-            <strong>{money.format(Number(sessionSummary.expectedAmount || 0))}</strong>
+            <span>{t("pos.expectedCash")}</span>
+            <strong>
+              {money.format(Number(sessionSummary.expectedAmount || 0))}
+            </strong>
           </article>
         </section>
       )}
@@ -376,11 +423,11 @@ const money = useMemo(
           <div className="pos-search">
             <Search size={18} />
             <input
-                placeholder="Escanee o busque un producto..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                autoFocus
-              />
+              placeholder={t("pos.scanOrSearch")}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              autoFocus
+            />
           </div>
 
           <div className="pos-products-grid">
@@ -407,10 +454,10 @@ const money = useMemo(
         </div>
 
         <aside className="pos-ticket">
-          <h3>Ticket</h3>
+          <h3>{t("pos.ticket")}</h3>
 
           {cart.length === 0 ? (
-            <p className="empty-ticket">No hay productos agregados.</p>
+            <p className="empty-ticket">{t("pos.emptyTicket")}</p>
           ) : (
             <div className="ticket-items">
               {cart.map((item) => (
@@ -433,7 +480,9 @@ const money = useMemo(
                     </button>
                   </div>
 
-                  <label className="ticket-discount-label">Descuento producto</label>
+                  <label className="ticket-discount-label">
+                    {t("pos.productDiscount")}
+                  </label>
                   <input
                     type="number"
                     min="0"
@@ -448,11 +497,11 @@ const money = useMemo(
           )}
 
           <div className="ticket-total">
-            <span>Subtotal</span>
+            <span>{t("pos.subtotal")}</span>
             <strong>{money.format(subtotal)}</strong>
           </div>
 
-          <label>Descuento general</label>
+          <label>{t("pos.generalDiscount")}</label>
           <input
             type="number"
             min="0"
@@ -463,121 +512,115 @@ const money = useMemo(
           />
 
           <div className="ticket-change">
-            Descuentos: <strong>{money.format(totalDiscount)}</strong>
+            {t("pos.discounts")}: <strong>{money.format(totalDiscount)}</strong>
           </div>
 
           {isDO ? (
-  <div className="ticket-change">
-    {taxLabel} ({taxRate}%): <strong>{money.format(taxTotal)}</strong>
-  </div>
-) : (
-  <>
-    <div className="ticket-change">
-      State Tax ({usTaxBreakdown.stateRate}%):
-      <strong>
-        {money.format(
-          taxableSubtotal * (usTaxBreakdown.stateRate / 100)
-        )}
-      </strong>
-    </div>
+            <div className="ticket-change">
+              {taxLabel} ({taxRate}%): <strong>{money.format(taxTotal)}</strong>
+            </div>
+          ) : (
+            <>
+              <div className="ticket-change">
+                {t("pos.stateTax")} ({usTaxBreakdown.stateRate}%):
+                <strong>
+                  {money.format(taxableSubtotal * (usTaxBreakdown.stateRate / 100))}
+                </strong>
+              </div>
 
-    <div className="ticket-change">
-      County Tax ({usTaxBreakdown.countyRate}%):
-      <strong>
-        {money.format(
-          taxableSubtotal * (usTaxBreakdown.countyRate / 100)
-        )}
-      </strong>
-    </div>
+              <div className="ticket-change">
+                {t("pos.countyTax")} ({usTaxBreakdown.countyRate}%):
+                <strong>
+                  {money.format(taxableSubtotal * (usTaxBreakdown.countyRate / 100))}
+                </strong>
+              </div>
 
-    <div className="ticket-change">
-      City Tax ({usTaxBreakdown.cityRate}%):
-      <strong>
-        {money.format(
-          taxableSubtotal * (usTaxBreakdown.cityRate / 100)
-        )}
-      </strong>
-    </div>
+              <div className="ticket-change">
+                {t("pos.cityTax")} ({usTaxBreakdown.cityRate}%):
+                <strong>
+                  {money.format(taxableSubtotal * (usTaxBreakdown.cityRate / 100))}
+                </strong>
+              </div>
 
-    <div className="ticket-change">
-      Total Taxes ({taxRate}%):
-      <strong>{money.format(taxTotal)}</strong>
-    </div>
-  </>
-)}
+              <div className="ticket-change">
+                {t("pos.totalTaxes")} ({taxRate}%):
+                <strong>{money.format(taxTotal)}</strong>
+              </div>
+            </>
+          )}
 
           <div className="ticket-total">
-            <span>Total</span>
+            <span>{t("pos.total")}</span>
             <strong>{money.format(total)}</strong>
           </div>
 
           {isDO && (
-  <>
-    <label>Tipo de factura</label>
-    <select
-      value={receiptType}
-      onChange={(e) => {
-        setReceiptType(e.target.value);
+            <>
+              <label>{t("pos.invoiceType")}</label>
+              <select
+                value={receiptType}
+                onChange={(e) => {
+                  setReceiptType(e.target.value);
 
-        if (e.target.value === "consumer_final") {
-          setCustomerRnc("");
-          setCustomerName("");
-        }
-      }}
-    >
-      <option value="consumer_final">
-        Factura de consumo fiscal electrónica
-      </option>
+                  if (e.target.value === "consumer_final") {
+                    setCustomerRnc("");
+                    setCustomerName("");
+                  }
+                }}
+              >
+                <option value="consumer_final">
+                  {t("pos.consumerFinalFiscal")}
+                </option>
 
-      <option value="credit_fiscal">
-        Factura de crédito fiscal electrónica
-      </option>
-    </select>
+                <option value="credit_fiscal">{t("pos.creditFiscal")}</option>
+              </select>
 
-    {receiptType === "credit_fiscal" && (
-      <>
-        <label>RNC del cliente</label>
-        <input
-          value={customerRnc}
-          onChange={(e) => setCustomerRnc(e.target.value)}
-          placeholder="RNC del cliente"
-        />
+              {receiptType === "credit_fiscal" && (
+                <>
+                  <label>{t("pos.customerRnc")}</label>
+                  <input
+                    value={customerRnc}
+                    onChange={(e) => setCustomerRnc(e.target.value)}
+                    placeholder={t("pos.customerRnc")}
+                  />
 
-        <label>Razón social del cliente</label>
-        <input
-          value={customerName}
-          onChange={(e) => setCustomerName(e.target.value)}
-          placeholder="Razón social del cliente"
-        />
-      </>
-    )}
-  </>
-)}
+                  <label>{t("pos.customerBusinessName")}</label>
+                  <input
+                    value={customerName}
+                    onChange={(e) => setCustomerName(e.target.value)}
+                    placeholder={t("pos.customerBusinessName")}
+                  />
+                </>
+              )}
+            </>
+          )}
 
           {!isDO && (
             <>
-              <label>Nombre del cliente (opcional)</label>
+              <label>{t("pos.customerNameOptional")}</label>
               <input
                 value={customerName}
                 onChange={(e) => setCustomerName(e.target.value)}
-                placeholder="Nombre del cliente"
+                placeholder={t("pos.customerName")}
               />
             </>
           )}
 
-
-          <label>Método de pago</label>
-          <select value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)}>
-            <option value="cash">Efectivo</option>
-            <option value="card">Tarjeta</option>
-            <option value="transfer">Transferencia</option>
-            <option value="check">Cheque</option>
-            <option value="mixed">Mixto</option>
+          <label>{t("pos.paymentMethod")}</label>
+          <select
+            value={paymentMethod}
+            onChange={(e) => setPaymentMethod(e.target.value)}
+          >
+            <option value="cash">{t("pos.cash")}</option>
+            <option value="card">{t("pos.card")}</option>
+            <option value="transfer">{t("pos.transfer")}</option>
+            <option value="check">{t("pos.check")}</option>
+            <option value="mixed">{t("pos.mixed")}</option>
           </select>
 
           {paymentMethod === "cash" && (
             <>
-              <label>Monto recibido</label>
+              <label>{t("pos.amountReceived")}</label>
               <input
                 type="number"
                 min="0"
@@ -588,101 +631,110 @@ const money = useMemo(
               />
 
               <div className="ticket-change">
-                Cambio: <strong>{money.format(change)}</strong>
+                {t("pos.change")}: <strong>{money.format(change)}</strong>
               </div>
             </>
           )}
 
           <button className="primary-btn charge-btn" type="button" onClick={charge}>
-            Cobrar
+            {t("pos.charge")}
           </button>
         </aside>
       </section>
-       {lastSale && (
-          <PosReceipt
-            sale={lastSale}
-            onClose={() => setLastSale(null)}
-          />
-        )}
-           {showCloseModal && (
-              <div className="pos-modal-backdrop" onClick={() => setShowCloseModal(false)}>
-                <div className="pos-close-modal" onClick={(e) => e.stopPropagation()}>
-                  <div className="pos-close-modal-header">
-                    <div>
-                      <span>Arqueo de caja</span>
-                      <h3>Cierre de caja</h3>
-                      <p>{session.cashRegister?.name || "Caja abierta"}</p>
-                    </div>
 
-                    <button type="button" onClick={() => setShowCloseModal(false)}>
-                      <X size={20} />
-                    </button>
-                  </div>
+      {lastSale && <PosReceipt sale={lastSale} onClose={() => setLastSale(null)} />}
 
-                  <div className="pos-close-summary">
-                    <div>
-                      <span>Monto inicial</span>
-                      <strong>{money.format(Number(session.openingAmount || 0))}</strong>
-                    </div>
-
-                    <div>
-                      <span>Efectivo vendido</span>
-                      <strong>{money.format(Number(sessionSummary?.cashSales || 0))}</strong>
-                    </div>
-
-                    <div>
-                      <span>Esperado efectivo</span>
-                      <strong>{money.format(Number(sessionSummary?.expectedAmount || 0))}</strong>
-                    </div>
-
-                    <div>
-                      <span>Tarjeta</span>
-                      <strong>{money.format(Number(sessionSummary?.cardSales || 0))}</strong>
-                    </div>
-
-                    <div>
-                      <span>Transferencia</span>
-                      <strong>{money.format(Number(sessionSummary?.transferSales || 0))}</strong>
-                    </div>
-
-                    <div>
-                      <span>Total vendido</span>
-                      <strong>{money.format(Number(sessionSummary?.totalSales || 0))}</strong>
-                    </div>
-                  </div>
-
-                  <label>Efectivo contado físicamente</label>
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={closingAmount}
-                    onChange={(e) => setClosingAmount(e.target.value)}
-                    placeholder="0.00"
-                    autoFocus
-                  />
-
-                  <div className="pos-close-difference">
-                    <span>Diferencia</span>
-                    <strong>
-                      {money.format(
-                        Number(closingAmount || 0) - Number(sessionSummary?.expectedAmount || 0)
-                      )}
-                    </strong>
-                  </div>
-
-                  <div className="pos-close-actions">
-                    <button type="button" className="secondary-btn" onClick={() => setShowCloseModal(false)}>
-                      Cancelar
-                    </button>
-
-                    <button type="button" className="danger-btn" onClick={closeSession}>
-                      Confirmar cierre
-                    </button>
-                  </div>
-                </div>
+      {showCloseModal && (
+        <div
+          className="pos-modal-backdrop"
+          onClick={() => setShowCloseModal(false)}
+        >
+          <div className="pos-close-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="pos-close-modal-header">
+              <div>
+                <span>{t("pos.cashCount")}</span>
+                <h3>{t("pos.cashClosing")}</h3>
+                <p>{session.cashRegister?.name || t("pos.cashOpen")}</p>
               </div>
-            )}
+
+              <button type="button" onClick={() => setShowCloseModal(false)}>
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="pos-close-summary">
+              <div>
+                <span>{t("pos.openingAmount")}</span>
+                <strong>{money.format(Number(session.openingAmount || 0))}</strong>
+              </div>
+
+              <div>
+                <span>{t("pos.cashSold")}</span>
+                <strong>{money.format(Number(sessionSummary?.cashSales || 0))}</strong>
+              </div>
+
+              <div>
+                <span>{t("pos.expectedCash")}</span>
+                <strong>
+                  {money.format(Number(sessionSummary?.expectedAmount || 0))}
+                </strong>
+              </div>
+
+              <div>
+                <span>{t("pos.card")}</span>
+                <strong>{money.format(Number(sessionSummary?.cardSales || 0))}</strong>
+              </div>
+
+              <div>
+                <span>{t("pos.transfer")}</span>
+                <strong>
+                  {money.format(Number(sessionSummary?.transferSales || 0))}
+                </strong>
+              </div>
+
+              <div>
+                <span>{t("pos.totalSold")}</span>
+                <strong>{money.format(Number(sessionSummary?.totalSales || 0))}</strong>
+              </div>
+            </div>
+
+            <label>{t("pos.physicalCashCount")}</label>
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              value={closingAmount}
+              onChange={(e) => setClosingAmount(e.target.value)}
+              placeholder="0.00"
+              autoFocus
+            />
+
+            <div className="pos-close-difference">
+              <span>{t("pos.difference")}</span>
+              <strong>
+                {money.format(
+                  Number(closingAmount || 0) -
+                    Number(sessionSummary?.expectedAmount || 0)
+                )}
+              </strong>
+            </div>
+
+            <div className="pos-close-actions">
+              <button
+                type="button"
+                className="secondary-btn"
+                onClick={() => setShowCloseModal(false)}
+              >
+                {t("pos.cancel")}
+              </button>
+
+              <button type="button" className="danger-btn" onClick={closeSession}>
+                {t("pos.confirmClose")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

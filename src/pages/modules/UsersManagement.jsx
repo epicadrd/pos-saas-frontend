@@ -10,6 +10,8 @@ import {
 } from "lucide-react";
 import { api } from "../../api/axios";
 import { useAuth } from "../../context/AuthContext";
+import es from "../../i18n/locales/es.json";
+import en from "../../i18n/locales/en.json";
 import "../../styles/UsersManagement.css";
 import { useConfirm } from "../../components/ConfirmProvider";
 
@@ -21,8 +23,35 @@ const emptyForm = {
 };
 
 export default function UsersManagement() {
-  const { user } = useAuth();
+  const { user, language } = useAuth();
   const { confirm } = useConfirm();
+
+  const dictionary = language === "en" ? en : es;
+
+  const t = (path, fallback = "", vars = {}) => {
+    let value = path
+      .split(".")
+      .reduce((acc, key) => acc?.[key], dictionary);
+
+    value = value || fallback || path;
+
+    Object.entries(vars).forEach(([key, val]) => {
+      value = String(value).replace(`{{${key}}}`, val);
+    });
+
+    return value;
+  };
+
+  const getRoleLabel = (role) => {
+    const labels = {
+      master: t("usersManagement.roles.master"),
+      admin: t("usersManagement.roles.admin"),
+      employee: t("usersManagement.roles.employee"),
+    };
+
+    return labels[role] || role;
+  };
+
   const [users, setUsers] = useState([]);
   const [form, setForm] = useState(emptyForm);
   const [modalOpen, setModalOpen] = useState(false);
@@ -35,7 +64,10 @@ export default function UsersManagement() {
       const { data } = await api.get("/users");
       setUsers(Array.isArray(data) ? data : []);
     } catch (error) {
-      alert(error.response?.data?.message || "Error cargando usuarios");
+      alert(
+        error.response?.data?.message ||
+          t("usersManagement.messages.loadError")
+      );
     } finally {
       setLoading(false);
     }
@@ -58,7 +90,7 @@ export default function UsersManagement() {
     e.preventDefault();
 
     if (!form.name.trim() || !form.email.trim() || !form.password.trim()) {
-      alert("Completa nombre, correo y contraseña");
+      alert(t("usersManagement.messages.required"));
       return;
     }
 
@@ -76,7 +108,10 @@ export default function UsersManagement() {
       setModalOpen(false);
       await loadUsers();
     } catch (error) {
-      alert(error.response?.data?.message || "Error creando usuario");
+      alert(
+        error.response?.data?.message ||
+          t("usersManagement.messages.createError")
+      );
     } finally {
       setSaving(false);
     }
@@ -84,14 +119,16 @@ export default function UsersManagement() {
 
   const deactivateUser = async (selectedUser) => {
     if (selectedUser.role === "master") {
-      alert("No puedes desactivar el usuario master");
+      alert(t("usersManagement.messages.cannotDeactivateMaster"));
       return;
     }
 
     const ok = await confirm({
-      title: "Desactivar usuario",
-      message: `¿Seguro que deseas desactivar a ${selectedUser.name}?`,
-      confirmText: "Desactivar",
+      title: t("usersManagement.confirm.deactivateTitle"),
+      message: t("usersManagement.confirm.deactivateMessage", "", {
+        name: selectedUser.name,
+      }),
+      confirmText: t("usersManagement.confirm.deactivateButton"),
       variant: "danger",
     });
 
@@ -101,7 +138,10 @@ export default function UsersManagement() {
       await api.patch(`/users/${selectedUser.id}/deactivate`);
       await loadUsers();
     } catch (error) {
-      alert(error.response?.data?.message || "Error desactivando usuario");
+      alert(
+        error.response?.data?.message ||
+          t("usersManagement.messages.deactivateError")
+      );
     }
   };
 
@@ -110,8 +150,8 @@ export default function UsersManagement() {
       <section className="users-page">
         <div className="users-denied">
           <ShieldCheck size={42} />
-          <h2>Acceso restringido</h2>
-          <p>Solo el usuario master puede gestionar usuarios.</p>
+          <h2>{t("usersManagement.accessDenied.title")}</h2>
+          <p>{t("usersManagement.accessDenied.description")}</p>
         </div>
       </section>
     );
@@ -121,14 +161,16 @@ export default function UsersManagement() {
     <section className="users-page">
       <div className="users-header">
         <div>
-          <span className="users-kicker">Equipo</span>
-          <h1>Usuarios</h1>
-          <p>Crea administradores y empleados para esta empresa.</p>
+          <span className="users-kicker">
+            {t("usersManagement.header.eyebrow")}
+          </span>
+          <h1>{t("usersManagement.header.title")}</h1>
+          <p>{t("usersManagement.header.description")}</p>
         </div>
 
         <button className="users-primary-btn" onClick={() => setModalOpen(true)}>
           <Plus size={18} />
-          Nuevo usuario
+          {t("usersManagement.header.new")}
         </button>
       </div>
 
@@ -137,7 +179,7 @@ export default function UsersManagement() {
           <Users size={22} />
           <div>
             <strong>{stats.total}</strong>
-            <span>Total usuarios</span>
+            <span>{t("usersManagement.stats.total")}</span>
           </div>
         </div>
 
@@ -145,7 +187,7 @@ export default function UsersManagement() {
           <UserCheck size={22} />
           <div>
             <strong>{stats.active}</strong>
-            <span>Activos</span>
+            <span>{t("usersManagement.stats.active")}</span>
           </div>
         </div>
 
@@ -153,7 +195,7 @@ export default function UsersManagement() {
           <ShieldCheck size={22} />
           <div>
             <strong>{stats.admins}</strong>
-            <span>Admins</span>
+            <span>{t("usersManagement.stats.admins")}</span>
           </div>
         </div>
 
@@ -161,35 +203,39 @@ export default function UsersManagement() {
           <Users size={22} />
           <div>
             <strong>{stats.employees}</strong>
-            <span>Employees</span>
+            <span>{t("usersManagement.stats.employees")}</span>
           </div>
         </div>
       </div>
 
       <div className="users-table-card">
         <div className="users-table-head">
-          <h3>Miembros del equipo</h3>
+          <h3>{t("usersManagement.table.title")}</h3>
 
           <button className="users-secondary-btn" onClick={loadUsers}>
             <RefreshCcw size={16} />
-            Actualizar
+            {t("usersManagement.table.refresh")}
           </button>
         </div>
 
         {loading ? (
-          <div className="users-empty">Cargando usuarios...</div>
+          <div className="users-empty">
+            {t("usersManagement.messages.loading")}
+          </div>
         ) : users.length === 0 ? (
-          <div className="users-empty">No hay usuarios creados.</div>
+          <div className="users-empty">
+            {t("usersManagement.messages.empty")}
+          </div>
         ) : (
           <div className="users-table-wrap">
             <table className="users-table">
               <thead>
                 <tr>
-                  <th>Usuario</th>
-                  <th>Correo</th>
-                  <th>Rol</th>
-                  <th>Estado</th>
-                  <th>Creado</th>
+                  <th>{t("usersManagement.table.user")}</th>
+                  <th>{t("usersManagement.table.email")}</th>
+                  <th>{t("usersManagement.table.role")}</th>
+                  <th>{t("usersManagement.table.status")}</th>
+                  <th>{t("usersManagement.table.created")}</th>
                   <th></th>
                 </tr>
               </thead>
@@ -213,7 +259,7 @@ export default function UsersManagement() {
 
                     <td>
                       <span className={`users-role ${item.role}`}>
-                        {item.role}
+                        {getRoleLabel(item.role)}
                       </span>
                     </td>
 
@@ -225,7 +271,9 @@ export default function UsersManagement() {
                             : "users-status active"
                         }
                       >
-                        {item.isActive === false ? "Inactivo" : "Activo"}
+                        {item.isActive === false
+                          ? t("usersManagement.status.inactive")
+                          : t("usersManagement.status.active")}
                       </span>
                     </td>
 
@@ -242,7 +290,7 @@ export default function UsersManagement() {
                           onClick={() => deactivateUser(item)}
                         >
                           <Ban size={15} />
-                          Desactivar
+                          {t("usersManagement.actions.deactivate")}
                         </button>
                       )}
                     </td>
@@ -259,8 +307,8 @@ export default function UsersManagement() {
           <div className="users-modal">
             <div className="users-modal-head">
               <div>
-                <h2>Nuevo usuario</h2>
-                <p>Solo puedes crear admin o employee.</p>
+                <h2>{t("usersManagement.modal.title")}</h2>
+                <p>{t("usersManagement.modal.description")}</p>
               </div>
 
               <button onClick={() => setModalOpen(false)}>
@@ -270,50 +318,54 @@ export default function UsersManagement() {
 
             <form onSubmit={handleSubmit} className="users-form">
               <label>
-                Nombre
+                {t("usersManagement.fields.name")}
                 <input
                   value={form.name}
                   onChange={(e) =>
                     setForm({ ...form, name: e.target.value })
                   }
-                  placeholder="Ej: María López"
+                  placeholder={t("usersManagement.placeholders.name")}
                 />
               </label>
 
               <label>
-                Correo
+                {t("usersManagement.fields.email")}
                 <input
                   type="email"
                   value={form.email}
                   onChange={(e) =>
                     setForm({ ...form, email: e.target.value })
                   }
-                  placeholder="usuario@empresa.com"
+                  placeholder={t("usersManagement.placeholders.email")}
                 />
               </label>
 
               <label>
-                Contraseña temporal
+                {t("usersManagement.fields.password")}
                 <input
                   type="password"
                   value={form.password}
                   onChange={(e) =>
                     setForm({ ...form, password: e.target.value })
                   }
-                  placeholder="Mínimo recomendado 8 caracteres"
+                  placeholder={t("usersManagement.placeholders.password")}
                 />
               </label>
 
               <label>
-                Rol
+                {t("usersManagement.fields.role")}
                 <select
                   value={form.role}
                   onChange={(e) =>
                     setForm({ ...form, role: e.target.value })
                   }
                 >
-                  <option value="employee">Employee</option>
-                  <option value="admin">Admin</option>
+                  <option value="employee">
+                    {t("usersManagement.roles.employee")}
+                  </option>
+                  <option value="admin">
+                    {t("usersManagement.roles.admin")}
+                  </option>
                 </select>
               </label>
 
@@ -323,7 +375,7 @@ export default function UsersManagement() {
                   className="users-secondary-btn"
                   onClick={() => setModalOpen(false)}
                 >
-                  Cancelar
+                  {t("usersManagement.actions.cancel")}
                 </button>
 
                 <button
@@ -331,7 +383,9 @@ export default function UsersManagement() {
                   className="users-primary-btn"
                   disabled={saving}
                 >
-                  {saving ? "Guardando..." : "Crear usuario"}
+                  {saving
+                    ? t("usersManagement.actions.saving")
+                    : t("usersManagement.actions.create")}
                 </button>
               </div>
             </form>

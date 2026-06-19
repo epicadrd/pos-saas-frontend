@@ -3,19 +3,15 @@ import { Eye, Filter, Receipt, Search, X } from "lucide-react";
 import { api } from "../../api/axios";
 import PosReceipt from "../../components/PosReceipt";
 import { useAuth } from "../../context/AuthContext";
+import es from "../../i18n/locales/es.json";
+import en from "../../i18n/locales/en.json";
 import { isDominicanTenant } from "../../utils/taxConfig";
 import "../../styles/pos.css";
 
-const paymentLabels = {
-  cash: "Efectivo",
-  card: "Tarjeta",
-  transfer: "Transferencia",
-  check: "Cheque",
-  mixed: "Mixto",
-};
-
 export default function PosSales() {
-  const { tenant } = useAuth();
+  const { tenant, language } = useAuth();
+
+  const dictionary = language === "en" ? en : es;
   const isDO = isDominicanTenant(tenant);
   const locale = isDO ? "es-DO" : "en-US";
   const currency = isDO ? "DOP" : "USD";
@@ -34,6 +30,22 @@ export default function PosSales() {
     cashRegisterId: "",
     paymentMethod: "all",
   });
+
+  const t = (path, fallback = "") => {
+    const value = path
+      .split(".")
+      .reduce((acc, key) => acc?.[key], dictionary);
+
+    return value || fallback || path;
+  };
+
+  const paymentLabels = {
+    cash: t("pos.salesPage.payment.cash"),
+    card: t("pos.salesPage.payment.card"),
+    transfer: t("pos.salesPage.payment.transfer"),
+    check: t("pos.salesPage.payment.check"),
+    mixed: t("pos.salesPage.payment.mixed"),
+  };
 
   const money = useMemo(
     () =>
@@ -83,7 +95,8 @@ export default function PosSales() {
       setSummary(data.summary || null);
     } catch (error) {
       alert(
-        error.response?.data?.message || "No se pudieron cargar las ventas POS"
+        error.response?.data?.message ||
+          t("pos.salesPage.messages.loadError")
       );
     } finally {
       setLoading(false);
@@ -128,49 +141,57 @@ export default function PosSales() {
       const { data } = await api.get(`/pos/sales/${saleId}`);
       setSelectedSale(data);
     } catch (error) {
-      alert(error.response?.data?.message || "No se pudo cargar el detalle");
+      alert(
+        error.response?.data?.message ||
+          t("pos.salesPage.messages.detailError")
+      );
     } finally {
       setDetailLoading(false);
     }
+  };
+
+  const openReceipt = async (saleId) => {
+    const { data } = await api.get(`/pos/sales/${saleId}`);
+    setReceiptSale(data);
   };
 
   return (
     <div className="pos-page">
       <section className="pos-header">
         <div>
-          <span>POS / Caja</span>
-          <h2>Ventas POS</h2>
-          <p>Consulta las ventas por caja, fecha y método de pago.</p>
+          <span>{t("pos.salesPage.eyebrow")}</span>
+          <h2>{t("pos.salesPage.title")}</h2>
+          <p>{t("pos.salesPage.description")}</p>
         </div>
       </section>
 
       <section className="pos-summary-grid">
         <article className="pos-summary-card">
-          <span>Ventas</span>
+          <span>{t("pos.salesPage.stats.sales")}</span>
           <strong>{summary?.salesCount || 0}</strong>
         </article>
 
         <article className="pos-summary-card">
-          <span>Total vendido</span>
+          <span>{t("pos.salesPage.stats.totalSold")}</span>
           <strong>{money.format(Number(summary?.total || 0))}</strong>
         </article>
 
         <article className="pos-summary-card">
-          <span>Efectivo</span>
+          <span>{t("pos.salesPage.stats.cash")}</span>
           <strong>
             {money.format(Number(summary?.byPaymentMethod?.cash || 0))}
           </strong>
         </article>
 
         <article className="pos-summary-card">
-          <span>Tarjeta</span>
+          <span>{t("pos.salesPage.stats.card")}</span>
           <strong>
             {money.format(Number(summary?.byPaymentMethod?.card || 0))}
           </strong>
         </article>
 
         <article className="pos-summary-card">
-          <span>Transferencia</span>
+          <span>{t("pos.salesPage.stats.transfer")}</span>
           <strong>
             {money.format(Number(summary?.byPaymentMethod?.transfer || 0))}
           </strong>
@@ -179,7 +200,7 @@ export default function PosSales() {
 
       <form className="pos-panel pos-sales-filters" onSubmit={applyFilters}>
         <div>
-          <label>Desde</label>
+          <label>{t("pos.salesPage.filters.from")}</label>
           <input
             type="date"
             name="dateFrom"
@@ -189,7 +210,7 @@ export default function PosSales() {
         </div>
 
         <div>
-          <label>Hasta</label>
+          <label>{t("pos.salesPage.filters.to")}</label>
           <input
             type="date"
             name="dateTo"
@@ -199,13 +220,15 @@ export default function PosSales() {
         </div>
 
         <div>
-          <label>Caja</label>
+          <label>{t("pos.salesPage.filters.cashRegister")}</label>
           <select
             name="cashRegisterId"
             value={filters.cashRegisterId}
             onChange={handleFilterChange}
           >
-            <option value="">Todas</option>
+            <option value="">
+              {t("pos.salesPage.filters.allCashRegisters")}
+            </option>
             {registers.map((register) => (
               <option key={register.id} value={register.id}>
                 {register.name}
@@ -215,51 +238,51 @@ export default function PosSales() {
         </div>
 
         <div>
-          <label>Método</label>
+          <label>{t("pos.salesPage.filters.method")}</label>
           <select
             name="paymentMethod"
             value={filters.paymentMethod}
             onChange={handleFilterChange}
           >
-            <option value="all">Todos</option>
-            <option value="cash">Efectivo</option>
-            <option value="card">Tarjeta</option>
-            <option value="transfer">Transferencia</option>
-            <option value="check">Cheque</option>
-            <option value="mixed">Mixto</option>
+            <option value="all">{t("pos.salesPage.filters.all")}</option>
+            <option value="cash">{paymentLabels.cash}</option>
+            <option value="card">{paymentLabels.card}</option>
+            <option value="transfer">{paymentLabels.transfer}</option>
+            <option value="check">{paymentLabels.check}</option>
+            <option value="mixed">{paymentLabels.mixed}</option>
           </select>
         </div>
 
         <button type="submit" className="primary-btn">
           <Filter size={17} />
-          Filtrar
+          {t("pos.salesPage.filters.filter")}
         </button>
 
         <button type="button" className="danger-btn" onClick={clearFilters}>
           <X size={17} />
-          Limpiar
+          {t("pos.salesPage.filters.clear")}
         </button>
       </form>
 
       <section className="pos-panel">
         {loading ? (
-          <p>Cargando ventas...</p>
+          <p>{t("pos.salesPage.messages.loading")}</p>
         ) : sales.length === 0 ? (
           <div className="pos-empty-state">
             <Search size={28} />
-            <p>No hay ventas POS para mostrar.</p>
+            <p>{t("pos.salesPage.messages.empty")}</p>
           </div>
         ) : (
           <div className="pos-table-wrap">
             <table className="pos-sales-table">
               <thead>
                 <tr>
-                  <th>Fecha</th>
-                  <th>Venta</th>
-                  <th>Caja</th>
-                  <th>Usuario</th>
-                  <th>Método</th>
-                  <th>Total</th>
+                  <th>{t("pos.salesPage.table.date")}</th>
+                  <th>{t("pos.salesPage.table.sale")}</th>
+                  <th>{t("pos.salesPage.table.cashRegister")}</th>
+                  <th>{t("pos.salesPage.table.user")}</th>
+                  <th>{t("pos.salesPage.table.method")}</th>
+                  <th>{t("pos.salesPage.table.total")}</th>
                   <th></th>
                 </tr>
               </thead>
@@ -284,7 +307,7 @@ export default function PosSales() {
                           className="table-icon-btn"
                           onClick={() => openDetail(sale.id)}
                           disabled={detailLoading}
-                          title="Ver detalle"
+                          title={t("pos.salesPage.table.viewDetail")}
                         >
                           <Eye size={17} />
                         </button>
@@ -292,13 +315,8 @@ export default function PosSales() {
                         <button
                           type="button"
                           className="table-icon-btn"
-                          onClick={async () => {
-                            const { data } = await api.get(
-                              `/pos/sales/${sale.id}`
-                            );
-                            setReceiptSale(data);
-                          }}
-                          title="Reimprimir ticket"
+                          onClick={() => openReceipt(sale.id)}
+                          title={t("pos.salesPage.table.reprintTicket")}
                         >
                           <Receipt size={17} />
                         </button>
@@ -323,7 +341,7 @@ export default function PosSales() {
           >
             <div className="pos-sale-detail-header">
               <div>
-                <span>Detalle de venta</span>
+                <span>{t("pos.salesPage.detail.title")}</span>
                 <h3>{selectedSale.saleNumber}</h3>
                 <p>{formatDate(selectedSale.createdAt)}</p>
               </div>
@@ -335,17 +353,17 @@ export default function PosSales() {
 
             <div className="pos-sale-detail-info">
               <div>
-                <span>Caja</span>
+                <span>{t("pos.salesPage.detail.cashRegister")}</span>
                 <strong>{selectedSale.cashRegister?.name || "-"}</strong>
               </div>
 
               <div>
-                <span>Usuario</span>
+                <span>{t("pos.salesPage.detail.user")}</span>
                 <strong>{selectedSale.user?.name || "-"}</strong>
               </div>
 
               <div>
-                <span>Método</span>
+                <span>{t("pos.salesPage.detail.method")}</span>
                 <strong>
                   {paymentLabels[selectedSale.paymentMethod] ||
                     selectedSale.paymentMethod}
@@ -353,13 +371,13 @@ export default function PosSales() {
               </div>
 
               <div>
-                <span>Total</span>
+                <span>{t("pos.salesPage.detail.total")}</span>
                 <strong>{money.format(Number(selectedSale.total || 0))}</strong>
               </div>
             </div>
 
             <div className="pos-sale-items">
-              <h4>Productos vendidos</h4>
+              <h4>{t("pos.salesPage.detail.soldProducts")}</h4>
 
               {selectedSale.items?.map((item) => (
                 <div className="pos-sale-item-row" key={item.id}>
@@ -377,7 +395,7 @@ export default function PosSales() {
             </div>
 
             <div className="pos-sale-detail-total">
-              <span>Total</span>
+              <span>{t("pos.salesPage.detail.total")}</span>
               <strong>{money.format(Number(selectedSale.total || 0))}</strong>
             </div>
 
@@ -387,7 +405,7 @@ export default function PosSales() {
               onClick={() => setReceiptSale(selectedSale)}
             >
               <Receipt size={17} />
-              Imprimir ticket
+              {t("pos.salesPage.detail.printTicket")}
             </button>
           </div>
         </div>

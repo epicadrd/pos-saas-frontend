@@ -1064,3 +1064,28 @@
     line-height: 1.35;
   }
 }
+
+/* FIX X MODAL INVENTARIO */
+.inventory-page .modal-close,
+.inventory-page .inventory-modal-header button,
+.inventory-page .modal-header button {
+  width: 44px !important;
+  height: 44px !important;
+  min-width: 44px !important;
+  min-height: 44px !important;
+  padding: 0 !important;
+  border-radius: 14px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+  line-height: 1 !important;
+}
+
+.inventory-page .modal-close svg,
+.inventory-page .inventory-modal-header button svg,
+.inventory-page .modal-header button svg {
+  width: 20px !important;
+  height: 20px !important;
+  display: block !important;
+}

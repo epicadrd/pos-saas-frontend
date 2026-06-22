@@ -974,3 +974,25 @@
     place-items: center;
   }
 }
+
+.quote-page .modal-header button,
+.quote-page .modal-close {
+  width: 44px !important;
+  height: 44px !important;
+  min-width: 44px !important;
+  min-height: 44px !important;
+  padding: 0 !important;
+  border-radius: 14px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+  line-height: 1 !important;
+}
+
+.quote-page .modal-header button svg,
+.quote-page .modal-close svg {
+  width: 20px !important;
+  height: 20px !important;
+  display: block !important;
+}

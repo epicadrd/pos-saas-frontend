@@ -537,3 +537,29 @@
     justify-content: center;
   }
 }
+
+/* FIX X MODAL RECIBOS */
+.receipt-page .modal-close,
+.receipt-page .modal-header button {
+  width: 44px !important;
+  height: 44px !important;
+  min-width: 44px !important;
+  min-height: 44px !important;
+  padding: 0 !important;
+  border: none !important;
+  border-radius: 15px !important;
+  background: #f1f5f9 !important;
+  color: #0f172a !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1 !important;
+  flex-shrink: 0 !important;
+}
+
+.receipt-page .modal-close svg,
+.receipt-page .modal-header button svg {
+  width: 20px !important;
+  height: 20px !important;
+  display: block !important;
+}

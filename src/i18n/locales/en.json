@@ -628,7 +628,11 @@
     "phone": "Phone",
     "email": "Email",
     "notes": "Notes"
-  }
+  },
+  "items": {
+  "title": "Products and services",
+  "productService": "Product or service"
+}
 },
 
 "items": {
@@ -1861,7 +1865,8 @@
   "stats": {
     "monthTotal": "Monthly expenses",
     "pending": "Pending",
-    "filteredResult": "Filtered result"
+    "filteredResult": "Filtered result",
+    "accumulatedTax": "Accumulated {{taxLabel}}"
   },
   "filters": {
     "search": "Search expense, issuer, e-NCF or category",

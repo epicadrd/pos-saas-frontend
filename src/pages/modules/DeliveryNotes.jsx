@@ -85,6 +85,7 @@ export default function DeliveryNotes() {
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [selectedDeliveryNote, setSelectedDeliveryNote] = useState(null);
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -626,7 +627,7 @@ export default function DeliveryNotes() {
           </div>
         </div>
 
-        <div className="quote-table-wrap">
+        <div className="quote-table-wrap quote-desktop-list">
           <table className="quote-table">
             <thead>
               <tr>
@@ -734,6 +735,162 @@ export default function DeliveryNotes() {
             </tbody>
           </table>
         </div>
+         <div className="quote-mobile-list">
+  {loading ? (
+    <div className="quote-mobile-empty">
+      {t("deliveryNotes.messages.loading")}
+    </div>
+  ) : filteredDeliveryNotes.length ? (
+    filteredDeliveryNotes.map((note) => (
+      <button
+        type="button"
+        key={note.id}
+        className="quote-mobile-card"
+        onClick={() => setSelectedDeliveryNote(note)}
+      >
+        <div className="quote-mobile-top">
+          <div>
+            <span>{t("deliveryNotes.table.deliveryNote")}</span>
+            <strong>{note.deliveryNoteNumber}</strong>
+          </div>
+
+          <span className={statusClass[note.status] || "badge warning"}>
+            {statusLabel[note.status] || t("deliveryNotes.status.draft")}
+          </span>
+        </div>
+
+        <div className="quote-mobile-client">
+          <span>{t("deliveryNotes.table.customer")}</span>
+          <strong>{note.customerName || "-"}</strong>
+        </div>
+
+        <div className="quote-mobile-money-grid">
+          <div>
+            <span>{t("deliveryNotes.table.customerPurchaseOrder")}</span>
+            <strong>{note.customerPurchaseOrder || "-"}</strong>
+          </div>
+
+          <div>
+            <span>{t("deliveryNotes.table.total")}</span>
+            <strong>{money.format(Number(note.total || 0))}</strong>
+          </div>
+        </div>
+
+        <div className="quote-mobile-footer">
+          <span>
+            {t("deliveryNotes.table.delivery")}{" "}
+            {formatDateOnly(note.deliveryDate || note.issueDate)}
+          </span>
+          <strong>Ver detalle</strong>
+        </div>
+      </button>
+    ))
+  ) : (
+    <div className="quote-mobile-empty">
+      {t("deliveryNotes.messages.empty")}
+    </div>
+  )}
+</div>
+
+{selectedDeliveryNote && (
+  <div
+    className="quote-detail-overlay"
+    onClick={() => setSelectedDeliveryNote(null)}
+  >
+    <div className="quote-detail-modal" onClick={(e) => e.stopPropagation()}>
+      <div className="quote-detail-header">
+        <div>
+          <span>{t("deliveryNotes.table.deliveryNote")}</span>
+          <h3>{selectedDeliveryNote.deliveryNoteNumber}</h3>
+        </div>
+
+        <button type="button" onClick={() => setSelectedDeliveryNote(null)}>
+          <X size={20} />
+        </button>
+      </div>
+
+      <div className="quote-detail-status">
+        <span className={statusClass[selectedDeliveryNote.status] || "badge warning"}>
+          {statusLabel[selectedDeliveryNote.status] || t("deliveryNotes.status.draft")}
+        </span>
+      </div>
+
+      <div className="quote-detail-list">
+        <div>
+          <span>{t("deliveryNotes.table.customer")}</span>
+          <strong>{selectedDeliveryNote.customerName || "-"}</strong>
+        </div>
+
+        <div>
+          <span>{t("deliveryNotes.table.customerPurchaseOrder")}</span>
+          <strong>{selectedDeliveryNote.customerPurchaseOrder || "-"}</strong>
+        </div>
+
+        <div>
+          <span>{t("deliveryNotes.table.delivery")}</span>
+          <strong>
+            {formatDateOnly(
+              selectedDeliveryNote.deliveryDate || selectedDeliveryNote.issueDate
+            )}
+          </strong>
+        </div>
+
+        <div>
+          <span>{t("deliveryNotes.table.total")}</span>
+          <strong>{money.format(Number(selectedDeliveryNote.total || 0))}</strong>
+        </div>
+
+        <div>
+          <span>{t("deliveryNotes.table.createdBy")}</span>
+          <strong>
+            {selectedDeliveryNote.creator?.name || t("deliveryNotes.common.system")}
+          </strong>
+        </div>
+      </div>
+
+      <div className="quote-detail-actions">
+        <button onClick={() => printNote(selectedDeliveryNote)}>
+          <Printer size={16} />
+          {t("deliveryNotes.actions.print")}
+        </button>
+
+        {selectedDeliveryNote.status === "draft" && (
+          <button onClick={() => issueNote(selectedDeliveryNote)}>
+            <Send size={16} />
+            {t("deliveryNotes.actions.issue")}
+          </button>
+        )}
+
+        {selectedDeliveryNote.status === "issued" && (
+          <button onClick={() => markDelivered(selectedDeliveryNote)}>
+            <CheckCircle size={16} />
+            {t("deliveryNotes.actions.markDelivered")}
+          </button>
+        )}
+
+        {(selectedDeliveryNote.status === "issued" ||
+          selectedDeliveryNote.status === "delivered") &&
+          !selectedDeliveryNote.invoiceId && (
+            <button onClick={() => convertToInvoice(selectedDeliveryNote)}>
+              <FileText size={16} />
+              {t("deliveryNotes.actions.convertToInvoice")}
+            </button>
+          )}
+
+        {selectedDeliveryNote.status !== "cancelled" &&
+          !selectedDeliveryNote.invoiceId && (
+            <button
+              className="danger-btn"
+              onClick={() => cancelNote(selectedDeliveryNote)}
+            >
+              <Ban size={16} />
+              {t("deliveryNotes.actions.cancel")}
+            </button>
+          )}
+      </div>
+    </div>
+  </div>
+)}
       </section>
 
       {modalOpen && (

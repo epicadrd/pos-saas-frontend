@@ -70,7 +70,8 @@ export default function PurchaseOrders() {
   const [modalOpen, setModalOpen] = useState(false);
   const [form, setForm] = useState(emptyOrder);
   const [items, setItems] = useState([]);
-  const [search, setSearch] = useState("");
+ const [search, setSearch] = useState("");
+  const [selectedPurchaseOrder, setSelectedPurchaseOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [suppliers, setSuppliers] = useState([]);
@@ -651,7 +652,7 @@ export default function PurchaseOrders() {
           </div>
         </div>
 
-        <div className="purchase-table-wrap">
+        <div className="purchase-table-wrap purchase-desktop-list">
           <table className="purchase-table">
             <thead>
               <tr>
@@ -771,6 +772,187 @@ export default function PurchaseOrders() {
             </tbody>
           </table>
         </div>
+            <div className="purchase-mobile-list">
+  {loading ? (
+    <div className="purchase-mobile-empty">
+      {t("purchaseOrders.messages.loading")}
+    </div>
+  ) : filteredOrders.length ? (
+    filteredOrders.map((order) => (
+      <button
+        type="button"
+        key={order.id}
+        className="purchase-mobile-card"
+        onClick={() => setSelectedPurchaseOrder(order)}
+      >
+        <div className="purchase-mobile-top">
+          <div>
+            <span>{t("purchaseOrders.table.order")}</span>
+            <strong>{order.orderNumber}</strong>
+          </div>
+
+          <span
+            className={
+              order.status === "received"
+                ? "badge ok"
+                : order.status === "cancelled"
+                ? "badge danger"
+                : order.status === "sent"
+                ? "badge info"
+                : "badge warning"
+            }
+          >
+            {getStatusLabel(order.status)}
+          </span>
+        </div>
+
+        <div className="purchase-mobile-supplier">
+          <span>{t("purchaseOrders.table.supplier")}</span>
+          <strong>{order.supplierName || "-"}</strong>
+        </div>
+
+        <div className="purchase-mobile-money-grid">
+          <div>
+            <span>{t("purchaseOrders.table.expectedDelivery")}</span>
+            <strong>
+              {order.expectedDate
+                ? new Date(order.expectedDate).toLocaleDateString(locale)
+                : "-"}
+            </strong>
+          </div>
+
+          <div>
+            <span>{t("purchaseOrders.table.total")}</span>
+            <strong>{money.format(Number(order.total || 0))}</strong>
+          </div>
+        </div>
+
+        <div className="purchase-mobile-footer">
+          <span>
+            {t("purchaseOrders.table.date")}{" "}
+            {new Date(order.createdAt).toLocaleDateString(locale)}
+          </span>
+          <strong>{t("common.viewDetails", "Ver detalle")}</strong>
+        </div>
+      </button>
+    ))
+  ) : (
+    <div className="purchase-mobile-empty">
+      {t("purchaseOrders.messages.empty")}
+    </div>
+  )}
+</div>
+
+{selectedPurchaseOrder && (
+  <div
+    className="quote-detail-overlay"
+    onClick={() => setSelectedPurchaseOrder(null)}
+  >
+    <div className="quote-detail-modal" onClick={(e) => e.stopPropagation()}>
+      <div className="quote-detail-header">
+        <div>
+          <span>{t("purchaseOrders.table.order")}</span>
+          <h3>{selectedPurchaseOrder.orderNumber}</h3>
+        </div>
+
+        <button type="button" onClick={() => setSelectedPurchaseOrder(null)}>
+          <X size={20} />
+        </button>
+      </div>
+
+      <div className="quote-detail-status">
+        <span
+          className={
+            selectedPurchaseOrder.status === "received"
+              ? "badge ok"
+              : selectedPurchaseOrder.status === "cancelled"
+              ? "badge danger"
+              : selectedPurchaseOrder.status === "sent"
+              ? "badge info"
+              : "badge warning"
+          }
+        >
+          {getStatusLabel(selectedPurchaseOrder.status)}
+        </span>
+      </div>
+
+      <div className="quote-detail-list">
+        <div>
+          <span>{t("purchaseOrders.table.supplier")}</span>
+          <strong>{selectedPurchaseOrder.supplierName || "-"}</strong>
+        </div>
+
+        <div>
+          <span>{t("purchaseOrders.table.date")}</span>
+          <strong>
+            {new Date(selectedPurchaseOrder.createdAt).toLocaleDateString(locale)}
+          </strong>
+        </div>
+
+        <div>
+          <span>{t("purchaseOrders.table.expectedDelivery")}</span>
+          <strong>
+            {selectedPurchaseOrder.expectedDate
+              ? new Date(selectedPurchaseOrder.expectedDate).toLocaleDateString(locale)
+              : "-"}
+          </strong>
+        </div>
+
+        <div>
+          <span>{t("purchaseOrders.table.subtotal")}</span>
+          <strong>{money.format(Number(selectedPurchaseOrder.subtotal || 0))}</strong>
+        </div>
+
+        <div>
+          <span>{taxLabel}</span>
+          <strong>{money.format(Number(selectedPurchaseOrder.tax || 0))}</strong>
+        </div>
+
+        <div>
+          <span>{t("purchaseOrders.table.total")}</span>
+          <strong>{money.format(Number(selectedPurchaseOrder.total || 0))}</strong>
+        </div>
+
+        <div>
+          <span>{t("purchaseOrders.table.createdBy")}</span>
+          <strong>
+            {selectedPurchaseOrder.creator?.name ||
+              t("purchaseOrders.common.system")}
+          </strong>
+        </div>
+      </div>
+
+      <div className="quote-detail-actions">
+        {selectedPurchaseOrder.status !== "received" &&
+          selectedPurchaseOrder.status !== "cancelled" && (
+            <button
+              type="button"
+              onClick={() =>
+                handleStatusChange(selectedPurchaseOrder, "received")
+              }
+            >
+              <PackagePlus size={16} />
+              {t("purchaseOrders.table.receiveInventory")}
+            </button>
+          )}
+
+        <button type="button" onClick={() => handlePrint(selectedPurchaseOrder)}>
+          <Printer size={16} />
+          {t("purchaseOrders.actions.print", "Imprimir")}
+        </button>
+
+        <button
+          type="button"
+          className="danger-btn"
+          onClick={() => handleDelete(selectedPurchaseOrder)}
+        >
+          <Trash2 size={16} />
+          {t("purchaseOrders.actions.delete", "Eliminar")}
+        </button>
+      </div>
+    </div>
+  </div>
+)}
       </section>
 
       {modalOpen && (

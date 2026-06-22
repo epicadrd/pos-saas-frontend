@@ -340,7 +340,7 @@ export default function Reports() {
               <span>{t("reports.tables.recentInvoicesHint")}</span>
             </div>
 
-            <div className="reports-table-wrap">
+            <div className="reports-table-wrap reports-desktop-list">
               <table className="reports-table">
                 <thead>
                   <tr>
@@ -373,6 +373,49 @@ export default function Reports() {
                 </tbody>
               </table>
             </div>
+            <div className="reports-mobile-list">
+  {(report?.tables?.recentInvoices || []).length === 0 ? (
+    <div className="reports-empty small">
+      {t("reports.tables.noRecentInvoices", "No hay facturas recientes.")}
+    </div>
+  ) : (
+    (report?.tables?.recentInvoices || []).map((invoice) => (
+      <div className="reports-mobile-card" key={invoice.id}>
+        <div className="reports-mobile-top">
+          <div>
+            <span>{isDO ? "e-NCF" : t("reports.tables.invoiceNumber")}</span>
+            <strong>
+              {isDO
+                ? getFiscalNumber(invoice)
+                : invoice.invoiceNumber || invoice.id}
+            </strong>
+          </div>
+
+          <span className={`report-status ${invoice.status}`}>
+            {statusLabels[invoice.status] || invoice.status}
+          </span>
+        </div>
+
+        <div className="reports-mobile-customer">
+          <span>{t("reports.tables.customer")}</span>
+          <strong>{invoice.customerName || "—"}</strong>
+        </div>
+
+        <div className="reports-mobile-grid">
+          <div>
+            <span>{t("reports.tables.total")}</span>
+            <strong>{formatMoney(invoice.total)}</strong>
+          </div>
+
+          <div>
+            <span>{t("reports.tables.balance")}</span>
+            <strong>{formatMoney(invoice.balance)}</strong>
+          </div>
+        </div>
+      </div>
+    ))
+  )}
+</div>
           </section>
 
           <section className="reports-grid-two">

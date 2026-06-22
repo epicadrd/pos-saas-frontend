@@ -318,3 +318,169 @@
     flex-direction: column;
   }
 }
+
+.ar-mobile-list {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .ar-desktop-list {
+    display: none !important;
+  }
+
+  .ar-mobile-list {
+    display: grid;
+    gap: 14px;
+    padding: 14px;
+  }
+
+  .ar-mobile-card {
+    width: 100%;
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+    border-radius: 22px;
+    padding: 16px;
+    background: #ffffff !important;
+    color: #0f172a !important;
+    text-align: left;
+    box-shadow: 0 14px 34px rgba(15, 23, 42, 0.08);
+  }
+
+  .ar-mobile-card,
+  .ar-mobile-card * {
+    color: inherit;
+    box-sizing: border-box;
+  }
+
+  .ar-mobile-top,
+  .ar-mobile-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .ar-mobile-card span {
+    font-size: 10px;
+    font-weight: 900;
+    color: #94a3b8 !important;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .ar-mobile-card strong {
+    color: #0f172a !important;
+    font-weight: 900;
+  }
+
+  .ar-mobile-customer {
+    margin-top: 16px;
+  }
+
+  .ar-mobile-customer strong {
+    display: block;
+    margin-top: 5px;
+    font-size: 18px;
+  }
+
+  .ar-mobile-customer small {
+    display: block;
+    margin-top: 4px;
+    color: #64748b !important;
+    font-weight: 700;
+  }
+
+  .ar-mobile-money-grid {
+    margin-top: 16px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .ar-mobile-money-grid div {
+    min-width: 0;
+    background: #f8fafc;
+    border-radius: 16px;
+    padding: 12px;
+  }
+
+  .ar-mobile-money-grid strong {
+    display: block;
+    margin-top: 5px;
+    font-size: 15px;
+    overflow-wrap: anywhere;
+  }
+
+  .ar-mobile-footer {
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid #e2e8f0;
+    align-items: center;
+  }
+
+  .ar-mobile-footer strong {
+    color: #2563eb !important;
+    font-size: 13px;
+  }
+
+  .ar-mobile-card .ar-status {
+    padding: 7px 10px;
+    border-radius: 999px;
+    font-size: 10px;
+    white-space: nowrap;
+  }
+
+  .ar-mobile-overdue {
+    margin-top: 12px;
+    padding: 11px 12px;
+    border-radius: 14px;
+    background: #ffedd5;
+    color: #c2410c !important;
+    font-weight: 900;
+  }
+}
+
+@media (max-width: 768px) {
+  .accounts-receivable-page .ar-mobile-card {
+    display: block !important;
+    width: 100% !important;
+    background: #fff !important;
+    color: #0f172a !important;
+    padding: 16px !important;
+    border-radius: 22px !important;
+    text-align: left !important;
+  }
+
+  .accounts-receivable-page .ar-mobile-card * {
+    color: inherit;
+  }
+
+  .accounts-receivable-page .ar-mobile-card span {
+    color: #94a3b8 !important;
+  }
+
+  .accounts-receivable-page .ar-mobile-card strong {
+    color: #0f172a !important;
+  }
+
+  .accounts-receivable-page .ar-mobile-top,
+  .accounts-receivable-page .ar-mobile-footer {
+    display: flex !important;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .accounts-receivable-page .ar-mobile-money-grid {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .accounts-receivable-page .ar-mobile-card .ar-status {
+    color: #1d4ed8 !important;
+  }
+
+  .accounts-receivable-page .ar-mobile-card .ar-status.partial {
+    color: #92400e !important;
+  }
+}

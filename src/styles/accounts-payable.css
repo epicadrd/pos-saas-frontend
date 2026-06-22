@@ -405,3 +405,136 @@
     grid-template-columns: 1fr;
   }
 }
+
+.ap-mobile-list {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .ap-desktop-list {
+    display: none !important;
+  }
+
+  .ap-mobile-list {
+    display: grid;
+    gap: 14px;
+    padding: 14px;
+  }
+
+  .ap-mobile-card {
+    display: block !important;
+    width: 100%;
+    border: 1px solid #e2e8f0;
+    border-radius: 22px;
+    padding: 16px;
+    background: #fff !important;
+    color: #0f172a !important;
+    text-align: left;
+    box-shadow: 0 14px 34px rgba(15, 23, 42, 0.08);
+  }
+
+  .ap-mobile-top,
+  .ap-mobile-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .ap-mobile-card span {
+    display: block;
+    font-size: 10px;
+    font-weight: 900;
+    text-transform: uppercase;
+    color: #94a3b8 !important;
+  }
+
+  .ap-mobile-card strong {
+    color: #0f172a !important;
+  }
+
+  .ap-mobile-supplier {
+    margin-top: 16px;
+  }
+
+  .ap-mobile-supplier strong {
+    display: block;
+    margin-top: 4px;
+    font-size: 18px;
+  }
+
+  .ap-mobile-money-grid {
+    margin-top: 16px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .ap-mobile-money-grid div {
+    background: #f8fafc;
+    border-radius: 16px;
+    padding: 12px;
+  }
+
+  .ap-mobile-footer {
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid #e2e8f0;
+  }
+
+  .ap-mobile-footer strong {
+    color: #2563eb !important;
+  }
+
+  .ap-mobile-overdue {
+    margin-top: 12px;
+    padding: 11px 12px;
+    border-radius: 14px;
+    background: #ffedd5;
+    color: #c2410c;
+    font-weight: 900;
+  }
+}
+
+@media (max-width: 768px) {
+  .accounts-payable-page .ap-mobile-card {
+    display: block !important;
+    width: 100% !important;
+    background: #fff !important;
+    color: #0f172a !important;
+  }
+
+  .accounts-payable-page .ap-mobile-card * {
+    color: inherit;
+    box-sizing: border-box;
+  }
+
+  .accounts-payable-page .ap-mobile-card span {
+    color: #94a3b8 !important;
+  }
+
+  .accounts-payable-page .ap-mobile-card strong {
+    color: #0f172a !important;
+  }
+
+  .accounts-payable-page .ap-mobile-top,
+  .accounts-payable-page .ap-mobile-footer {
+    display: flex !important;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .accounts-payable-page .ap-mobile-money-grid {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .accounts-payable-page .ap-mobile-card .ap-status {
+    color: #9a3412 !important;
+  }
+
+  .accounts-payable-page .ap-mobile-card .ap-status.received {
+    color: #166534 !important;
+  }
+}

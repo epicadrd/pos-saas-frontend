@@ -8,6 +8,7 @@ import {
   CalendarClock,
   Eye,
   ReceiptText,
+  X
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../../api/axios";
@@ -56,6 +57,7 @@ export default function AccountsReceivable() {
     }).format(Number(value || 0));
 
   const [loading, setLoading] = useState(true);
+  const [selectedInvoice, setSelectedInvoice] = useState(null);
   const [data, setData] = useState({
     summary: {},
     invoices: [],
@@ -244,7 +246,7 @@ export default function AccountsReceivable() {
             {t("accountsReceivable.messages.empty")}
           </div>
         ) : (
-          <div className="ar-table-wrap">
+          <div className="ar-table-wrap ar-desktop-list">
             <table className="ar-table">
               <thead>
                 <tr>
@@ -352,7 +354,178 @@ export default function AccountsReceivable() {
               </tbody>
             </table>
           </div>
+                   
         )}
+
+
+   <div className="ar-mobile-list">
+  {!loading && invoices.map((invoice) => (
+    <button
+      type="button"
+      key={invoice.id}
+      className={`ar-mobile-card ${invoice.isOverdue ? "is-overdue" : ""}`}
+      onClick={() => setSelectedInvoice(invoice)}
+    >
+      <div className="ar-mobile-top">
+        <div>
+          <span>{t("accountsReceivable.table.invoice")}</span>
+          <strong>{getFiscalNumber(invoice)}</strong>
+        </div>
+
+        <span className={`ar-status ${invoice.status}`}>
+          {statusLabels[invoice.status] || invoice.status}
+        </span>
+      </div>
+
+      <div className="ar-mobile-customer">
+        <span>{t("accountsReceivable.table.customer")}</span>
+        <strong>{invoice.customerName}</strong>
+        <small>{invoice.customerPhone || invoice.customerEmail || "—"}</small>
+      </div>
+
+      <div className="ar-mobile-money-grid">
+        <div>
+          <span>{t("accountsReceivable.table.total")}</span>
+          <strong>{formatMoney(invoice.total)}</strong>
+        </div>
+
+        <div>
+          <span>{t("accountsReceivable.table.balance")}</span>
+          <strong>{formatMoney(invoice.balance)}</strong>
+        </div>
+      </div>
+
+      {invoice.isOverdue && (
+        <div className="ar-mobile-overdue">
+          {t("accountsReceivable.table.daysOverdue", "", {
+            days: invoice.daysOverdue,
+          })}
+        </div>
+      )}
+
+      <div className="ar-mobile-footer">
+        <span>
+          {t("accountsReceivable.table.due")}{" "}
+          {invoice.dueDate
+            ? new Date(invoice.dueDate).toLocaleDateString(locale)
+            : "—"}
+        </span>
+
+        <strong>{t("common.viewDetails", "Ver detalle")}</strong>
+      </div>
+    </button>
+  ))}
+</div>
+
+{selectedInvoice && (
+  <div
+    className="quote-detail-overlay"
+    onClick={() => setSelectedInvoice(null)}
+  >
+    <div className="quote-detail-modal" onClick={(e) => e.stopPropagation()}>
+      <div className="quote-detail-header">
+        <div>
+          <span>{t("accountsReceivable.table.invoice")}</span>
+          <h3>{getFiscalNumber(selectedInvoice)}</h3>
+        </div>
+
+        <button type="button" onClick={() => setSelectedInvoice(null)}>
+          <X size={20} />
+        </button>
+      </div>
+
+      <div className="quote-detail-status">
+        <span className={`ar-status ${selectedInvoice.status}`}>
+          {statusLabels[selectedInvoice.status] || selectedInvoice.status}
+        </span>
+      </div>
+
+      <div className="quote-detail-list">
+        <div>
+          <span>{t("accountsReceivable.table.customer")}</span>
+          <strong>{selectedInvoice.customerName || "-"}</strong>
+        </div>
+
+        <div>
+          <span>{t("accountsReceivable.table.issued")}</span>
+          <strong>
+            {selectedInvoice.invoiceDate
+              ? new Date(selectedInvoice.invoiceDate).toLocaleDateString(locale)
+              : "—"}
+          </strong>
+        </div>
+
+        <div>
+          <span>{t("accountsReceivable.table.due")}</span>
+          <strong>
+            {selectedInvoice.dueDate
+              ? new Date(selectedInvoice.dueDate).toLocaleDateString(locale)
+              : "—"}
+          </strong>
+        </div>
+
+        <div>
+          <span>{t("accountsReceivable.table.total")}</span>
+          <strong>{formatMoney(selectedInvoice.total)}</strong>
+        </div>
+
+        <div>
+          <span>{t("accountsReceivable.table.paid")}</span>
+          <strong>{formatMoney(selectedInvoice.amountPaid)}</strong>
+        </div>
+
+        <div>
+          <span>{t("accountsReceivable.table.balance")}</span>
+          <strong>{formatMoney(selectedInvoice.balance)}</strong>
+        </div>
+
+        <div>
+          <span>{t("accountsReceivable.table.progress")}</span>
+          <strong>
+            {t("accountsReceivable.table.paidPercent", "", {
+              percent: Math.round(selectedInvoice.paidPercent || 0),
+            })}
+          </strong>
+        </div>
+
+        {selectedInvoice.isOverdue && (
+          <div>
+            <span>{t("accountsReceivable.filters.overdue")}</span>
+            <strong>
+              {t("accountsReceivable.table.daysOverdue", "", {
+                days: selectedInvoice.daysOverdue,
+              })}
+            </strong>
+          </div>
+        )}
+      </div>
+
+      <div className="quote-detail-actions">
+        <button
+          type="button"
+          onClick={() => {
+            setSelectedInvoice(null);
+            navigate("/dashboard/facturacion");
+          }}
+        >
+          <Eye size={16} />
+          {t("accountsReceivable.table.viewInvoice")}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            setSelectedInvoice(null);
+            goToReceipt(selectedInvoice);
+          }}
+        >
+          <ReceiptText size={16} />
+          {t("accountsReceivable.table.registerPayment")}
+        </button>
+      </div>
+    </div>
+  </div>
+)}
       </section>
 
       <section className="ar-grid-two">

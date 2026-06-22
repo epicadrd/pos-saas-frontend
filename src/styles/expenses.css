@@ -502,3 +502,122 @@
     width: 100%;
   }
 }
+
+.expenses-mobile-list {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .expenses-desktop-list {
+    display: none !important;
+  }
+
+  .expenses-mobile-list {
+    display: grid;
+    gap: 14px;
+    padding: 14px;
+  }
+
+  .expense-mobile-card {
+    display: block !important;
+    width: 100%;
+    border: 1px solid #e2e8f0;
+    border-radius: 22px;
+    padding: 16px;
+    background: #fff !important;
+    color: #0f172a !important;
+    text-align: left;
+    box-shadow: 0 14px 34px rgba(15, 23, 42, 0.08);
+  }
+
+  .expense-mobile-top,
+  .expense-mobile-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .expense-mobile-description {
+    margin-top: 14px;
+  }
+
+  .expense-mobile-description strong {
+    color: #0f172a;
+    font-size: 16px;
+  }
+
+  .expense-mobile-grid {
+    margin-top: 14px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .expense-mobile-grid div {
+    background: #f8fafc;
+    border-radius: 14px;
+    padding: 12px;
+  }
+
+  .expense-mobile-card span {
+    display: block;
+    font-size: 10px;
+    text-transform: uppercase;
+    font-weight: 900;
+    color: #94a3b8;
+  }
+
+  .expense-mobile-card strong {
+    color: #0f172a;
+  }
+
+  .expense-mobile-footer {
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid #e2e8f0;
+  }
+
+  .expense-mobile-footer strong {
+    color: #2563eb;
+  }
+}
+
+@media (max-width: 768px) {
+  .expenses-page .expense-mobile-card {
+    display: block !important;
+    width: 100% !important;
+    background: #fff !important;
+    color: #0f172a !important;
+  }
+
+  .expenses-page .expense-mobile-card * {
+    color: inherit;
+    box-sizing: border-box;
+  }
+
+  .expenses-page .expense-mobile-card span {
+    color: #94a3b8 !important;
+  }
+
+  .expenses-page .expense-mobile-card strong {
+    color: #0f172a !important;
+  }
+
+  .expenses-page .expense-mobile-top,
+  .expenses-page .expense-mobile-footer {
+    display: flex !important;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .expenses-page .expense-mobile-grid {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .expenses-page .expense-mobile-card .expense-chip {
+    color: #1d4ed8 !important;
+  }
+}

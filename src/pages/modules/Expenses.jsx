@@ -20,6 +20,25 @@ import DatePicker from "react-datepicker";
 import { es as datePickerEs } from "date-fns/locale";
 import "react-datepicker/dist/react-datepicker.css";
 
+const getCurrentMonth = () => {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+};
+
+const getMonthRange = (monthValue) => {
+  if (!monthValue) return { from: "", to: "" };
+
+  const [year, month] = monthValue.split("-").map(Number);
+
+  if (!year || !month) return { from: "", to: "" };
+
+  const from = `${year}-${String(month).padStart(2, "0")}-01`;
+  const lastDay = new Date(year, month, 0).getDate();
+  const to = `${year}-${String(month).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
+
+  return { from, to };
+};
+
 const formatDateForDB = (date) => {
   if (!date) return "";
 
@@ -123,25 +142,32 @@ export default function Expenses() {
     search: "",
     category: "",
     supplierId: "",
-    from: "",
-    to: "",
+    month: getCurrentMonth(),
   });
 
-  const totalFiltered = useMemo(() => {
-    return expenses.reduce((sum, item) => sum + Number(item.total || 0), 0);
+  const totalFilteredTax = useMemo(() => {
+    return expenses.reduce((sum, item) => sum + Number(item.tax || 0), 0);
   }, [expenses]);
 
   const loadExpenses = async () => {
     try {
       setLoading(true);
 
+      const { from, to } = getMonthRange(filters.month);
+
       const params = Object.fromEntries(
-        Object.entries(filters).filter(([, value]) => value)
+        Object.entries({
+          search: filters.search,
+          category: filters.category,
+          supplierId: filters.supplierId,
+          from,
+          to,
+        }).filter(([, value]) => value)
       );
 
       const [expensesRes, statsRes] = await Promise.all([
         api.get("/expenses", { params }),
-        api.get("/expenses/stats"),
+        api.get("/expenses/stats", { params }),
       ]);
 
       setExpenses(expensesRes.data || []);
@@ -186,7 +212,11 @@ export default function Expenses() {
 
   useEffect(() => {
     loadExpenses();
-  }, []);
+  }, [
+    filters.month,
+    filters.category,
+    filters.supplierId,
+  ]);
 
   const openCreate = () => {
     setEditing(null);
@@ -318,8 +348,8 @@ export default function Expenses() {
         </div>
 
         <div className="expense-stat">
-          <span>{t("expenses.stats.filteredResult")}</span>
-          <strong>{formatMoney(totalFiltered)}</strong>
+          <span>{t("expenses.stats.accumulatedTax", "", { taxLabel })}</span>
+          <strong>{formatMoney(totalFilteredTax)}</strong>
         </div>
       </section>
 
@@ -339,6 +369,17 @@ export default function Expenses() {
             />
           </div>
 
+          <input
+            type="month"
+            value={filters.month}
+            onChange={(e) =>
+              setFilters({
+                ...filters,
+                month: e.target.value,
+              })
+            }
+          />
+
           <button className="secondary" onClick={loadExpenses}>
             {t("expenses.filters.filter")}
           </button>
@@ -349,7 +390,7 @@ export default function Expenses() {
         ) : expenses.length === 0 ? (
           <div className="expenses-empty">{t("expenses.messages.empty")}</div>
         ) : (
-          <div className="expenses-table-wrap">
+          <div className="expenses-table-wrap expenses-desktop-list">
             <table className="expenses-table">
               <thead>
                 <tr>
@@ -359,6 +400,7 @@ export default function Expenses() {
                   <th>{t("expenses.table.category")}</th>
                   <th>{t("expenses.table.description")}</th>
                   <th>{t("expenses.table.issuerName")}</th>
+                  {isDO && <th>{taxLabel}</th>}
                   <th>{t("expenses.table.total")}</th>
                   <th></th>
                 </tr>
@@ -388,6 +430,12 @@ export default function Expenses() {
                     <td>
                       {expense.supplier?.name || expense.supplierName || "—"}
                     </td>
+
+                    {isDO && (
+                      <td>
+                        <strong>{formatMoney(expense.tax)}</strong>
+                      </td>
+                    )}
 
                     <td>
                       <strong>{formatMoney(expense.total)}</strong>
@@ -422,6 +470,58 @@ export default function Expenses() {
             </table>
           </div>
         )}
+            <div className="expenses-mobile-list">
+  {!loading &&
+    expenses.map((expense) => (
+      <button
+        type="button"
+        key={expense.id}
+        className="expense-mobile-card"
+        onClick={() => setDetailExpense(expense)}
+      >
+        <div className="expense-mobile-top">
+          <div>
+            <span>{t("expenses.table.number")}</span>
+            <strong>{expense.expenseNumber}</strong>
+          </div>
+
+          <span className="expense-chip">
+            {getCategoryLabel(expense.category)}
+          </span>
+        </div>
+
+        <div className="expense-mobile-description">
+          <strong>{expense.description}</strong>
+        </div>
+
+        <div className="expense-mobile-grid">
+          <div>
+            <span>{t("expenses.table.issuerName")}</span>
+            <strong>
+              {expense.supplier?.name ||
+                expense.supplierName ||
+                "—"}
+            </strong>
+          </div>
+
+          <div>
+            <span>{t("expenses.table.total")}</span>
+            <strong>{formatMoney(expense.total)}</strong>
+          </div>
+        </div>
+
+        <div className="expense-mobile-footer">
+          <span>
+            {new Date(
+              `${expense.expenseDate}T00:00:00`
+            ).toLocaleDateString(locale)}
+          </span>
+
+          <strong>{t("common.viewDetails", "Ver detalle")}</strong>
+        </div>
+      </button>
+    ))}
+</div>
       </section>
 
       {detailExpense && (

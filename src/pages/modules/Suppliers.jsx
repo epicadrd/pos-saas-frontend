@@ -53,8 +53,8 @@ export default function Suppliers() {
   const [modalOpen, setModalOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("active");
+  const [selectedSupplier, setSelectedSupplier] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
 
   const loadSuppliers = async () => {
     try {
@@ -300,7 +300,7 @@ export default function Suppliers() {
           </div>
         </div>
 
-        <div className="quote-table-wrap">
+        <div className="quote-table-wrap suppliers-desktop-list">
           <table className="quote-table">
             <thead>
               <tr>
@@ -416,6 +416,169 @@ export default function Suppliers() {
             </tbody>
           </table>
         </div>
+              <div className="suppliers-mobile-list">
+  {loading ? (
+    <div className="suppliers-mobile-empty">
+      {t("suppliers.messages.loading")}
+    </div>
+  ) : filteredSuppliers.length ? (
+    filteredSuppliers.map((supplier) => (
+      <button
+        key={supplier.id}
+        type="button"
+        className="suppliers-mobile-card"
+        onClick={() => setSelectedSupplier(supplier)}
+      >
+        <div className="suppliers-mobile-top">
+          <div>
+            <span>{t("suppliers.table.supplier")}</span>
+            <strong>{supplier.name}</strong>
+          </div>
+
+          <span
+            className={
+              supplier.isActive === false
+                ? "badge danger"
+                : "badge ok"
+            }
+          >
+            {supplier.isActive === false
+              ? t("suppliers.status.inactive")
+              : t("suppliers.status.active")}
+          </span>
+        </div>
+
+        <div className="suppliers-mobile-grid">
+          <div>
+            <span>{t("suppliers.table.rnc")}</span>
+            <strong>{supplier.rnc || "-"}</strong>
+          </div>
+
+          <div>
+            <span>{t("suppliers.table.phone")}</span>
+            <strong>{supplier.phone || "-"}</strong>
+          </div>
+        </div>
+
+        <div className="suppliers-mobile-footer">
+          <span>{supplier.email || "-"}</span>
+          <strong>{t("common.viewDetails", "Ver detalle")}</strong>
+        </div>
+      </button>
+    ))
+  ) : (
+    <div className="suppliers-mobile-empty">
+      {t("suppliers.messages.empty")}
+    </div>
+  )}
+</div>
+
+{selectedSupplier && (
+  <div
+    className="quote-detail-overlay"
+    onClick={() => setSelectedSupplier(null)}
+  >
+    <div
+      className="quote-detail-modal"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <div className="quote-detail-header">
+        <div>
+          <span>{t("suppliers.table.supplier")}</span>
+          <h3>{selectedSupplier.name}</h3>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setSelectedSupplier(null)}
+        >
+          <X size={20} />
+        </button>
+      </div>
+
+      <div className="quote-detail-status">
+        <span
+          className={
+            selectedSupplier.isActive === false
+              ? "badge danger"
+              : "badge ok"
+          }
+        >
+          {selectedSupplier.isActive === false
+            ? t("suppliers.status.inactive")
+            : t("suppliers.status.active")}
+        </span>
+      </div>
+
+      <div className="quote-detail-list">
+        <div>
+          <span>{t("suppliers.table.rnc")}</span>
+          <strong>{selectedSupplier.rnc || "-"}</strong>
+        </div>
+
+        <div>
+          <span>{t("suppliers.table.phone")}</span>
+          <strong>{selectedSupplier.phone || "-"}</strong>
+        </div>
+
+        <div>
+          <span>{t("suppliers.table.email")}</span>
+          <strong>{selectedSupplier.email || "-"}</strong>
+        </div>
+
+        <div>
+          <span>{t("suppliers.fields.address")}</span>
+          <strong>{selectedSupplier.address || "-"}</strong>
+        </div>
+
+        <div>
+          <span>{t("suppliers.fields.notes")}</span>
+          <strong>{selectedSupplier.notes || "-"}</strong>
+        </div>
+      </div>
+
+      <div className="quote-detail-actions">
+        <button
+          onClick={() => {
+            setSelectedSupplier(null);
+            openEditModal(selectedSupplier);
+          }}
+        >
+          <Pencil size={16} />
+          {t("suppliers.actions.edit")}
+        </button>
+
+        <button
+          onClick={() => {
+            toggleSupplier(selectedSupplier);
+            setSelectedSupplier(null);
+          }}
+        >
+          {selectedSupplier.isActive ? (
+            <Ban size={16} />
+          ) : (
+            <CheckCircle size={16} />
+          )}
+
+          {selectedSupplier.isActive
+            ? t("suppliers.actions.disable")
+            : t("suppliers.actions.reactivate")}
+        </button>
+
+        <button
+          className="danger-btn"
+          onClick={() => {
+            deleteSupplier(selectedSupplier);
+            setSelectedSupplier(null);
+          }}
+        >
+          <Trash2 size={16} />
+          {t("suppliers.actions.deleteForever")}
+        </button>
+      </div>
+    </div>
+  </div>
+)}
       </section>
 
       {modalOpen && (

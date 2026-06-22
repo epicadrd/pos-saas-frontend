@@ -273,7 +273,7 @@ export default function PosSales() {
             <p>{t("pos.salesPage.messages.empty")}</p>
           </div>
         ) : (
-          <div className="pos-table-wrap">
+          <div className="pos-table-wrap pos-sales-desktop-list">
             <table className="pos-sales-table">
               <thead>
                 <tr>
@@ -328,6 +328,57 @@ export default function PosSales() {
             </table>
           </div>
         )}
+              <div className="pos-sales-mobile-list">
+  {!loading &&
+    sales.map((sale) => (
+      <button
+        type="button"
+        key={sale.id}
+        className="pos-sale-mobile-card"
+        onClick={() => openDetail(sale.id)}
+        disabled={detailLoading}
+      >
+        <div className="pos-sale-mobile-top">
+          <div>
+            <span>{t("pos.salesPage.table.sale")}</span>
+            <strong>{sale.saleNumber}</strong>
+          </div>
+
+          <strong>{money.format(Number(sale.total || 0))}</strong>
+        </div>
+
+        <div className="pos-sale-mobile-grid">
+          <div>
+            <span>{t("pos.salesPage.table.cashRegister")}</span>
+            <strong>{sale.cashRegister?.name || "-"}</strong>
+          </div>
+
+          <div>
+            <span>{t("pos.salesPage.table.method")}</span>
+            <strong>
+              {paymentLabels[sale.paymentMethod] || sale.paymentMethod}
+            </strong>
+          </div>
+        </div>
+
+        <div className="pos-sale-mobile-footer">
+          <span>{formatDate(sale.createdAt)}</span>
+
+          <button
+            type="button"
+            className="pos-sale-ticket-btn"
+            onClick={(event) => {
+              event.stopPropagation();
+              openReceipt(sale.id);
+            }}
+          >
+            <Receipt size={16} />
+            {t("pos.salesPage.table.reprintTicket")}
+          </button>
+        </div>
+      </button>
+    ))}
+</div>
       </section>
 
       {selectedSale && (

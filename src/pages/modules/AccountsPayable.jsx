@@ -284,7 +284,7 @@ export default function AccountsPayable() {
         ) : purchaseOrders.length === 0 ? (
           <div className="ap-empty">{t("accountsPayable.messages.empty")}</div>
         ) : (
-          <div className="ap-table-wrap">
+          <div className="ap-table-wrap ap-desktop-list">
             <table className="ap-table">
               <thead>
                 <tr>
@@ -393,6 +393,66 @@ export default function AccountsPayable() {
             </table>
           </div>
         )}
+
+        <div className="ap-mobile-list">
+  {!loading &&
+    purchaseOrders.map((order) => (
+      <button
+        type="button"
+        key={order.id}
+        className={`ap-mobile-card ${order.isOverdue ? "is-overdue" : ""}`}
+        onClick={() => setSelectedPayment(order)}
+      >
+        <div className="ap-mobile-top">
+          <div>
+            <span>{t("accountsPayable.table.order")}</span>
+            <strong>{order.orderNumber}</strong>
+          </div>
+
+          <span className={`ap-status ${order.status}`}>
+            {statusLabels[order.status] || order.status}
+          </span>
+        </div>
+
+        <div className="ap-mobile-supplier">
+          <span>{t("accountsPayable.table.supplier")}</span>
+          <strong>
+            {order.supplier?.name || order.supplierName || "—"}
+          </strong>
+        </div>
+
+        <div className="ap-mobile-money-grid">
+          <div>
+            <span>{t("accountsPayable.table.total")}</span>
+            <strong>{formatMoney(order.total)}</strong>
+          </div>
+
+          <div>
+            <span>{t("accountsPayable.table.balance")}</span>
+            <strong>{formatMoney(order.payableBalance)}</strong>
+          </div>
+        </div>
+
+        {order.isOverdue && (
+          <div className="ap-mobile-overdue">
+            {t("accountsPayable.table.daysOverdue", "", {
+              days: order.daysOverdue,
+            })}
+          </div>
+        )}
+
+        <div className="ap-mobile-footer">
+          <span>
+            {order.dueDate
+              ? new Date(order.dueDate).toLocaleDateString(locale)
+              : "—"}
+          </span>
+
+          <strong>Ver detalle</strong>
+        </div>
+      </button>
+    ))}
+</div>
       </section>
 
       <section className="ap-grid-two">

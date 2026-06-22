@@ -44,11 +44,14 @@
 }
 
 .sidebar-nav {
+  flex: 1;
+  min-height: 0;
   padding: 10px 16px;
   display: flex;
   flex-direction: column;
   gap: 10px;
   overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .sidebar-nav::-webkit-scrollbar {
@@ -127,6 +130,11 @@
   color: #fecaca;
   font-weight: 800;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  white-space: nowrap;
 }
 
 .saas-main {

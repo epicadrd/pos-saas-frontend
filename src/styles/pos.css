@@ -1506,3 +1506,85 @@
     margin-top: 18px;
   }
 }
+
+.pos-sales-mobile-list {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .pos-sales-desktop-list {
+    display: none !important;
+  }
+
+  .pos-sales-mobile-list {
+    display: grid;
+    gap: 14px;
+  }
+
+  .pos-sale-mobile-card {
+    display: block !important;
+    width: 100%;
+    border: 1px solid #e2e8f0;
+    border-radius: 22px;
+    padding: 16px;
+    background: #fff !important;
+    color: #0f172a !important;
+    text-align: left;
+    box-shadow: 0 14px 34px rgba(15, 23, 42, 0.08);
+  }
+
+  .pos-sale-mobile-card * {
+    box-sizing: border-box;
+  }
+
+  .pos-sale-mobile-top,
+  .pos-sale-mobile-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .pos-sale-mobile-card span {
+    display: block;
+    font-size: 10px;
+    text-transform: uppercase;
+    font-weight: 900;
+    color: #94a3b8 !important;
+  }
+
+  .pos-sale-mobile-card strong {
+    color: #0f172a !important;
+  }
+
+  .pos-sale-mobile-grid {
+    margin-top: 14px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .pos-sale-mobile-grid div {
+    background: #f8fafc;
+    border-radius: 14px;
+    padding: 12px;
+  }
+
+  .pos-sale-mobile-footer {
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid #e2e8f0;
+  }
+
+  .pos-sale-ticket-btn {
+    border: 0;
+    border-radius: 14px;
+    padding: 10px 12px;
+    background: #eef2ff;
+    color: #2563eb;
+    font-weight: 900;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+}

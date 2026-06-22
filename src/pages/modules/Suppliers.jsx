@@ -55,6 +55,7 @@ export default function Suppliers() {
   const [statusFilter, setStatusFilter] = useState("active");
   const [selectedSupplier, setSelectedSupplier] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
   const loadSuppliers = async () => {
     try {

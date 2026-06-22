@@ -333,8 +333,12 @@
 }
 
 .table-actions button svg {
+  width: 18px !important;
+  height: 18px !important;
+  min-width: 18px !important;
   display: block;
   margin: 0;
+  flex-shrink: 0;
 }
 
 .product-icon,

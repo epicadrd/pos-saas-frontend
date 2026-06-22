@@ -563,3 +563,32 @@
   height: 20px !important;
   display: block !important;
 }
+
+.table-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.table-actions button {
+  width: 38px;
+  height: 38px;
+  border: none;
+  border-radius: 13px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.table-actions button svg {
+  width: 18px;
+  height: 18px;
+  display: block;
+}
+
+.table-actions .danger-btn {
+  background: #fee2e2;
+  color: #991b1b;
+}

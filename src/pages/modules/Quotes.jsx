@@ -771,8 +771,12 @@ export default function Quotes() {
                   )}
 
                   {status !== "converted" && (
-                    <button className="danger-btn" title={t("quotes.actions.delete")} onClick={() => handleDeleteQuote(quote)}>
-                      <Trash2 size={16} />
+                    <button
+                      className="danger-btn quote-delete-btn"
+                      title={t("quotes.actions.delete")}
+                      onClick={() => handleDeleteQuote(quote)}
+                    >
+                      <Trash2 size={19} strokeWidth={2.2} />
                     </button>
                   )}
                 </div>

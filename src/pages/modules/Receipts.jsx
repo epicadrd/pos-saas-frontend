@@ -477,7 +477,7 @@ export default function Receipts() {
                   className="danger-btn"
                   onClick={() => handleDelete(receipt)}
                 >
-                  <Trash2 size={17} />
+                  <Trash2 size={18}/>
                 </button>
               </div>
             </td>

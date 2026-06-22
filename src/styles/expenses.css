@@ -141,6 +141,7 @@
 
 .expenses-table {
   width: 100%;
+  min-width: 980px;
   border-collapse: collapse;
 }
 
@@ -192,12 +193,34 @@
 
 .expense-row-actions {
   display: flex;
+  align-items: center;
+  justify-content: flex-end;
   gap: 8px;
+  white-space: nowrap;
+  min-width: 132px;
 }
 
 .expense-row-actions button {
-  padding: 8px;
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
+  padding: 0;
+  border: 0;
   border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  flex: 0 0 34px;
+}
+
+.expense-row-actions button svg {
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
+  max-width: none;
+  display: block;
+  flex-shrink: 0;
 }
 
 .expenses-empty {

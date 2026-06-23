@@ -6,17 +6,18 @@ import { useAuth } from "../../context/AuthContext";
 
 export default function InvoicePreferences() {
   const navigate = useNavigate();
-  const { tenant, setTenant } = useAuth();
 
-  const [form, setForm] = useState({
-    invoiceTaxEnabled: true,
-    invoiceTaxMode: "global",
-    invoiceTaxRate: 18,
-    country: "DO",
-    usStateTaxRate: 0,
-    usCountyTaxRate: 0,
-    usCityTaxRate: 0,
-  });
+  const { tenant, setTenant } = useAuth();
+const [form, setForm] = useState({
+  invoiceTaxEnabled: true,
+  invoiceTaxMode: "global",
+  invoiceTaxRate: 18,
+  country: "DO",
+  electronicInvoicingEnabled: true,
+  usStateTaxRate: 0,
+  usCountyTaxRate: 0,
+  usCityTaxRate: 0,
+});
 
   useEffect(() => {
     if (tenant) {
@@ -25,6 +26,7 @@ export default function InvoicePreferences() {
         invoiceTaxMode: tenant.invoiceTaxMode || "global",
         invoiceTaxRate: tenant.invoiceTaxRate ?? 18,
         country: tenant.country || "DO",
+        electronicInvoicingEnabled: tenant.electronicInvoicingEnabled !== false,
         usStateTaxRate: tenant.usStateTaxRate ?? 0,
         usCountyTaxRate: tenant.usCountyTaxRate ?? 0,
         usCityTaxRate: tenant.usCityTaxRate ?? 0,
@@ -45,6 +47,7 @@ export default function InvoicePreferences() {
         invoiceTaxMode: form.invoiceTaxMode,
         invoiceTaxRate: Number(form.invoiceTaxRate || 0),
         country: form.country,
+        electronicInvoicingEnabled: form.electronicInvoicingEnabled,
         usStateTaxRate: Number(form.usStateTaxRate || 0),
         usCountyTaxRate: Number(form.usCountyTaxRate || 0),
         usCityTaxRate: Number(form.usCityTaxRate || 0),
@@ -86,6 +89,54 @@ export default function InvoicePreferences() {
       </div>
 
       <div className="qb-table-card qb-preferences-card">
+  <div className="qb-preferences-title">
+    <Percent size={22} />
+    <div>
+      <h3>Facturación electrónica</h3>
+      <p>
+        Activa o desactiva la emisión automática de e-CF para empresas de República Dominicana.
+      </p>
+    </div>
+  </div>
+
+  <div className="qb-preference-switch-row">
+    <div>
+      <strong>Habilitar facturación electrónica e-CF</strong>
+      <small>Cuando esté apagado, Corex generará facturas normales sin enviar a DGII.</small>
+    </div>
+
+    <label className="qb-image-switch">
+      <input
+        type="checkbox"
+        checked={form.electronicInvoicingEnabled}
+        onChange={(e) =>
+          setForm({
+            ...form,
+            electronicInvoicingEnabled: e.target.checked,
+          })
+        }
+        disabled={form.country !== "DO"}
+      />
+      <span>
+        <b></b>
+      </span>
+    </label>
+  </div>
+
+  {form.country !== "DO" && (
+    <div className="qb-preference-note">
+      <strong>Nota:</strong> la facturación electrónica e-CF solo aplica para República Dominicana.
+    </div>
+  )}
+
+  {form.country === "DO" && !form.electronicInvoicingEnabled && (
+    <div className="qb-preference-note">
+      <strong>Importante:</strong> si está desactivada, Corex generará facturas normales sin enviar e-CF.
+    </div>
+  )}
+</div>
+
+      <div className="qb-table-card qb-preferences-card">
         <div className="qb-preferences-title">
           <Percent size={22} />
           <div>
@@ -97,16 +148,25 @@ export default function InvoicePreferences() {
           </div>
         </div>
 
-        <label className="qb-preference-switch">
-          <input
-            type="checkbox"
-            checked={form.invoiceTaxEnabled}
-            onChange={(e) =>
-              setForm({ ...form, invoiceTaxEnabled: e.target.checked })
-            }
-          />
-          Aplicar impuestos en documentos
-        </label>
+        <div className="qb-preference-switch-row">
+          <div>
+            <strong>Aplicar impuestos en documentos</strong>
+            <small>Activa o desactiva el cálculo de ITBIS / taxes.</small>
+          </div>
+
+          <label className="qb-image-switch">
+            <input
+              type="checkbox"
+              checked={form.invoiceTaxEnabled}
+              onChange={(e) =>
+                setForm({ ...form, invoiceTaxEnabled: e.target.checked })
+              }
+            />
+            <span>
+              <b></b>
+            </span>
+          </label>
+        </div>
 
         <div className="qb-form-grid">
           <label>

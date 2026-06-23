@@ -36,6 +36,7 @@ const emptyForm = {
   customerPhone: "",
   customerEmail: "",
   invoiceType: "consumer_final",
+  electronicInvoicingEnabled: true,
   status: "draft",
   amountPaid: "",
   terms: "payment_30_days",
@@ -101,6 +102,14 @@ export default function Invoices() {
   });
 
 const isDO = isDominicanTenant(tenant);
+
+const electronicInvoicingActive =
+  isDO && form.electronicInvoicingEnabled !== false;
+
+const shouldPrintElectronicInvoice = (invoice = {}) =>
+  isDO &&
+  invoice?.electronicInvoicingEnabled !== false &&
+  Boolean(invoice?.eNcf || invoice?.dgiiQrUrl || invoice?.electronicInvoiceStatus);
 
 const money = new Intl.NumberFormat(isDO ? "es-DO" : "en-US", {
   style: "currency",
@@ -260,6 +269,20 @@ const getTaxAmount = (rate, base = totals.subtotal) => {
     }
   }, [tenant]);
 
+  const resetInvoiceForm = () => {
+  setForm({
+    ...emptyForm,
+    electronicInvoicingEnabled: tenant?.electronicInvoicingEnabled !== false,
+  });
+
+  setItems([]);
+  setEditingInvoiceId(null);
+  setEditingInvoiceNumber(null);
+  setActiveTab("edit");
+  setActionsOpen(false);
+  setAdminMenuOpen(false);
+};
+
   useEffect(() => {
   const handleClickOutside = (event) => {
     if (
@@ -290,15 +313,48 @@ const getTaxAmount = (rate, base = totals.subtotal) => {
   };
 }, []);
 
-  const resetInvoiceForm = () => {
-    setForm(emptyForm);
-    setItems([]);
-    setEditingInvoiceId(null);
-    setEditingInvoiceNumber(null);
-    setActiveTab("edit");
-    setActionsOpen(false);
-    setAdminMenuOpen(false);
-  };
+  const toggleElectronicInvoicingPreference = async () => {
+  const nextValue = form.electronicInvoicingEnabled === false;
+
+  setForm((prev) => ({
+    ...prev,
+    electronicInvoicingEnabled: nextValue,
+  }));
+
+  try {
+    const { data } = await api.patch("/auth/tenant", {
+      businessName: tenant?.businessName || "",
+      email: tenant?.email || "",
+      address: tenant?.address || "",
+      rnc: tenant?.rnc || "",
+      phone: tenant?.phone || "",
+      primaryColor: tenant?.primaryColor || "#6d4aff",
+      invoicePrefix: tenant?.invoicePrefix || "FAC",
+      invoiceTaxEnabled: tenant?.invoiceTaxEnabled !== false,
+      invoiceTaxMode: tenant?.invoiceTaxMode || "global",
+      invoiceTaxRate: Number(tenant?.invoiceTaxRate ?? 18),
+      country: tenant?.country || "DO",
+      electronicInvoicingEnabled: nextValue,
+      usStateTaxRate: Number(tenant?.usStateTaxRate || 0),
+      usCountyTaxRate: Number(tenant?.usCountyTaxRate || 0),
+      usCityTaxRate: Number(tenant?.usCityTaxRate || 0),
+      invoiceNextNumber: tenant?.invoiceNextNumber || 1,
+      invoiceDigits: tenant?.invoiceDigits || 6,
+    });
+
+    setTenant(data.tenant);
+  } catch (error) {
+    setForm((prev) => ({
+      ...prev,
+      electronicInvoicingEnabled: !nextValue,
+    }));
+
+    alert(
+      error.response?.data?.message ||
+        "No se pudo guardar la preferencia de facturación electrónica"
+    );
+  }
+};
 
   const addLine = () => {
     setItems([
@@ -414,7 +470,7 @@ const getTaxAmount = (rate, base = totals.subtotal) => {
       return;
     }
 
-    if (isDO && form.invoiceType === "credit_fiscal" && !form.customerRnc.trim()) {
+    if (electronicInvoicingActive && form.invoiceType === "credit_fiscal" && !form.customerRnc.trim()) {
       alert(t("invoices.messages.creditFiscalRncRequired"));
       return;
     }
@@ -455,6 +511,7 @@ const getTaxAmount = (rate, base = totals.subtotal) => {
           customerPhone: form.customerPhone,
           customerEmail: form.customerEmail,
           invoiceType: form.invoiceType,
+          electronicInvoicingEnabled: form.electronicInvoicingEnabled !== false,
           invoiceDate: form.invoiceDate || null,
           dueDate: form.dueDate || null,
           terms: form.terms,
@@ -468,6 +525,7 @@ const getTaxAmount = (rate, base = totals.subtotal) => {
           customerPhone: form.customerPhone,
           customerEmail: form.customerEmail,
           invoiceType: form.invoiceType,
+          electronicInvoicingEnabled: form.electronicInvoicingEnabled !== false,
           invoiceDate: form.invoiceDate || null,
           dueDate: form.dueDate || null,
           terms: form.terms,
@@ -481,6 +539,7 @@ const getTaxAmount = (rate, base = totals.subtotal) => {
         if (status !== "draft") {
           const invoiceWithItems = {
             ...data.invoice,
+            electronicInvoicingEnabled: electronicInvoicingActive,
             items: cleanItems.map((item) => {
               const product = products.find(
                 (p) => String(p.id) === String(item.productId)
@@ -494,12 +553,15 @@ const getTaxAmount = (rate, base = totals.subtotal) => {
             }),
           };
 
-          if (isDO) {
+          if (electronicInvoicingActive) {
             const fiscalInvoice = await emitElectronicInvoice(invoiceWithItems);
             handlePrintInvoice(fiscalInvoice);
-            } else {
-            handlePrintInvoice(invoiceWithItems);
-            }
+          } else {
+            handlePrintInvoice({
+              ...invoiceWithItems,
+              electronicInvoicingEnabled: false,
+            });
+          }
 
         }
       }
@@ -546,6 +608,7 @@ const getTaxAmount = (rate, base = totals.subtotal) => {
       customerPhone: invoice.customerPhone || "",
       customerEmail: invoice.customerEmail || "",
       invoiceType: invoice.invoiceType || "consumer_final",
+      electronicInvoicingEnabled: invoice.electronicInvoicingEnabled !== false,
       amountPaid: invoice.amountPaid || "",
       invoiceDate: invoice.invoiceDate || new Date().toISOString().slice(0, 10),
       dueDate: invoice.dueDate || "",
@@ -645,6 +708,13 @@ const buildInvoiceQrValue = (invoice) => {
 };
 
 const emitElectronicInvoice = async (invoice) => {
+  if (!electronicInvoicingActive) {
+    return {
+      ...invoice,
+      electronicInvoicingEnabled: false,
+    };
+  }
+
   if (!isDO) {
     return invoice;
   }
@@ -714,10 +784,13 @@ const printHtml = (html) => {
 
   const handlePrintInvoice = async (invoice) => {
     const invoiceItems = invoice.items || [];
-    const qrDataUrl = await QRCode.toDataURL(buildInvoiceQrValue(invoice), {
-      width: 150,
-      margin: 1,
-  });
+    const invoiceElectronic = shouldPrintElectronicInvoice(invoice);
+    const qrDataUrl = invoiceElectronic
+      ? await QRCode.toDataURL(buildInvoiceQrValue(invoice), {
+          width: 150,
+          margin: 1,
+        })
+      : "";
 
     const html = `
       <html>
@@ -748,10 +821,10 @@ const printHtml = (html) => {
                   ? `<img src="${invoiceLogo}" style="max-width:120px; max-height:80px; object-fit:contain; margin-bottom:12px;" />`
                   : ""
               }
-              <h1>${isDO ? getFiscalInvoiceTitle(invoice.invoiceType) : t("invoices.preview.invoiceTitle")}</h1>
+              <h1>${invoiceElectronic ? getFiscalInvoiceTitle(invoice.invoiceType) : t("invoices.preview.invoiceTitle")}</h1>
 
                 ${
-                  isDO
+                  invoiceElectronic
                     ? `<p><strong>e-NCF:</strong> ${getFiscalInvoiceNumber(invoice)}</p>`
                     : ""
                 }
@@ -843,7 +916,7 @@ const printHtml = (html) => {
           </div>
 
           ${
-            isDO
+            invoiceElectronic
               ? `
                 <div class="qr-section">
                   <img src="${qrDataUrl}" alt="${t("invoices.print.qrAlt")}" />
@@ -860,13 +933,16 @@ const printHtml = (html) => {
 };
 
 const handlePrintDraft = async () => {
-  const qrDataUrl = await QRCode.toDataURL(
-    `${window.location.origin}/public/invoice/${invoiceNumberPreview}`,
-    {
-      width: 150,
-      margin: 1,
-    }
-  );  
+  const draftElectronic = electronicInvoicingActive;
+  const qrDataUrl = draftElectronic
+    ? await QRCode.toDataURL(
+        `${window.location.origin}/public/invoice/${invoiceNumberPreview}`,
+        {
+          width: 150,
+          margin: 1,
+        }
+      )
+    : "";  
  
     const html = `
       <html>
@@ -897,12 +973,12 @@ const handlePrintDraft = async () => {
         ? `<img src="${invoiceLogo}" style="max-width:120px; max-height:80px; object-fit:contain; margin-bottom:12px;" />`
         : ""
     }
-    <h1>${getInvoiceTypeLabel(form.invoiceType)}</h1>
+    <h1>${draftElectronic ? getInvoiceTypeLabel(form.invoiceType) : t("invoices.preview.invoiceTitle")}</h1>
 
     ${
-      isDO
+      draftElectronic
         ? `<p>${invoiceNumberPreview}</p>`
-        : `<p>Invoice # ${invoiceNumberPreview}</p>`
+        : `<p>${t("invoices.common.invoice")} # ${invoiceNumberPreview}</p>`
     }
   </div>
 
@@ -995,7 +1071,7 @@ const handlePrintDraft = async () => {
           </div>
 
           ${
-            isDO
+            draftElectronic
               ? `
                 <div class="qr-section">
                   <img src="${qrDataUrl}" alt="${t("invoices.print.qrAlt")}" />
@@ -1771,23 +1847,90 @@ const handlePrintDraft = async () => {
 
             <section className="qb-client-zone">
               <div className="qb-client-left">
-                <select
-                  className="qb-client-select"
-                  onChange={(e) => selectCustomer(e.target.value)}
-                  defaultValue=""
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "12px",
+                    flexWrap: "wrap",
+                    marginBottom: "14px",
+                  }}
                 >
-                  <option value="" disabled>
-                    {t("invoices.customer.addOrSelect")}
-                  </option>
-
-                  <option value="new">{t("invoices.customer.addNew")}</option>
-
-                  {customers.map((customer) => (
-                    <option key={customer.id} value={customer.id}>
-                      {customer.name}
+                  <select
+                    className="qb-client-select"
+                    onChange={(e) => selectCustomer(e.target.value)}
+                    defaultValue=""
+                  >
+                    <option value="" disabled>
+                      {t("invoices.customer.addOrSelect")}
                     </option>
-                  ))}
-                </select>
+
+                    <option value="new">{t("invoices.customer.addNew")}</option>
+
+                    {customers.map((customer) => (
+                      <option key={customer.id} value={customer.id}>
+                        {customer.name}
+                      </option>
+                    ))}
+                  </select>
+
+                  {isDO && (
+                    <button
+                      type="button"
+                      onClick={toggleElectronicInvoicingPreference}
+                      aria-pressed={form.electronicInvoicingEnabled !== false}
+                      title="Activar o desactivar e-CF y guardar la preferencia"
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "10px",
+                        height: "46px",
+                        alignSelf: "flex-start",
+                        padding: "0 12px",
+                        border: "1px solid #dbe3ef",
+                        borderRadius: "14px",
+                        background: "#ffffff",
+                        color: "#0f172a",
+                        fontSize: "12px",
+                        fontWeight: 900,
+                        cursor: "pointer",
+                      }}
+                    >
+                      <span>e-CF</span>
+
+                      <span
+                        style={{
+                          width: "42px",
+                          height: "22px",
+                          borderRadius: "999px",
+                          padding: "2px",
+                          background:
+                            form.electronicInvoicingEnabled !== false
+                              ? "var(--invoice-color, #00bfae)"
+                              : "#cbd5e1",
+                          transition: "0.2s ease",
+                          boxSizing: "border-box",
+                        }}
+                      >
+                        <span
+                          style={{
+                            display: "block",
+                            width: "18px",
+                            height: "18px",
+                            borderRadius: "999px",
+                            background: "#ffffff",
+                            boxShadow: "0 2px 6px rgba(15,23,42,0.18)",
+                            transform:
+                              form.electronicInvoicingEnabled !== false
+                                ? "translateX(20px)"
+                                : "translateX(0)",
+                            transition: "0.2s ease",
+                          }}
+                        />
+                      </span>
+                    </button>
+                  )}
+                </div>
 
                 <div className="qb-form-grid">
                   <label className="qb-customer-search-wrap" ref={customerSuggestionsRef}>
@@ -2624,12 +2767,17 @@ const handlePrintDraft = async () => {
                 <div className="qb-preview-header">
                   <div>
                     <h2 style={{ color: invoiceColor }}>
-                      {isDO ? getFiscalInvoiceTitle(form.invoiceType) : t("invoices.preview.invoiceTitle")}
+                      {electronicInvoicingActive
+                        ? getFiscalInvoiceTitle(form.invoiceType)
+                        : t("invoices.preview.invoiceTitle")}
                     </h2>
 
-                      {isDO && (
-                        <p><strong>{t("invoices.preview.eNcf")}:</strong> {t("invoices.preview.willGenerate")}</p>
-                      )}
+                      {electronicInvoicingActive && (
+                      <p>
+                        <strong>{t("invoices.preview.eNcf")}:</strong>{" "}
+                        {t("invoices.preview.willGenerate")}
+                      </p>
+                    )}
                   </div>
 
                   <div>
@@ -2742,7 +2890,13 @@ const handlePrintDraft = async () => {
                     onClick={() => saveInvoice("issued")}
                   >
                   {saving ? <Loader2 size={16} className="qb-spin" /> : <FileText size={16} />}
-                  {saving ? "Emitiendo factura..." : t("invoices.actions.yesIssueInvoice")}
+                  {saving
+                    ? electronicInvoicingActive
+                      ? "Emitiendo e-CF..."
+                      : "Generando factura..."
+                    : electronicInvoicingActive
+                    ? "Emitir e-CF"
+                    : "Generar factura"}
                 </button>
               </div>
             </div>
@@ -2756,13 +2910,15 @@ const handlePrintDraft = async () => {
               </div>
 
               <strong>
-                {isDO ? "Emitiendo factura..." : "Generando factura..."}
+                {electronicInvoicingActive
+                  ? "Emitiendo e-CF..."
+                  : "Generando factura..."}
               </strong>
 
               <p>
-                {isDO
-                  ? "Estamos generando la factura y enviando el e-CF."
-                  : "Estamos procesando la factura. Esto puede tardar unos segundos."}
+                {electronicInvoicingActive
+                  ? "Estamos generando la factura electrónica y enviándola a la DGII."
+                  : "Estamos generando la factura. Esto puede tardar unos segundos."}
               </p>
             </div>
           </div>

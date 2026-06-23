@@ -56,3 +56,101 @@
   padding: 14px 16px;
   color: #475569;
 }
+
+/* Modern switches for invoice preferences */
+.qb-preference-switch-row {
+  width: 100%;
+  margin-top: 18px;
+  padding: 14px 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 18px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.qb-preference-switch-row strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 950;
+  color: #0f172a;
+}
+
+.qb-preference-switch-row small {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  font-weight: 750;
+  color: #64748b;
+  line-height: 1.35;
+}
+
+@media (max-width: 700px) {
+  .qb-preference-switch-row {
+    align-items: flex-start;
+  }
+}
+
+/* Switch limpio y moderno SOLO para preferencias de factura */
+.qb-preference-switch-row .qb-image-switch {
+  width: 42px !important;
+  height: 22px !important;
+  position: relative;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.qb-preference-switch-row .qb-image-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+}
+
+.qb-preference-switch-row .qb-image-switch span {
+  position: absolute;
+  inset: 0;
+  cursor: pointer;
+  border-radius: 999px;
+  background: #e5e7eb !important;
+  border: 1px solid #d1d5db;
+  box-shadow: none !important;
+  transition: all 0.2s ease;
+}
+
+.qb-preference-switch-row .qb-image-switch span::before {
+  content: "" !important;
+  display: none !important;
+}
+
+.qb-preference-switch-row .qb-image-switch span b {
+  position: absolute;
+  width: 18px !important;
+  height: 18px !important;
+  left: 1px !important;
+  top: 1px !important;
+  border-radius: 999px;
+  background: #ffffff !important;
+  box-shadow: 0 2px 5px rgba(15, 23, 42, 0.18) !important;
+  transition: all 0.2s ease;
+}
+
+.qb-preference-switch-row .qb-image-switch input:checked + span {
+  background: var(--invoice-color, #00bfae) !important;
+  border-color: var(--invoice-color, #00bfae);
+}
+
+.qb-preference-switch-row .qb-image-switch input:checked + span b {
+  transform: translateX(20px) !important;
+}
+
+.qb-preference-switch-row .qb-image-switch input:disabled + span {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.qb-preference-switch-row .qb-image-switch input:disabled + span b {
+  cursor: not-allowed;
+}

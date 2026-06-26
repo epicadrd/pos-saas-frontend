@@ -103,6 +103,18 @@ export default function Invoices() {
 
 const isDO = isDominicanTenant(tenant);
 
+const tenantPlan = String(tenant?.plan || "").toLowerCase();
+
+const hasInventoryPlan = ["pyme", "empresarial", "pro", "enterprise"].includes(
+  tenantPlan
+);
+
+const isStarterPlan = ["emprendedor", "starter"].includes(tenantPlan);
+
+const isManualInvoiceItem = (item) =>
+  !item.productId &&
+  Boolean(String(item.productName || item.description || "").trim());
+
 const electronicInvoicingActive =
   isDO && form.electronicInvoicingEnabled !== false;
 
@@ -2088,16 +2100,17 @@ const handlePrintDraft = async () => {
             <section className="qb-items-card">
   <div className="qb-items-head">
     <h3>{t("invoices.items.title")}</h3>
-    <button
+      <button
+        type="button"
         onClick={addLine}
         style={{
           color: invoiceColor,
           borderColor: invoiceColor,
         }}
       >
-      <Plus size={16} />
-      {t("invoices.items.addLine")}
-    </button>
+        <Plus size={16} />
+        {t("invoices.items.addProductOrService")}
+      </button>
   </div>
 
   <div className="qb-items-table-wrapper">
@@ -2197,7 +2210,15 @@ const handlePrintDraft = async () => {
                           ? t("invoices.items.insufficientStock", { stock: product.stock })
                           : t("invoices.items.available", { stock: product.stock })}
                       </small>
-                    )}
+                      )}
+
+                      {isManualInvoiceItem(item) && (
+                        <small className="manual-invoice-item-note">
+                          {hasInventoryPlan
+                            ? t("invoices.items.manualNoInventory")
+                            : t("invoices.items.starterManualItem")}
+                        </small>
+                      )}
                   </td>
 
                 <td>
@@ -2372,6 +2393,12 @@ const handlePrintDraft = async () => {
                     : t("invoices.items.available", { stock: product.stock })}
                 </small>
               )}
+              {hasInventoryPlan && isManualInvoiceItem(item) && (
+                <small className="manual-invoice-item-note">
+                  {t("invoices.items.manualNoInventory")}
+                </small>
+              )}
+
 
               <label>
                 {t("invoices.items.description")}

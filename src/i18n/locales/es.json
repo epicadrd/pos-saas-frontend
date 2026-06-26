@@ -431,7 +431,8 @@
     "available": "Disponible: {{stock}}",
     "productNumber": "Producto #{{number}}",
     "discountShort": "Desc.",
-    "qtyShort": "Cant."
+    "qtyShort": "Cant.",
+    "manualNoInventory": "Línea manual: no afecta el inventario."
   },
   "messages": {
     "creditFiscalRncRequired": "Para emitir una factura de crédito fiscal debes agregar el RNC/Cédula del cliente.",

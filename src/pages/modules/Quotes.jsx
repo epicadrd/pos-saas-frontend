@@ -89,7 +89,27 @@ export default function Quotes() {
     }
   );
 
-  const todayString = new Date().toISOString().slice(0, 10);
+  const formatDateOnly = (value) => {
+  if (!value) return "";
+
+  const date = String(value).slice(0, 10);
+  const [year, month, day] = date.split("-");
+
+  if (!year || !month || !day) return date;
+
+  return `${day}/${month}/${year}`;
+};
+
+const getTodayDateOnly = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+};
+
+const todayString = getTodayDateOnly();
 
   const taxRate = getTaxRate(tenant);
   const taxLabel = getTaxLabel(tenant);
@@ -389,8 +409,8 @@ export default function Quotes() {
     number: quote.quoteNumber,
     total: money.format(Number(quote.total || 0)),
     validUntil: quote.validUntil
-      ? new Date(quote.validUntil).toLocaleDateString(locale)
-      : t("quotes.messages.availability"),
+  ? formatDateOnly(quote.validUntil)
+  : t("quotes.messages.availability"),
   });
 
   try {
@@ -477,7 +497,7 @@ export default function Quotes() {
           <strong>${t("quotes.print.date")}:</strong> ${new Date(quote.createdAt).toLocaleDateString(locale)}<br/>
           <strong>${t("quotes.print.validUntil")}:</strong> ${
             quote.validUntil
-              ? new Date(quote.validUntil).toLocaleDateString(locale)
+              ? formatDateOnly(quote.validUntil)
               : "-"
           }
         </div>
@@ -717,7 +737,7 @@ export default function Quotes() {
               <td>{new Date(quote.createdAt).toLocaleDateString(locale)}</td>
               <td>
                 {quote.validUntil
-                  ? new Date(quote.validUntil).toLocaleDateString(locale)
+                  ? formatDateOnly(quote.validUntil)
                   : "-"}
               </td>
               <td>{money.format(Number(quote.subtotal || 0))}</td>
@@ -835,7 +855,7 @@ export default function Quotes() {
             <span>
               {t("quotes.fields.validUntil")}{" "}
               {quote.validUntil
-                ? new Date(quote.validUntil).toLocaleDateString(locale)
+                ? formatDateOnly(quote.validUntil)
                 : "-"}
             </span>
             <strong>{t("quotes.actions.viewDetail")}</strong>
@@ -881,11 +901,11 @@ export default function Quotes() {
 
         <div>
           <span>{t("quotes.fields.validUntil")}</span>
-          <strong>
-            {selectedQuote.validUntil
-              ? new Date(selectedQuote.validUntil).toLocaleDateString(locale)
-              : "-"}
-          </strong>
+         <strong>
+          {selectedQuote.validUntil
+            ? formatDateOnly(selectedQuote.validUntil)
+            : "-"}
+        </strong>
         </div>
 
         <div>

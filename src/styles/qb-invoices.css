@@ -1822,3 +1822,15 @@ flex-shrink: 0;
     justify-content: space-between;
   }
 }
+
+.manual-invoice-item-note {
+  color: #64748b !important;
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: 10px;
+  padding: 7px 9px;
+  margin-top: 7px;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.35;
+}

@@ -422,7 +422,8 @@
     "available": "Available: {{stock}}",
     "productNumber": "Product #{{number}}",
     "discountShort": "Disc.",
-    "qtyShort": "Qty"
+    "qtyShort": "Qty",
+    "manualNoInventory": "Manual line: does not affect inventory."
   },
   "messages": {
     "creditFiscalRncRequired": "To issue a fiscal credit invoice, you must add the customer's Tax ID.",

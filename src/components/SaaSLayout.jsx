@@ -397,7 +397,7 @@ const hasVisibleItems = (items = []) => {
     }
   };
 
-  const API_URL = import.meta.env.VITE_API_URL || "https://api.corexrd.com/api";
+  const API_URL = import.meta.env.VITE_API_URL || "https://api.Aventrard.com/api";
 
  /*  useEffect(() => {
     loadNotifications();
@@ -500,11 +500,11 @@ const hasVisibleItems = (items = []) => {
         </button>
         <div className="sidebar-brand">
           <div className="sidebar-logo">
-            <BarChart3 size={24} />
+            <img src="/IconoAventra.png" alt="Aventra" />
           </div>
 
           <div>
-            <h2>Corex</h2>
+            <h2>Aventra</h2>
             <span>Business</span>
           </div>
         </div>

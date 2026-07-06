@@ -9,7 +9,7 @@ export const translations = {
     "Cuenta y configuración": "Account and settings",
     "Administra los datos generales, legales y fiscales de tu empresa.": "Manage your company’s general, legal, and tax information.",
     "Idioma del sistema": "System language",
-    "Selecciona el idioma en el que quieres usar Corex.": "Select the language you want to use Corex in.",
+    "Selecciona el idioma en el que quieres usar Aventra.": "Select the language you want to use Aventra in.",
     "Idioma": "Language",
     "Guardar idioma": "Save language",
     "Guardando...": "Saving...",

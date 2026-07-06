@@ -43,7 +43,7 @@ export default function ForgotPassword() {
           <div className="brand-icon">
             <BarChart3 size={26} />
           </div>
-          <span>Corex</span>
+          <span>Aventra</span>
         </div>
 
         <div className="auth-header">

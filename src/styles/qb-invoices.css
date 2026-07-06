@@ -752,6 +752,41 @@ flex-shrink: 0;
   color: #fff;
 }
 
+.qb-preview-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 32px;
+  margin-top: 24px;
+}
+
+.qb-preview-notes {
+  flex: 1;
+  min-height: 120px;
+}
+
+.qb-preview-notes hr {
+  border: none;
+  border-top: 1px solid #e5e7eb;
+  margin: 8px 0 12px;
+}
+
+.qb-preview-notes p {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  line-height: 1.6;
+}
+
+.qb-preview-footer {
+  overflow-x: hidden;
+}
+
+.qb-preview-notes {
+  min-width: 0;
+}
+
 .qb-preview-totals {
   width: 320px;
   max-width: 100%;
@@ -1834,3 +1869,4 @@ flex-shrink: 0;
   font-weight: 800;
   line-height: 1.35;
 }
+

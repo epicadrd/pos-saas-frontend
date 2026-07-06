@@ -9,7 +9,7 @@ i18n.use(initReactI18next).init({
     es: { translation: es },
     en: { translation: en },
   },
-  lng: localStorage.getItem("corex_language") || "es",
+  lng: localStorage.getItem("Aventra_language") || "es",
   fallbackLng: "es",
   interpolation: {
     escapeValue: false,

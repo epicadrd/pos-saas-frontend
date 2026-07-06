@@ -102,7 +102,7 @@ const [form, setForm] = useState({
   <div className="qb-preference-switch-row">
     <div>
       <strong>Habilitar facturación electrónica e-CF</strong>
-      <small>Cuando esté apagado, Corex generará facturas normales sin enviar a DGII.</small>
+      <small>Cuando esté apagado, Aventra generará facturas normales sin enviar a DGII.</small>
     </div>
 
     <label className="qb-image-switch">
@@ -131,7 +131,7 @@ const [form, setForm] = useState({
 
   {form.country === "DO" && !form.electronicInvoicingEnabled && (
     <div className="qb-preference-note">
-      <strong>Importante:</strong> si está desactivada, Corex generará facturas normales sin enviar e-CF.
+      <strong>Importante:</strong> si está desactivada, Aventra generará facturas normales sin enviar e-CF.
     </div>
   )}
 </div>
@@ -271,7 +271,7 @@ const [form, setForm] = useState({
         )}
 
         <div className="qb-preference-note">
-          <strong>Nota:</strong> estos valores serán usados por Corex para
+          <strong>Nota:</strong> estos valores serán usados por Aventra para
           calcular los impuestos según el país de la empresa.
         </div>
       </div>

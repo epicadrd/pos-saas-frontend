@@ -17,7 +17,7 @@ const plans = [
     popular: true,
     description: "Para negocios que necesitan inventario, catálogo y punto de venta.",
     features: [
-      "Todo lo del plan Emprendedor",
+      "Todo lo del plan Básico",
       "Inventario completo",
       "Catálogo digital",
       "1 punto de venta con hardware",

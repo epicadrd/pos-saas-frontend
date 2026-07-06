@@ -132,7 +132,7 @@
 
     "language": {
       "title": "Idioma del sistema",
-      "description": "Selecciona el idioma en el que quieres usar Corex.",
+      "description": "Selecciona el idioma en el que quieres usar Aventra.",
       "label": "Idioma",
       "help": "Tu elección queda guardada en tu usuario y se aplicará cuando vuelvas a entrar.",
       "save": "Guardar idioma",
@@ -192,7 +192,7 @@
 
     "languageSwitch": {
       "title": "Cambiando idioma...",
-      "description": "Preparando Corex para ti"
+      "description": "Preparando Aventra para ti"
     }
   },
 
@@ -991,7 +991,7 @@
   },
   "modal": {
     "title": "Nuevo conteo de inventario",
-    "description": "Corex tomará una foto del stock actual para compararlo con el conteo físico.",
+    "description": "Aventra tomará una foto del stock actual para compararlo con el conteo físico.",
     "countName": "Nombre del conteo",
     "countPlaceholder": "Ej: Conteo general junio 2026",
     "notes": "Notas",
@@ -1139,7 +1139,7 @@
   "scanQr": "Escanee para consultar este recibo",
   "qrAlt": "Código QR",
   "thanks": "Gracias por su compra",
-  "issuedBy": "Emitido por Corex",
+  "issuedBy": "Emitido por Aventra",
   "print": "Imprimir",
   "close": "Cerrar",
   "discountShort": "Desc.",
@@ -1330,7 +1330,7 @@
   "qrAlt": "QR del comprobante",
   "scanQr": "Escanee para consultar",
   "thanks": "Gracias por su compra",
-  "issuedBy": "Emitido desde Corex",
+  "issuedBy": "Emitido desde Aventra",
   "print": "Imprimir",
   "close": "Cerrar"
 },
@@ -1853,7 +1853,7 @@
   "recommendation": {
     "title": "Recomendación",
     "subtitle": "Uso práctico",
-    "text": "Este módulo se alimenta de órdenes de compra enviadas o recibidas. Más adelante podemos agregar pagos parciales a proveedores para que el balance por pagar sea exacto."
+    "text": "Utiliza este módulo para dar seguimiento a los compromisos pendientes con tus proveedores. Mantener las cuentas por pagar al día te ayuda a controlar el flujo de efectivo y evitar retrasos en los pagos."
   },
   "detail": {
     "title": "Detalle de cuenta por pagar",

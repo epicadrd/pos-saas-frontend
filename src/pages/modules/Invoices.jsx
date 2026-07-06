@@ -43,6 +43,7 @@ const emptyForm = {
   invoiceDate: new Date().toISOString().slice(0, 10),
   dueDate: "",
   notes: "",
+  applyRetentions: false,
 };
 
 export default function Invoices() {
@@ -196,37 +197,59 @@ const getTaxAmount = (rate, base = totals.subtotal) => {
   });
 
   const totals = useMemo(() => {
-    const subtotal = items.reduce((acc, item) => {
-      const lineSubtotal = Math.max(
-        Number(item.quantity || 0) * Number(item.price || 0) -
-          Number(item.discount || 0),
-        0
-      );
+  const subtotal = items.reduce((acc, item) => {
+    const lineSubtotal = Math.max(
+      Number(item.quantity || 0) * Number(item.price || 0) -
+        Number(item.discount || 0),
+      0
+    );
 
-      return acc + lineSubtotal;
-    }, 0);
+    return acc + lineSubtotal;
+  }, 0);
 
-    const tax = items.reduce((acc, item) => {
-      const lineSubtotal = Math.max(
-        Number(item.quantity || 0) * Number(item.price || 0) -
-          Number(item.discount || 0),
-        0
-      );
+  const tax = items.reduce((acc, item) => {
+    const lineSubtotal = Math.max(
+      Number(item.quantity || 0) * Number(item.price || 0) -
+        Number(item.discount || 0),
+      0
+    );
 
-      const isTaxable =
-        taxEnabled && (taxMode === "global" ? true : item.isTaxable !== false);
+    const isTaxable =
+      taxEnabled && (taxMode === "global" ? true : item.isTaxable !== false);
 
-      return acc + (isTaxable ? lineSubtotal * (taxRate / 100) : 0);
-    }, 0);
+    return acc + (isTaxable ? lineSubtotal * (taxRate / 100) : 0);
+  }, 0);
 
-    const total = Math.round((subtotal + tax + Number.EPSILON) * 100) / 100;
-    const paid = form.status === "paid" ? total : Number(form.amountPaid || 0);
-    const balance = total - paid;
+  const applyRetentions = form.applyRetentions === true;
+  const itbisRetention = applyRetentions ? tax : 0;
+  const isrRetention = applyRetentions ? subtotal * 0.15 : 0;
+  const totalRetentions = itbisRetention + isrRetention;
 
-    return {
-    subtotal: Math.round((subtotal + Number.EPSILON) * 100) / 100, tax: Math.round((tax + Number.EPSILON) * 100) / 100, total, paid, balance: Math.round((balance + Number.EPSILON) * 100) / 100,};
-    }, [items, form.amountPaid, form.status, taxEnabled, taxMode, taxRate]);
+  const total =
+    Math.round((subtotal + tax - totalRetentions + Number.EPSILON) * 100) / 100;
 
+  const paid = form.status === "paid" ? total : Number(form.amountPaid || 0);
+  const balance = total - paid;
+
+  return {
+    subtotal: Math.round((subtotal + Number.EPSILON) * 100) / 100,
+    tax: Math.round((tax + Number.EPSILON) * 100) / 100,
+    itbisRetention: Math.round((itbisRetention + Number.EPSILON) * 100) / 100,
+    isrRetention: Math.round((isrRetention + Number.EPSILON) * 100) / 100,
+    totalRetentions: Math.round((totalRetentions + Number.EPSILON) * 100) / 100,
+    total,
+    paid,
+    balance: Math.round((balance + Number.EPSILON) * 100) / 100,
+  };
+}, [
+  items,
+  form.amountPaid,
+  form.status,
+  form.applyRetentions,
+  taxEnabled,
+  taxMode,
+  taxRate,
+]);
   useEffect(() => {
   loadData();
 }, []);
@@ -524,6 +547,7 @@ const getTaxAmount = (rate, base = totals.subtotal) => {
           customerEmail: form.customerEmail,
           invoiceType: form.invoiceType,
           electronicInvoicingEnabled: form.electronicInvoicingEnabled !== false,
+          applyRetentions: form.applyRetentions === true,
           invoiceDate: form.invoiceDate || null,
           dueDate: form.dueDate || null,
           terms: form.terms,
@@ -538,6 +562,7 @@ const getTaxAmount = (rate, base = totals.subtotal) => {
           customerEmail: form.customerEmail,
           invoiceType: form.invoiceType,
           electronicInvoicingEnabled: form.electronicInvoicingEnabled !== false,
+          applyRetentions: form.applyRetentions === true,
           invoiceDate: form.invoiceDate || null,
           dueDate: form.dueDate || null,
           terms: form.terms,
@@ -626,6 +651,7 @@ const getTaxAmount = (rate, base = totals.subtotal) => {
       dueDate: invoice.dueDate || "",
       terms: invoice.terms || "payment_30_days",
       notes: invoice.notes || "",
+      applyRetentions: invoice.applyRetentions === true,
     });
 
     setItems(
@@ -809,15 +835,42 @@ const printHtml = (html) => {
         <head>
           <title>${getFiscalInvoiceNumber(invoice)}</title>
           <style>
-            body { font-family: Arial, sans-serif; padding: 40px; color: #111827; }
-            .header { display: flex; justify-content: space-between; border-bottom: 2px solid ${invoiceColor}; padding-bottom: 20px; margin-bottom: 30px; }
+            body { font-family: Arial, sans-serif; padding: 26px 40px; color: #111827; }
+            .header { display: flex; justify-content: space-between; border-bottom: 2px solid ${invoiceColor}; padding-bottom: 14px; margin-bottom: 18px; }
             h1 { margin: 0; color: ${invoiceColor}; }
-            table { width: 100%; border-collapse: collapse; margin-top: 25px; }
+            table { width: 100%; border-collapse: collapse; margin-top: 16px; }
             th, td { border-bottom: 1px solid #e5e7eb; padding: 12px; text-align: left; font-size: 14px; }
             th { background: #f8fafc; }
-            .box { background: #f8fafc; padding: 18px; border-radius: 12px; margin-bottom: 20px; }
-            .totals { margin-left: auto; width: 320px; margin-top: 25px; }
-            .totals div { display: flex; justify-content: space-between; padding: 8px 0; }
+            .box { background: #f8fafc; padding: 12px 16px; border-radius: 10px; margin-bottom: 14px; }
+            .invoice-footer {
+              display: flex;
+              justify-content: space-between;
+              align-items: flex-start;
+              gap: 28px;
+              margin-top: 14px;
+              break-inside: avoid;
+              page-break-inside: avoid;
+            }
+
+            .notes-box {
+              flex: 1;
+              min-width: 0;
+              max-width: 360px;
+              min-height: 0;
+              white-space: pre-wrap;
+              overflow-wrap: anywhere;
+              word-break: break-word;
+              font-size: 12px;
+              line-height: 1.35;
+            }
+
+            .totals {
+              width: 280px;
+              margin-top: 0;
+              margin-left: 0;
+              flex-shrink: 0;
+            }
+            .totals div { display: flex; justify-content: space-between; padding: 5px 0; }
             .total { font-size: 20px; font-weight: bold; border-top: 2px solid #111827; margin-top: 10px; padding-top: 12px; }
             .qr-section { margin-top: 35px; text-align: center; }
             .qr-section img { width: 130px; height: 130px; }
@@ -859,6 +912,7 @@ const printHtml = (html) => {
 
             <strong>${t("invoices.fields.invoiceDate")}:</strong> ${invoice.invoiceDate || "-"}<br/>
             <strong>${t("invoices.fields.dueDate")}:</strong> ${invoice.dueDate || "-"}
+             
           </div>
 
           <table>
@@ -910,22 +964,46 @@ const printHtml = (html) => {
             </tbody>
           </table>
 
-          <div class="totals">
-            <div><span>${t("invoices.fields.subtotal")}</span><strong>${money.format(Number(invoice.subtotal || 0))}</strong></div>
-            ${
-              isDO
-                ? `<div><span>${taxLabel} (${taxRate}%)</span><strong>${money.format(Number(invoice.tax || 0))}</strong></div>`
-                : `
-                  <div><span>State Tax (${usTaxBreakdown.stateRate}%)</span><strong>${money.format(getTaxAmount(usTaxBreakdown.stateRate, Number(invoice.subtotal || 0)))}</strong></div>
-                  <div><span>County Tax (${usTaxBreakdown.countyRate}%)</span><strong>${money.format(getTaxAmount(usTaxBreakdown.countyRate, Number(invoice.subtotal || 0)))}</strong></div>
-                  <div><span>City Tax (${usTaxBreakdown.cityRate}%)</span><strong>${money.format(getTaxAmount(usTaxBreakdown.cityRate, Number(invoice.subtotal || 0)))}</strong></div>
-                  <div><span>Total Taxes (${taxRate}%)</span><strong>${money.format(Number(invoice.tax || 0))}</strong></div>
-                `
-            }
-            <div class="total"><span>${t("invoices.fields.total")}</span><strong>${money.format(Number(invoice.total || 0))}</strong></div>
-            <div><span>${t("invoices.fields.paid")}</span><strong>${money.format(Number(invoice.amountPaid || 0))}</strong></div>
-            <div><span>${t("invoices.fields.balance")}</span><strong>${money.format(Number(invoice.balance || 0))}</strong></div>
-          </div>
+<div class="invoice-footer">
+
+  <div class="notes-box">
+    ${
+      invoice.notes
+        ? `<strong>Notas:</strong><br/><br/>${invoice.notes}`
+        : ""
+    }
+  </div>
+
+  <div class="totals">
+  <div><span>${t("invoices.fields.subtotal")}</span><strong>${money.format(Number(invoice.subtotal || 0))}</strong></div>
+
+  ${
+    isDO
+      ? `<div><span>${taxLabel} (${taxRate}%)</span><strong>${money.format(Number(invoice.tax || 0))}</strong></div>`
+      : `
+        <div><span>State Tax (${usTaxBreakdown.stateRate}%)</span><strong>${money.format(getTaxAmount(usTaxBreakdown.stateRate, Number(invoice.subtotal || 0)))}</strong></div>
+        <div><span>County Tax (${usTaxBreakdown.countyRate}%)</span><strong>${money.format(getTaxAmount(usTaxBreakdown.countyRate, Number(invoice.subtotal || 0)))}</strong></div>
+        <div><span>City Tax (${usTaxBreakdown.cityRate}%)</span><strong>${money.format(getTaxAmount(usTaxBreakdown.cityRate, Number(invoice.subtotal || 0)))}</strong></div>
+        <div><span>Total Taxes (${taxRate}%)</span><strong>${money.format(Number(invoice.tax || 0))}</strong></div>
+      `
+  }
+
+  ${
+    Number(invoice.totalRetentions || 0) > 0
+      ? `
+        <div><span>Retención ITBIS 100%</span><strong>- ${money.format(Number(invoice.itbisRetention || 0))}</strong></div>
+        <div><span>Retención ISR 15%</span><strong>- ${money.format(Number(invoice.isrRetention || 0))}</strong></div>
+        <div><span>Total retenciones</span><strong>- ${money.format(Number(invoice.totalRetentions || 0))}</strong></div>
+      `
+      : ""
+  }
+
+  <div class="total"><span>${t("invoices.fields.total")}</span><strong>${money.format(Number(invoice.total || 0))}</strong></div>
+  <div><span>${t("invoices.fields.paid")}</span><strong>${money.format(Number(invoice.amountPaid || 0))}</strong></div>
+  <div><span>${t("invoices.fields.balance")}</span><strong>${money.format(Number(invoice.balance || 0))}</strong></div>
+</div>
+</div>
+
 
           ${
             invoiceElectronic
@@ -961,16 +1039,52 @@ const handlePrintDraft = async () => {
         <head>
           <title>${t("invoices.common.invoice")} ${invoiceNumberPreview}</title>
           <style>
-            body { font-family: Arial, sans-serif; padding: 40px; color: #111827; }
-            .header { display: flex; justify-content: space-between; border-bottom: 2px solid ${invoiceColor}; padding-bottom: 20px; margin-bottom: 30px; }
+            body { font-family: Arial, sans-serif; padding: 26px 40px; color: #111827; }
+            .header { display: flex; justify-content: space-between; border-bottom: 2px solid ${invoiceColor}; padding-bottom: 14px; margin-bottom: 18px; }
             h1 { margin: 0; color: ${invoiceColor}; }
-            table { width: 100%; border-collapse: collapse; margin-top: 25px; }
+            table { width: 100%; border-collapse: collapse; margin-top: 16px; }
             th, td { border-bottom: 1px solid #e5e7eb; padding: 12px; text-align: left; font-size: 14px; }
             th { background: #f8fafc; }
-            .box { background: #f8fafc; padding: 18px; border-radius: 12px; margin-bottom: 20px; }
-            .totals { margin-left: auto; width: 320px; margin-top: 25px; }
-            .totals div { display: flex; justify-content: space-between; padding: 8px 0; }
-            .total { font-size: 20px; font-weight: bold; border-top: 2px solid #111827; margin-top: 10px; padding-top: 12px; }
+            .box {
+              background: #f8fafc;
+              padding: 12px 16px;
+              border-radius: 10px;
+              margin-bottom: 14px;
+            }
+            .invoice-footer {
+              display: flex;
+              justify-content: space-between;
+              align-items: flex-start;
+              gap: 28px;
+              margin-top: 14px;
+              break-inside: auto;
+              page-break-inside: auto;
+            }
+
+            .notes-box {
+              flex: 1;
+              min-width: 0;
+              max-width: 360px;
+              min-height: 0;
+              white-space: pre-wrap;
+              overflow-wrap: anywhere;
+              word-break: break-word;
+              font-size: 12px;
+              line-height: 1.35;
+            }
+
+            .totals {
+              width: 320px;
+              margin-top: 0;
+              margin-left: 0;
+              flex-shrink: 0;
+            }
+
+.totals div {
+  display: flex;
+  justify-content: space-between;
+  padding: 5px 0;
+}.total { font-size: 20px; font-weight: bold; border-top: 2px solid #111827; margin-top: 10px; padding-top: 12px; }
             .qr-section { margin-top: 35px; text-align: center; }
             .qr-section img { width: 130px; height: 130px; }
             .qr-section p { margin: 8px 0 0; font-size: 12px; color: #374151; }
@@ -1065,21 +1179,44 @@ const handlePrintDraft = async () => {
             </tbody>
           </table>
 
-          <div class="totals">
+          <div class="invoice-footer">
+
+            <div class="notes-box">
+              ${
+                form.notes
+                  ? `<strong>Notas:</strong><br/><br/>${form.notes}`
+                  : ""
+              }
+            </div>
+
+            <div class="totals">
             <div><span>${t("invoices.fields.subtotal")}</span><strong>${money.format(totals.subtotal)}</strong></div>
+
             ${
-  isDO
-    ? `<div><span>${taxLabel} (${taxRate}%)</span><strong>${money.format(totals.tax)}</strong></div>`
-    : `
-      <div><span>${t("invoices.print.stateTax")} (${usTaxBreakdown.stateRate}%)</span><strong>${money.format(getTaxAmount(usTaxBreakdown.stateRate))}</strong></div>
-      <div><span>${t("invoices.print.countyTax")} (${usTaxBreakdown.countyRate}%)</span><strong>${money.format(getTaxAmount(usTaxBreakdown.countyRate))}</strong></div>
-      <div><span>${t("invoices.print.cityTax")} (${usTaxBreakdown.cityRate}%)</span><strong>${money.format(getTaxAmount(usTaxBreakdown.cityRate))}</strong></div>
-      <div><span>${t("invoices.print.totalTaxes")} (${taxRate}%)</span><strong>${money.format(totals.tax)}</strong></div>
-    `
-}
+              isDO
+                ? `<div><span>${taxLabel} (${taxRate}%)</span><strong>${money.format(totals.tax)}</strong></div>`
+                : `
+                  <div><span>${t("invoices.print.stateTax")} (${usTaxBreakdown.stateRate}%)</span><strong>${money.format(getTaxAmount(usTaxBreakdown.stateRate))}</strong></div>
+                  <div><span>${t("invoices.print.countyTax")} (${usTaxBreakdown.countyRate}%)</span><strong>${money.format(getTaxAmount(usTaxBreakdown.countyRate))}</strong></div>
+                  <div><span>${t("invoices.print.cityTax")} (${usTaxBreakdown.cityRate}%)</span><strong>${money.format(getTaxAmount(usTaxBreakdown.cityRate))}</strong></div>
+                  <div><span>${t("invoices.print.totalTaxes")} (${taxRate}%)</span><strong>${money.format(totals.tax)}</strong></div>
+                `
+            }
+
+            ${
+              form.applyRetentions
+                ? `
+                  <div><span>Retención ITBIS 100%</span><strong>- ${money.format(totals.itbisRetention)}</strong></div>
+                  <div><span>Retención ISR 15%</span><strong>- ${money.format(totals.isrRetention)}</strong></div>
+                  <div><span>Total retenciones</span><strong>- ${money.format(totals.totalRetentions)}</strong></div>
+                `
+                : ""
+            }
+
             <div class="total"><span>${t("invoices.fields.total")}</span><strong>${money.format(totals.total)}</strong></div>
             <div><span>${t("invoices.fields.paid")}</span><strong>${money.format(totals.paid)}</strong></div>
             <div><span>${t("invoices.fields.balance")}</span><strong>${money.format(totals.balance)}</strong></div>
+          </div>
           </div>
 
           ${
@@ -1942,6 +2079,68 @@ const handlePrintDraft = async () => {
                       </span>
                     </button>
                   )}
+
+                  {isDO && (
+  <button
+    type="button"
+    onClick={() =>
+      setForm((prev) => ({
+        ...prev,
+        applyRetentions: !prev.applyRetentions,
+      }))
+    }
+    aria-pressed={form.applyRetentions === true}
+    title="Aplicar retención del 100% del ITBIS y 15% de ISR"
+    style={{
+      display: "inline-flex",
+      alignItems: "center",
+      gap: "10px",
+      height: "46px",
+      alignSelf: "flex-start",
+      padding: "0 12px",
+      border: "1px solid #dbe3ef",
+      borderRadius: "14px",
+      background: "#ffffff",
+      color: "#0f172a",
+      fontSize: "12px",
+      fontWeight: 900,
+      cursor: "pointer",
+    }}
+  >
+    <span>Retenciones</span>
+
+    <span
+      style={{
+        width: "42px",
+        height: "22px",
+        borderRadius: "999px",
+        padding: "2px",
+        background:
+          form.applyRetentions === true
+            ? "var(--invoice-color, #00bfae)"
+            : "#cbd5e1",
+        transition: "0.2s ease",
+        boxSizing: "border-box",
+      }}
+    >
+      <span
+        style={{
+          display: "block",
+          width: "18px",
+          height: "18px",
+          borderRadius: "999px",
+          background: "#ffffff",
+          boxShadow: "0 2px 6px rgba(15,23,42,0.18)",
+          transform:
+            form.applyRetentions === true
+              ? "translateX(20px)"
+              : "translateX(0)",
+          transition: "0.2s ease",
+        }}
+      />
+    </span>
+  </button>
+)}
                 </div>
 
                 <div className="qb-form-grid">
@@ -2212,13 +2411,7 @@ const handlePrintDraft = async () => {
                       </small>
                       )}
 
-                      {isManualInvoiceItem(item) && (
-                        <small className="manual-invoice-item-note">
-                          {hasInventoryPlan
-                            ? t("invoices.items.manualNoInventory")
-                            : t("invoices.items.starterManualItem")}
-                        </small>
-                      )}
+                     
                   </td>
 
                 <td>
@@ -2818,13 +3011,18 @@ const handlePrintDraft = async () => {
                   </div>
                 </div>
 
-                <div className="qb-preview-client">
+               <div className="qb-preview-client">
                   <strong>{t("invoices.fields.customer")}:</strong> {form.customerName || "-"} <br />
-                  {isDO && (<><strong>{t("invoices.preview.rncId")}:</strong> {form.customerRnc || "-"} <br /></>)}
+                  {isDO && (
+                    <>
+                      <strong>{t("invoices.preview.rncId")}:</strong> {form.customerRnc || "-"} <br />
+                    </>
+                  )}
                   <strong>{t("invoices.fields.phone")}:</strong> {form.customerPhone || "-"} <br />
                   <strong>{t("invoices.fields.emailShort")}:</strong> {form.customerEmail || "-"} <br />
                   <strong>{t("invoices.fields.date")}:</strong> {form.invoiceDate || "-"} <br />
                   <strong>{t("invoices.fields.due")}: </strong> {form.dueDate || "-"}
+
                 </div>
 
                 <table
@@ -2875,30 +3073,61 @@ const handlePrintDraft = async () => {
                   </tbody>
                 </table>
 
-                <div className="qb-preview-totals">
-                  <p>
-                    <span>{t("invoices.fields.subtotal")}</span>
-                    <strong>{money.format(totals.subtotal)}</strong>
-                  </p>
+           <div className="qb-preview-footer">
+  <div className="qb-preview-notes">
+    {form.notes?.trim() && (
+      <>
+        <strong>Notas</strong>
+        <hr />
+        <p>{form.notes}</p>
+      </>
+    )}
+  </div>
 
-                  <p>
-                    <span>{taxLabel} ({taxRate}%)</span>
-                    <strong>{money.format(totals.tax)}</strong>
-                  </p>
+  <div className="qb-preview-totals">
+    <p>
+      <span>{t("invoices.fields.subtotal")}</span>
+      <strong>{money.format(totals.subtotal)}</strong>
+    </p>
 
-                  <p className="big">
-                    <span>{t("invoices.fields.total")}</span>
-                    <strong>{money.format(totals.total)}</strong>
-                  </p>
+    <p>
+      <span>{taxLabel} ({taxRate}%)</span>
+      <strong>{money.format(totals.tax)}</strong>
+    </p>
 
-                  <p>
-                    <span>{t("invoices.fields.balance")}</span>
-                    <strong>{money.format(totals.balance)}</strong>
-                  </p>
-                </div>
-              </div>
+    {form.applyRetentions && (
+      <>
+        <p>
+          <span>Retención ITBIS 100%</span>
+          <strong>- {money.format(totals.itbisRetention)}</strong>
+        </p>
 
-              <div className="qb-modal-actions">
+        <p>
+          <span>Retención ISR 15%</span>
+          <strong>- {money.format(totals.isrRetention)}</strong>
+        </p>
+
+        <p>
+          <span>Total retenciones</span>
+          <strong>- {money.format(totals.totalRetentions)}</strong>
+        </p>
+      </>
+    )}
+
+    <p className="big">
+      <span>{t("invoices.fields.total")}</span>
+      <strong>{money.format(totals.total)}</strong>
+    </p>
+
+    <p>
+      <span>{t("invoices.fields.balance")}</span>
+      <strong>{money.format(totals.balance)}</strong>
+    </p>
+  </div>
+</div>
+</div>
+
+            <div className="qb-modal-actions">
                 <button
                   className="qb-secondary-btn"
                   onClick={() => setPreviewModalOpen(false)}

@@ -129,7 +129,7 @@
     "loading": "Loading settings...",
     "language": {
       "title": "System language",
-      "description": "Select the language you want to use in Corex.",
+      "description": "Select the language you want to use in Aventra.",
       "label": "Language",
       "save": "Save language",
       "saving": "Saving...",
@@ -183,7 +183,7 @@
     },
     "languageSwitch": {
       "title": "Switching language...",
-      "description": "Preparing Corex for you"
+      "description": "Preparing Aventra for you"
     }
   },
 
@@ -979,7 +979,7 @@
   },
   "modal": {
     "title": "New inventory count",
-    "description": "Corex will take a snapshot of current stock to compare it with the physical count.",
+    "description": "Aventra will take a snapshot of current stock to compare it with the physical count.",
     "countName": "Count name",
     "countPlaceholder": "Example: June 2026 full count",
     "notes": "Notes",
@@ -1126,7 +1126,7 @@
   "scanQr": "Scan to view this receipt",
   "qrAlt": "QR Code",
   "thanks": "Thank you for your purchase",
-  "issuedBy": "Issued by Corex",
+  "issuedBy": "Issued by Aventra",
   "print": "Print",
   "close": "Close",
   "discountShort": "Disc.",
@@ -1317,7 +1317,7 @@
   "qrAlt": "Receipt QR",
   "scanQr": "Scan to view",
   "thanks": "Thank you for your purchase",
-  "issuedBy": "Issued by Corex",
+  "issuedBy": "Issued by Aventra",
   "print": "Print",
   "close": "Close"
 },
@@ -1840,7 +1840,7 @@
   "recommendation": {
     "title": "Recommendation",
     "subtitle": "Practical use",
-    "text": "This module is fed by sent or received purchase orders. Later we can add partial supplier payments so the payable balance is exact."
+    "text": "Use this module to keep track of outstanding balances with your suppliers. Staying up to date with accounts payable helps you maintain healthy cash flow and avoid late payments."
   },
   "detail": {
     "title": "Accounts payable detail",

@@ -139,7 +139,7 @@ export default function PosReceipt({ sale, onClose }) {
         <div className="receipt-print-area">
           <div className="receipt-ticket">
             <div className="receipt-center">
-              <h2>{tenant.businessName || "COREX POS"}</h2>
+              <h2>{tenant.businessName || "Aventra POS"}</h2>
 
               {isDO && tenant.rnc && <p>{t("pos.receipt.rnc")}: {tenant.rnc}</p>}
               {tenant.phone && <p>{t("pos.receipt.phone")}: {tenant.phone}</p>}

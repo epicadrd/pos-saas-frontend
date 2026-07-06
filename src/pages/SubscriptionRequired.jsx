@@ -19,7 +19,7 @@ export default function SubscriptionRequired() {
   const STATUS_MESSAGES = {
   inactive: {
     title: "Tu suscripción no está activa",
-    text: "Para continuar usando Corex, debes seleccionar o reactivar un plan.",
+    text: "Para continuar usando Aventra, debes seleccionar o reactivar un plan.",
   },
 
   canceled: {

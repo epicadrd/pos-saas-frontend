@@ -25,7 +25,7 @@ export function AuthProvider({ children }) {
   const [tenant, setTenant] = useState(null);
   const [loading, setLoading] = useState(true);
   const [language, setLanguage] = useState(() => {
-    return normalizeLanguage(localStorage.getItem("corex_language") || "es");
+    return normalizeLanguage(localStorage.getItem("Aventra_language") || "es");
   });
   const location = useLocation();
 
@@ -44,7 +44,7 @@ export function AuthProvider({ children }) {
       setTenant(data.tenant);
       const savedLanguage = normalizeLanguage(data.user?.preferredLanguage || "es");
       setLanguage(savedLanguage);
-      localStorage.setItem("corex_language", savedLanguage);
+      localStorage.setItem("Aventra_language", savedLanguage);
     } catch (error) {
       clearSession();
     } finally {
@@ -60,7 +60,7 @@ export function AuthProvider({ children }) {
     setTenant(data.tenant);
     const savedLanguage = normalizeLanguage(data.user?.preferredLanguage || "es");
     setLanguage(savedLanguage);
-    localStorage.setItem("corex_language", savedLanguage);
+    localStorage.setItem("Aventra_language", savedLanguage);
 
     return data;
   };
@@ -105,7 +105,7 @@ export function AuthProvider({ children }) {
     setTenant(data.tenant);
     const savedLanguage = normalizeLanguage(data.user?.preferredLanguage || "es");
     setLanguage(savedLanguage);
-    localStorage.setItem("corex_language", savedLanguage); 
+    localStorage.setItem("Aventra_language", savedLanguage); 
     return data;
   };
 
@@ -121,7 +121,7 @@ const updateLanguage = async (nextLanguage) => {
   }
 
   setLanguage(selectedLanguage);
-  localStorage.setItem("corex_language", selectedLanguage);
+  localStorage.setItem("Aventra_language", selectedLanguage);
 
   return data;
 };

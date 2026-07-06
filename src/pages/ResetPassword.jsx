@@ -70,7 +70,7 @@ export default function ResetPassword() {
           <div className="brand-icon">
             <BarChart3 size={26} />
           </div>
-          <span>Corex</span>
+          <span>Aventra</span>
         </div>
 
         <div className="auth-header">
@@ -80,7 +80,7 @@ export default function ResetPassword() {
           </span>
 
           <h1>Restablecer contraseña</h1>
-          <p>Crea una nueva contraseña segura para acceder a Corex.</p>
+          <p>Crea una nueva contraseña segura para acceder a Aventra.</p>
         </div>
 
         {error && <div className="auth-error">{error}</div>}

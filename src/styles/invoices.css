@@ -727,3 +727,24 @@
 .qb-ecf-quick-toggle .qb-image-switch input:checked + span b {
   transform: translateX(18px) !important;
 }
+
+.invoice-footer{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:40px;
+    margin-top:25px;
+}
+
+.notes-box{
+    flex:1;
+    min-height:120px;
+    white-space:pre-wrap;
+    font-size:13px;
+    line-height:1.6;
+}
+
+.totals{
+    width:320px;
+    margin-top:0;
+}

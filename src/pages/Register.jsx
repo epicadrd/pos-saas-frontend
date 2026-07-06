@@ -64,7 +64,7 @@ export default function Register() {
           <div className="brand-icon">
             <Sparkles size={26} />
           </div>
-          <span>Corex</span>
+          <span>Aventra</span>
         </div>
 
         <div className="auth-header center">

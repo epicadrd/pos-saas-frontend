@@ -11,7 +11,7 @@ export const setAccessToken = (token) => {
 export const getAccessToken = () => accessToken;
 
 const API_URL =
-  import.meta.env.VITE_API_URL || "https://api.corexrd.com/api";
+  import.meta.env.VITE_API_URL || "https://api.aventrard.com/api";
 
 export const api = axios.create({
   baseURL: API_URL,

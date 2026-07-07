@@ -146,8 +146,8 @@ export default function Expenses() {
   });
 
   const totalFilteredTax = useMemo(() => {
-    return expenses.reduce((sum, item) => sum + Number(item.tax || 0), 0);
-  }, [expenses]);
+    return Number(stats.monthTaxTotal || 0);
+  }, [stats.monthTaxTotal]);
 
   const loadExpenses = async () => {
     try {

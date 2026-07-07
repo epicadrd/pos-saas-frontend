@@ -22,6 +22,7 @@ import { useAuth } from "../context/AuthContext";
 import { api } from "../api/axios";
 import { hasPlanFeature } from "../utils/plans";
 import { useTranslation } from "react-i18next";
+import { tenantHasFeatureOverride } from "../utils/featureOverrides";
 
 export default function SaaSLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -41,10 +42,14 @@ export default function SaaSLayout() {
   const { t } = useTranslation();
   const navigate = useNavigate();
 
-  const canAccess = (item) => {
+ const canAccess = (item) => {
   if (!item.roles.includes(user?.role)) return false;
 
-  if (item.feature && !hasPlanFeature(tenant?.plan, item.feature)) {
+  if (
+    item.feature &&
+    !hasPlanFeature(tenant?.plan, item.feature) &&
+    !tenantHasFeatureOverride(tenant?.id, item.feature)
+  ) {
     return false;
   }
 
@@ -52,6 +57,7 @@ export default function SaaSLayout() {
 
   return true;
 };
+
 const hasVisibleItems = (items = []) => {
   return items.some((item) => canAccess(item));
 };

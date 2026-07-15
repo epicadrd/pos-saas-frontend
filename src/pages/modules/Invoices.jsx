@@ -2312,188 +2312,270 @@ const handlePrintDraft = async () => {
       </button>
   </div>
 
-  <div className="qb-items-table-wrapper">
-    <table className="qb-items-table">
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>{t("invoices.items.productService")}</th>
-          <th>{t("invoices.items.description")}</th>
-          <th>{t("invoices.items.quantity")}</th>
-          <th>{t("invoices.items.unit")}</th>
-          <th>{t("invoices.items.price")}</th>
-          <th>{t("invoices.items.discount")}</th>
-          <th>{t("invoices.fields.subtotal")}</th>
-          {taxMode === "line" && <th>{t("invoices.items.appliesTax", { taxLabel })}</th>}
-          <th>{t("invoices.fields.taxes")}</th>
-          <th>{t("invoices.fields.total")}</th>
-          <th></th>
-        </tr>
-      </thead>
+ <div className="qb-items-table-wrapper">
+  <table
+  className={`qb-items-table qb-invoice-items-table ${
+    taxMode === "line" ? "qb-has-line-tax" : ""
+  }`}
+>
+    <colgroup>
+      <col className="qb-col-number" />
+      <col className="qb-col-product" />
+      <col className="qb-col-description" />
+      <col className="qb-col-quantity" />
+      <col className="qb-col-unit" />
+      <col className="qb-col-price" />
+      <col className="qb-col-discount" />
 
-      <tbody>
-        {items.length ? (
-          items.map((item, index) => {
-            const product = products.find(
-              (p) => String(p.id) === String(item.productId)
-            );
+      {taxMode === "line" && <col className="qb-col-taxable" />}
 
-            const isService =
-              product?.productType === "service" ||
-              product?.trackStock === false;
+      <col className="qb-col-total" />
+      <col className="qb-col-actions" />
+    </colgroup>
 
-            const lineSubtotal = Math.max(
-              Number(item.quantity || 0) * Number(item.price || 0) -
-                Number(item.discount || 0),
-              0
-            );
+    <thead>
+      <tr>
+        <th>#</th>
 
-            const isTaxable =
-              taxEnabled &&
-              (taxMode === "global" ? true : item.isTaxable !== false);
+        <th>{t("invoices.items.productService")}</th>
 
-            const lineTax = isTaxable ? lineSubtotal * (taxRate / 100) : 0;
-            const lineTotal = lineSubtotal + lineTax;
+        <th>{t("invoices.items.description")}</th>
 
-            const stockError =
-              product &&
-              !isService &&
-              Number(item.quantity || 0) > Number(product.stock || 0);
+        <th>{t("invoices.items.quantity")}</th>
 
-            return (
-              <tr key={index} className={stockError ? "stock-error-row" : ""}>
-                <td>{index + 1}</td>
+        <th title={t("invoices.items.unit")}>{t("invoices.items.unit")}</th>
 
-                <td>
-                    <input
-                        type="text"
-                        list={`invoice-products-${index}`}
-                        value={item.productName ?? ""}
-                        onChange={(e) => {
-                          const value = e.target.value;
+        <th>{t("invoices.items.price")}</th>
 
-                          const selectedProduct = products.find(
-                            (product) =>
-                              product.name.trim().toLowerCase() ===
-                              value.trim().toLowerCase()
-                          );
+        <th>{t("invoices.items.discount")}</th>
 
-                          if (selectedProduct) {
-                            updateItem(index, "productId", selectedProduct.id);
-                          } else {
-                            const copy = [...items];
-
-                            copy[index] = {
-                              ...copy[index],
-                              productId: "",
-                              productName: value,
-                            };
-
-                            setItems(copy);
-                          }
-                        }}
-                        placeholder={t("invoices.placeholders.productOrService")}
-                      />
-
-                    <datalist id={`invoice-products-${index}`}>
-                      {products.map((product) => (
-                        <option key={product.id} value={product.name} />
-                      ))}
-                    </datalist>
-
-                    {product && (
-                      <small className={isService ? "service-label" : ""}>
-                        {isService
-                          ? t("invoices.items.service")
-                          : stockError
-                          ? t("invoices.items.insufficientStock", { stock: product.stock })
-                          : t("invoices.items.available", { stock: product.stock })}
-                      </small>
-                      )}
-
-                     
-                  </td>
-
-                <td>
-                  <input
-                    value={item.description}
-                    onChange={(e) =>
-                      updateItem(index, "description", e.target.value)
-                    }
-                  />
-                </td>
-
-                <td>
-                  <input
-                    type="number"
-                    min="1"
-                    value={item.quantity}
-                    onChange={(e) =>
-                      updateItem(index, "quantity", e.target.value)
-                    }
-                  />
-                </td>
-
-                <td>{item.unit}</td>
-
-                <td>
-                  <input
-                    type="number"
-                    value={item.price}
-                    onChange={(e) => updateItem(index, "price", e.target.value)}
-                  />
-                </td>
-
-                <td>
-                  <input
-                    type="number"
-                    value={item.discount}
-                    onChange={(e) =>
-                      updateItem(index, "discount", e.target.value)
-                    }
-                  />
-                </td>
-
-                <td>{money.format(lineSubtotal)}</td>
-
-                {taxMode === "line" && (
-                  <td>
-                    <select
-                      value={item.isTaxable === false ? "no" : "yes"}
-                      onChange={(e) =>
-                        updateItem(index, "isTaxable", e.target.value === "yes")
-                      }
-                    >
-                      <option value="yes">{t("invoices.common.yes")}</option>
-                      <option value="no">{t("invoices.common.no")}</option>
-                    </select>
-                  </td>
-                )}
-
-                <td>{money.format(lineTax)}</td>
-
-                <td>
-                  <strong>{money.format(lineTotal)}</strong>
-                </td>
-
-                <td>
-                  <button className="qb-trash" onClick={() => removeItem(index)}>
-                    <Trash2 size={15} />
-                  </button>
-                </td>
-              </tr>
-            );
-          })
-        ) : (
-          <tr>
-            <td colSpan={taxMode === "line" ? 12 : 11} className="qb-empty">
-              {t("invoices.messages.addItemsToBuild")}
-            </td>
-          </tr>
+        {taxMode === "line" && (
+          <th>{t("invoices.items.appliesTax", { taxLabel })}</th>
         )}
-      </tbody>
-    </table>
-  </div>
+
+        <th>{t("invoices.fields.total")}</th>
+
+        <th aria-label={t("invoices.common.actions") || "Acciones"}></th>
+      </tr>
+    </thead>
+
+    <tbody>
+      {items.length ? (
+        items.map((item, index) => {
+          const product = products.find(
+            (p) => String(p.id) === String(item.productId)
+          );
+
+          const isService =
+            product?.productType === "service" ||
+            product?.trackStock === false;
+
+          const lineSubtotal = Math.max(
+            Number(item.quantity || 0) * Number(item.price || 0) -
+              Number(item.discount || 0),
+            0
+          );
+
+          const isTaxable =
+            taxEnabled &&
+            (taxMode === "global" ? true : item.isTaxable !== false);
+
+          const lineTax = isTaxable
+            ? lineSubtotal * (taxRate / 100)
+            : 0;
+
+          const lineTotal = lineSubtotal + lineTax;
+
+          const stockError =
+            product &&
+            !isService &&
+            Number(item.quantity || 0) > Number(product.stock || 0);
+
+          return (
+            <tr
+              key={index}
+              className={stockError ? "stock-error-row" : ""}
+            >
+              <td className="qb-line-number">{index + 1}</td>
+
+              <td>
+                <input
+                  type="text"
+                  list={`invoice-products-${index}`}
+                  value={item.productName ?? ""}
+                  onChange={(e) => {
+                    const value = e.target.value;
+
+                    const selectedProduct = products.find(
+                      (currentProduct) =>
+                        currentProduct.name.trim().toLowerCase() ===
+                        value.trim().toLowerCase()
+                    );
+
+                    if (selectedProduct) {
+                      updateItem(
+                        index,
+                        "productId",
+                        selectedProduct.id
+                      );
+                    } else {
+                      const copy = [...items];
+
+                      copy[index] = {
+                        ...copy[index],
+                        productId: "",
+                        productName: value,
+                      };
+
+                      setItems(copy);
+                    }
+                  }}
+                  placeholder={t(
+                    "invoices.placeholders.productOrService"
+                  )}
+                />
+
+                <datalist id={`invoice-products-${index}`}>
+                  {products.map((currentProduct) => (
+                    <option
+                      key={currentProduct.id}
+                      value={currentProduct.name}
+                    />
+                  ))}
+                </datalist>
+
+                {product && (
+                  <small className={isService ? "service-label" : ""}>
+                    {isService
+                      ? t("invoices.items.service")
+                      : stockError
+                      ? t("invoices.items.insufficientStock", {
+                          stock: product.stock,
+                        })
+                      : t("invoices.items.available", {
+                          stock: product.stock,
+                        })}
+                  </small>
+                )}
+              </td>
+
+              <td>
+                <input
+                  type="text"
+                  value={item.description ?? ""}
+                  onChange={(e) =>
+                    updateItem(index, "description", e.target.value)
+                  }
+                  placeholder={t("invoices.items.description")}
+                />
+              </td>
+
+              <td>
+                <input
+                  type="number"
+                  min="1"
+                  step="1"
+                  value={item.quantity}
+                  onChange={(e) =>
+                    updateItem(index, "quantity", e.target.value)
+                  }
+                  aria-label={t("invoices.items.quantity")}
+                />
+              </td>
+
+              <td className="qb-unit-cell">
+                {item.unit || "UND"}
+              </td>
+
+              <td>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={item.price}
+                  onChange={(e) =>
+                    updateItem(index, "price", e.target.value)
+                  }
+                  aria-label={t("invoices.items.price")}
+                />
+              </td>
+
+              <td>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={item.discount}
+                  onChange={(e) =>
+                    updateItem(index, "discount", e.target.value)
+                  }
+                  aria-label={t("invoices.items.discount")}
+                />
+              </td>
+
+              {taxMode === "line" && (
+                <td>
+                  <select
+                    value={item.isTaxable === false ? "no" : "yes"}
+                    onChange={(e) =>
+                      updateItem(
+                        index,
+                        "isTaxable",
+                        e.target.value === "yes"
+                      )
+                    }
+                    aria-label={t("invoices.items.appliesTax", {
+                      taxLabel,
+                    })}
+                  >
+                    <option value="yes">
+                      {t("invoices.common.yes")}
+                    </option>
+
+                    <option value="no">
+                      {t("invoices.common.no")}
+                    </option>
+                  </select>
+                </td>
+              )}
+
+              <td className="qb-line-total">
+                <strong>{money.format(lineTotal)}</strong>
+
+                {taxEnabled && lineTax > 0 && (
+                  <small>
+                    {taxLabel}: {money.format(lineTax)}
+                  </small>
+                )}
+              </td>
+
+              <td className="qb-actions-cell">
+                <button
+                  type="button"
+                  className="qb-trash"
+                  onClick={() => removeItem(index)}
+                  aria-label={`Eliminar producto ${index + 1}`}
+                  title="Eliminar"
+                >
+                  <Trash2 size={16} />
+                </button>
+              </td>
+            </tr>
+          );
+        })
+      ) : (
+        <tr>
+          <td
+            colSpan={taxMode === "line" ? 10 : 9}
+            className="qb-empty"
+          >
+            {t("invoices.messages.addItemsToBuild")}
+          </td>
+        </tr>
+      )}
+    </tbody>
+  </table>
+</div>
 
   <div className="qb-mobile-items">
     {items.length ? (

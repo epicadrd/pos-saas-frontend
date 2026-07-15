@@ -29,12 +29,19 @@
 
 .qb-items-card {
   width: 100%;
-  overflow-x: auto;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.qb-items-table-wrapper {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 .qb-items-table {
   width: 100%;
-  min-width: 1150px;
+  min-width: 0;
 }
 
 .qb-client-zone {
@@ -83,5 +90,178 @@
     width: 100%;
     min-width: 0;
     max-width: 220px;
+  }
+}
+
+/* =========================================================
+   FACTURACIÓN - TABLA ADAPTABLE SIN SCROLL HORIZONTAL
+   ========================================================= */
+
+.qb-invoice-page .qb-items-card {
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.qb-invoice-page .qb-items-table-wrapper {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.qb-invoice-page .qb-invoice-items-table {
+  width: 100%;
+  min-width: 0 !important;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+
+.qb-invoice-items-table .qb-col-product {
+  width: 21%;
+}
+
+.qb-invoice-items-table .qb-col-description {
+  width: 23%;
+}
+
+.qb-invoice-items-table .qb-col-quantity {
+  width: 8%;
+}
+
+.qb-invoice-items-table .qb-col-unit {
+  width: 7%;
+}
+
+.qb-invoice-items-table .qb-col-price {
+  width: 11%;
+}
+
+.qb-invoice-items-table .qb-col-discount {
+  width: 10%;
+}
+
+.qb-invoice-items-table .qb-col-taxable {
+  width: 8%;
+}
+
+.qb-invoice-items-table .qb-col-total {
+  width: 12%;
+}
+
+.qb-invoice-items-table .qb-col-actions {
+  width: 52px;
+}
+
+.qb-invoice-items-table th,
+.qb-invoice-items-table td {
+  min-width: 0 !important;
+  padding: 12px 10px;
+  vertical-align: middle;
+}
+
+.qb-invoice-items-table th {
+  white-space: nowrap !important;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.qb-invoice-items-table td {
+  white-space: normal;
+}
+.qb-invoice-items-table th {
+  overflow-wrap: anywhere;
+  line-height: 1.25;
+}
+
+.qb-invoice-items-table td input,
+.qb-invoice-items-table td select {
+  display: block;
+  width: 100%;
+  min-width: 0 !important;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.qb-invoice-items-table td select {
+  padding-left: 8px;
+  padding-right: 24px;
+}
+
+.qb-invoice-items-table .qb-line-number,
+.qb-invoice-items-table .qb-unit-cell,
+.qb-invoice-items-table .qb-actions-cell {
+  text-align: center;
+}
+.qb-invoice-items-table th:nth-last-child(2) {
+  text-align: center;
+}
+
+.qb-invoice-items-table .qb-line-total strong {
+  display: block;
+  font-size: 14px;
+  line-height: 1.3;
+}
+
+.qb-invoice-items-table .qb-line-total small {
+  display: block;
+  margin-top: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #64748b;
+}
+
+.qb-invoice-items-table .qb-trash {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
+  padding: 0;
+}
+
+@media (max-width: 1250px) and (min-width: 769px) {
+  .qb-invoice-items-table th,
+  .qb-invoice-items-table td {
+    padding: 10px 6px;
+  }
+
+  .qb-invoice-items-table th {
+    font-size: 10px;
+    letter-spacing: 0.04em;
+  }
+
+  .qb-invoice-items-table td {
+    font-size: 12px;
+  }
+
+  .qb-invoice-items-table td input,
+  .qb-invoice-items-table td select {
+    height: 40px;
+    padding-left: 8px;
+    padding-right: 8px;
+    font-size: 12px;
+  }
+
+  .qb-invoice-items-table .qb-col-product {
+    width: 19%;
+  }
+
+  .qb-invoice-items-table .qb-col-description {
+    width: 19%;
+  }
+
+  .qb-invoice-items-table .qb-line-total strong {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 768px) {
+  .qb-invoice-page .qb-items-card {
+    overflow: visible;
+  }
+
+  .qb-invoice-page .qb-items-table-wrapper {
+    display: none !important;
   }
 }

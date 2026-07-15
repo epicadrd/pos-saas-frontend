@@ -1516,30 +1516,18 @@
 }
 
 .qb-invoice-page .qb-items-table-wrapper {
-  width: 100%;
-  max-width: 100%;
-  overflow-x: visible;
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow-x: hidden !important;
 }
 
 .qb-invoice-page .qb-items-table {
-  width: 100%;
-  min-width: 100%;
-  table-layout: auto;
+  width: 100% !important;
+  min-width: 0 !important;
 }
-
 .qb-invoice-page .qb-items-table th,
 .qb-invoice-page .qb-items-table td {
   white-space: nowrap;
-}
-
-.qb-invoice-page .qb-items-table th:nth-child(3),
-.qb-invoice-page .qb-items-table td:nth-child(3) {
-  min-width: 260px;
-}
-
-.qb-invoice-page .qb-items-table th:nth-child(2),
-.qb-invoice-page .qb-items-table td:nth-child(2) {
-  min-width: 240px;
 }
 
 /* FACTURAS - usar todo el ancho disponible */

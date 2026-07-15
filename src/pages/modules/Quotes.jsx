@@ -20,7 +20,6 @@ import { useAuth } from "../../context/AuthContext";
 import { useTranslation } from "react-i18next";
 import { useConfirm } from "../../components/ConfirmProvider";
 import {
-  getTaxRate,
   getTaxLabel,
   isDominicanTenant,
 } from "../../utils/taxConfig";
@@ -111,8 +110,15 @@ const getTodayDateOnly = () => {
 
 const todayString = getTodayDateOnly();
 
-  const taxRate = getTaxRate(tenant);
-  const taxLabel = getTaxLabel(tenant);
+// En cotizaciones, el impuesto se controla individualmente por cada fila.
+// No dependemos del interruptor global de facturación.
+const taxRate = isDO
+  ? Number(tenant?.invoiceTaxRate || 18)
+  : Number(tenant?.usStateTaxRate || 0) +
+    Number(tenant?.usCountyTaxRate || 0) +
+    Number(tenant?.usCityTaxRate || 0);
+
+const taxLabel = getTaxLabel(tenant);
 
   const usTaxBreakdown = {
     stateRate: Number(tenant?.usStateTaxRate || 0),

@@ -314,17 +314,46 @@ const taxLabel = getTaxLabel(tenant);
       return;
     }
 
-    const cleanItems = items
-      .filter((item) => item.productName && Number(item.quantity) > 0)
-      .map((item) => ({
-        productId: item.productId || null,
-        productName: item.productName,
-        description: item.description || "",
-        quantity: Number(item.quantity),
-        price: Number(item.price),
-        discount: Number(item.discount || 0),
-        isTaxable: item.isTaxable !== false,
-      }));
+const hasIncompleteItems = items.some((item) => {
+  const productName = String(item.productName || "").trim();
+  const quantityValue = String(item.quantity ?? "").trim();
+  const priceValue = String(item.price ?? "").trim();
+
+  const quantity = Number(quantityValue);
+  const price = Number(priceValue);
+
+  return (
+    !productName ||
+    quantityValue === "" ||
+    priceValue === "" ||
+    !Number.isFinite(quantity) ||
+    quantity <= 0 ||
+    !Number.isFinite(price) ||
+    price < 0
+  );
+});
+
+if (hasIncompleteItems) {
+  alert(
+    "Hay filas vacías o incompletas. Completa todos los productos o servicios antes de guardar la cotización."
+  );
+  return;
+}
+
+const cleanItems = items.map((item) => ({
+  productId: item.productId || null,
+  productName: String(item.productName).trim(),
+  description: String(item.description || "").trim(),
+  quantity: Number(item.quantity),
+  price: Number(item.price),
+  discount: Number(item.discount || 0),
+  isTaxable:
+    item.isTaxable === true ||
+    item.isTaxable === 1 ||
+    item.isTaxable === "1" ||
+    item.isTaxable === "true",
+  taxRate,
+}));
 
     if (!cleanItems.length) {
       alert(t("quotes.messages.completeItems"));
@@ -453,8 +482,12 @@ const taxLabel = getTaxLabel(tenant);
       quantity: item.quantity || 1,
       price: item.price || 0,
       discount: item.discount || 0,
-      isTaxable: item.isTaxable !== false,
-    }))
+      isTaxable:
+        item.isTaxable === true ||
+        item.isTaxable === 1 ||
+        item.isTaxable === "1" ||
+        item.isTaxable === "true",
+      }))
   );
 
   setModalOpen(true);
@@ -597,14 +630,62 @@ const taxLabel = getTaxLabel(tenant);
       </html>
     `;
 
-    const printWindow = window.open("", "_blank");
-    printWindow.document.write(html);
-    printWindow.document.close();
-    printWindow.focus();
-    printWindow.print();
-  };
+  const previousPrintFrame =
+  document.getElementById("quote-print-frame");
 
-  return (
+if (previousPrintFrame) {
+  previousPrintFrame.remove();
+}
+
+const printFrame = document.createElement("iframe");
+
+printFrame.id = "quote-print-frame";
+printFrame.setAttribute("title", "Imprimir cotización");
+
+printFrame.style.position = "fixed";
+printFrame.style.width = "0";
+printFrame.style.height = "0";
+printFrame.style.border = "0";
+printFrame.style.opacity = "0";
+printFrame.style.pointerEvents = "none";
+
+document.body.appendChild(printFrame);
+
+const frameWindow = printFrame.contentWindow;
+const frameDocument = printFrame.contentDocument;
+
+if (!frameWindow || !frameDocument) {
+  printFrame.remove();
+  alert("No se pudo preparar la cotización para imprimir.");
+  return;
+}
+
+frameDocument.open();
+frameDocument.write(html);
+frameDocument.close();
+
+const removePrintFrame = () => {
+  window.setTimeout(() => {
+    printFrame.remove();
+  }, 500);
+};
+
+frameWindow.onafterprint = removePrintFrame;
+
+window.setTimeout(() => {
+  frameWindow.focus();
+  frameWindow.print();
+
+  // Respaldo para navegadores que no ejecuten onafterprint.
+  window.setTimeout(() => {
+    if (document.body.contains(printFrame)) {
+      printFrame.remove();
+    }
+  }, 60000);
+}, 500);
+};
+
+return (
     <div className="quote-page">
       <section className="quote-header">
         <div>
@@ -1513,4 +1594,4 @@ const taxLabel = getTaxLabel(tenant);
       )}
     </div>
   );
-}
+ }

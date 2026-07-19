@@ -36,7 +36,7 @@ const emptyForm = {
   customerPhone: "",
   customerEmail: "",
   invoiceType: "consumer_final",
-  electronicInvoicingEnabled: true,
+  electronicInvoicingEnabled: false,
   status: "draft",
   amountPaid: "",
   terms: "payment_30_days",
@@ -82,7 +82,8 @@ export default function Invoices() {
 
   const [form, setForm] = useState(emptyForm);
   const [items, setItems] = useState([]);
-
+  const [ecfRequestStatus, setEcfRequestStatus] = useState("not_requested");
+  const [loadingEcfRequest, setLoadingEcfRequest] = useState(true);
   const [saving, setSaving] = useState(false);
   const [previewModalOpen, setPreviewModalOpen] = useState(false);
   const [actionsOpen, setActionsOpen] = useState(false);
@@ -116,8 +117,13 @@ const isManualInvoiceItem = (item) =>
   !item.productId &&
   Boolean(String(item.productName || item.description || "").trim());
 
+const canUseElectronicInvoicing =
+  ecfRequestStatus === "active";
+
 const electronicInvoicingActive =
-  isDO && form.electronicInvoicingEnabled !== false;
+  isDO &&
+  canUseElectronicInvoicing &&
+  form.electronicInvoicingEnabled === true;
 
 const shouldPrintElectronicInvoice = (invoice = {}) =>
   isDO &&
@@ -254,36 +260,108 @@ const getTaxAmount = (rate, base = totals.subtotal) => {
   loadData();
 }, []);
 
-  const loadData = async () => {
+ const loadData = async () => {
+  try {
+    setLoading(true);
+
+    const invoiceRes = await api.get("/invoices");
+
+    setInvoices(
+      Array.isArray(invoiceRes.data)
+        ? invoiceRes.data
+        : []
+    );
+
     try {
-      setLoading(true);
+      const productRes = await api.get(
+        "/products?status=active&type=all"
+      );
 
-      const invoiceRes = await api.get("/invoices");
-      setInvoices(Array.isArray(invoiceRes.data) ? invoiceRes.data : []);
-
-      try {
-        const productRes = await api.get("/products?status=active&type=all");
-        setProducts(Array.isArray(productRes.data) ? productRes.data : []);
-      } catch (error) {
-        console.error("Error cargando productos:", error);
-        setProducts([]);
-      }
-
-      try {
-        const customerRes = await api.get("/customers");
-        setCustomers(Array.isArray(customerRes.data) ? customerRes.data : []);
-      } catch (error) {
-        console.error("Error cargando clientes:", error);
-        setCustomers([]);
-      }
+      setProducts(
+        Array.isArray(productRes.data)
+          ? productRes.data
+          : []
+      );
     } catch (error) {
-      console.error("Error cargando facturas:", error);
-      alert(error.response?.data?.message || t("invoices.messages.loadError"));
-      setInvoices([]);
-    } finally {
-      setLoading(false);
+      console.error(
+        "Error cargando productos:",
+        error
+      );
+
+      setProducts([]);
     }
-  };
+
+    try {
+      const customerRes = await api.get("/customers");
+
+      setCustomers(
+        Array.isArray(customerRes.data)
+          ? customerRes.data
+          : []
+      );
+    } catch (error) {
+      console.error(
+        "Error cargando clientes:",
+        error
+      );
+
+      setCustomers([]);
+    }
+
+    // Consultar el estado de la solicitud e-CF
+    try {
+      setLoadingEcfRequest(true);
+
+      const ecfRequestRes = await api.get(
+        "/electronic-invoicing/request"
+      );
+
+      const requestStatus =
+        ecfRequestRes.data?.request?.status ||
+        "not_requested";
+
+      const requestIsActive =
+        requestStatus === "active";
+
+      setEcfRequestStatus(requestStatus);
+
+      setForm((prev) => ({
+        ...prev,
+        electronicInvoicingEnabled:
+          requestIsActive &&
+          tenant?.electronicInvoicingEnabled === true,
+      }));
+    } catch (error) {
+      console.error(
+        "Error consultando la solicitud e-CF:",
+        error
+      );
+
+      setEcfRequestStatus("not_requested");
+
+      setForm((prev) => ({
+        ...prev,
+        electronicInvoicingEnabled: false,
+      }));
+    } finally {
+      setLoadingEcfRequest(false);
+    }
+  } catch (error) {
+    console.error(
+      "Error cargando facturas:",
+      error
+    );
+
+    alert(
+      error.response?.data?.message ||
+        t("invoices.messages.loadError")
+    );
+
+    setInvoices([]);
+  } finally {
+    setLoading(false);
+  }
+};
 
   useEffect(() => {
   if (searchParams.get("nueva") === "1") {
@@ -307,7 +385,9 @@ const getTaxAmount = (rate, base = totals.subtotal) => {
   const resetInvoiceForm = () => {
   setForm({
     ...emptyForm,
-    electronicInvoicingEnabled: tenant?.electronicInvoicingEnabled !== false,
+    electronicInvoicingEnabled:
+      canUseElectronicInvoicing &&
+      tenant?.electronicInvoicingEnabled === true,
   });
 
   setItems([]);
@@ -348,8 +428,22 @@ const getTaxAmount = (rate, base = totals.subtotal) => {
   };
 }, []);
 
-  const toggleElectronicInvoicingPreference = async () => {
-  const nextValue = form.electronicInvoicingEnabled === false;
+ const toggleElectronicInvoicingPreference = async () => {
+  if (loadingEcfRequest) {
+    return;
+  }
+
+  if (!canUseElectronicInvoicing) {
+    alert(
+      "El switch e-CF estará disponible cuando tu solicitud de facturación electrónica sea aceptada."
+    );
+    return;
+  }
+
+  const previousValue =
+    form.electronicInvoicingEnabled === true;
+
+  const nextValue = !previousValue;
 
   setForm((prev) => ({
     ...prev,
@@ -363,30 +457,44 @@ const getTaxAmount = (rate, base = totals.subtotal) => {
       address: tenant?.address || "",
       rnc: tenant?.rnc || "",
       phone: tenant?.phone || "",
-      primaryColor: tenant?.primaryColor || "#6d4aff",
-      invoicePrefix: tenant?.invoicePrefix || "FAC",
-      invoiceTaxEnabled: tenant?.invoiceTaxEnabled !== false,
-      invoiceTaxMode: tenant?.invoiceTaxMode || "global",
-      invoiceTaxRate: Number(tenant?.invoiceTaxRate ?? 18),
+      primaryColor:
+        tenant?.primaryColor || "#6d4aff",
+      invoicePrefix:
+        tenant?.invoicePrefix || "FAC",
+      invoiceTaxEnabled:
+        tenant?.invoiceTaxEnabled !== false,
+      invoiceTaxMode:
+        tenant?.invoiceTaxMode || "global",
+      invoiceTaxRate: Number(
+        tenant?.invoiceTaxRate ?? 18
+      ),
       country: tenant?.country || "DO",
       electronicInvoicingEnabled: nextValue,
-      usStateTaxRate: Number(tenant?.usStateTaxRate || 0),
-      usCountyTaxRate: Number(tenant?.usCountyTaxRate || 0),
-      usCityTaxRate: Number(tenant?.usCityTaxRate || 0),
-      invoiceNextNumber: tenant?.invoiceNextNumber || 1,
-      invoiceDigits: tenant?.invoiceDigits || 6,
+      usStateTaxRate: Number(
+        tenant?.usStateTaxRate || 0
+      ),
+      usCountyTaxRate: Number(
+        tenant?.usCountyTaxRate || 0
+      ),
+      usCityTaxRate: Number(
+        tenant?.usCityTaxRate || 0
+      ),
+      invoiceNextNumber:
+        tenant?.invoiceNextNumber || 1,
+      invoiceDigits:
+        tenant?.invoiceDigits || 6,
     });
 
     setTenant(data.tenant);
   } catch (error) {
     setForm((prev) => ({
       ...prev,
-      electronicInvoicingEnabled: !nextValue,
+      electronicInvoicingEnabled: previousValue,
     }));
 
     alert(
       error.response?.data?.message ||
-        "No se pudo guardar la preferencia de facturación electrónica"
+        "No se pudo guardar la preferencia de facturación electrónica."
     );
   }
 };
@@ -546,7 +654,7 @@ const getTaxAmount = (rate, base = totals.subtotal) => {
           customerPhone: form.customerPhone,
           customerEmail: form.customerEmail,
           invoiceType: form.invoiceType,
-          electronicInvoicingEnabled: form.electronicInvoicingEnabled !== false,
+          electronicInvoicingEnabled: electronicInvoicingActive,
           applyRetentions: form.applyRetentions === true,
           invoiceDate: form.invoiceDate || null,
           dueDate: form.dueDate || null,
@@ -561,7 +669,7 @@ const getTaxAmount = (rate, base = totals.subtotal) => {
           customerPhone: form.customerPhone,
           customerEmail: form.customerEmail,
           invoiceType: form.invoiceType,
-          electronicInvoicingEnabled: form.electronicInvoicingEnabled !== false,
+          electronicInvoicingEnabled: electronicInvoicingActive,
           applyRetentions: form.applyRetentions === true,
           invoiceDate: form.invoiceDate || null,
           dueDate: form.dueDate || null,
@@ -645,7 +753,10 @@ const getTaxAmount = (rate, base = totals.subtotal) => {
       customerPhone: invoice.customerPhone || "",
       customerEmail: invoice.customerEmail || "",
       invoiceType: invoice.invoiceType || "consumer_final",
-      electronicInvoicingEnabled: invoice.electronicInvoicingEnabled !== false,
+      electronicInvoicingEnabled:
+      canUseElectronicInvoicing &&
+      tenant?.electronicInvoicingEnabled === true &&
+      invoice.electronicInvoicingEnabled === true,
       amountPaid: invoice.amountPaid || "",
       invoiceDate: invoice.invoiceDate || new Date().toISOString().slice(0, 10),
       dueDate: invoice.dueDate || "",
@@ -2024,61 +2135,77 @@ const handlePrintDraft = async () => {
                   </select>
 
                   {isDO && (
-                    <button
-                      type="button"
-                      onClick={toggleElectronicInvoicingPreference}
-                      aria-pressed={form.electronicInvoicingEnabled !== false}
-                      title="Activar o desactivar e-CF y guardar la preferencia"
-                      style={{
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: "10px",
-                        height: "46px",
-                        alignSelf: "flex-start",
-                        padding: "0 12px",
-                        border: "1px solid #dbe3ef",
-                        borderRadius: "14px",
-                        background: "#ffffff",
-                        color: "#0f172a",
-                        fontSize: "12px",
-                        fontWeight: 900,
-                        cursor: "pointer",
-                      }}
-                    >
-                      <span>e-CF</span>
+                  <button
+                    type="button"
+                    onClick={toggleElectronicInvoicingPreference}
+                    disabled={
+                      loadingEcfRequest ||
+                      !canUseElectronicInvoicing
+                    }
+                    aria-pressed={electronicInvoicingActive}
+                    title={
+                      loadingEcfRequest
+                        ? "Consultando estado de la solicitud e-CF"
+                        : canUseElectronicInvoicing
+                        ? "Activar o desactivar la facturación electrónica"
+                        : "Disponible cuando la solicitud e-CF sea aceptada"
+                    }
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "10px",
+                      height: "46px",
+                      alignSelf: "flex-start",
+                      padding: "0 12px",
+                      border: "1px solid #dbe3ef",
+                      borderRadius: "14px",
+                      background: canUseElectronicInvoicing
+                        ? "#ffffff"
+                        : "#f1f5f9",
+                      color: canUseElectronicInvoicing
+                        ? "#0f172a"
+                        : "#94a3b8",
+                      fontSize: "12px",
+                      fontWeight: 900,
+                      cursor: canUseElectronicInvoicing
+                        ? "pointer"
+                        : "not-allowed",
+                      opacity: loadingEcfRequest ? 0.7 : 1,
+                    }}
+                  >
+    <span>e-CF</span>
 
-                      <span
-                        style={{
-                          width: "42px",
-                          height: "22px",
-                          borderRadius: "999px",
-                          padding: "2px",
-                          background:
-                            form.electronicInvoicingEnabled !== false
-                              ? "var(--invoice-color, #00bfae)"
-                              : "#cbd5e1",
-                          transition: "0.2s ease",
-                          boxSizing: "border-box",
-                        }}
-                      >
-                        <span
-                          style={{
-                            display: "block",
-                            width: "18px",
-                            height: "18px",
-                            borderRadius: "999px",
-                            background: "#ffffff",
-                            boxShadow: "0 2px 6px rgba(15,23,42,0.18)",
-                            transform:
-                              form.electronicInvoicingEnabled !== false
-                                ? "translateX(20px)"
-                                : "translateX(0)",
-                            transition: "0.2s ease",
-                          }}
-                        />
-                      </span>
-                    </button>
-                  )}
+    <span
+      style={{
+        width: "42px",
+        height: "22px",
+        borderRadius: "999px",
+        padding: "2px",
+        background: electronicInvoicingActive
+          ? "var(--invoice-color, #00bfae)"
+          : "#cbd5e1",
+        transition: "0.2s ease",
+        boxSizing: "border-box",
+      }}
+    >
+      <span
+        style={{
+          display: "block",
+          width: "18px",
+          height: "18px",
+          borderRadius: "999px",
+          background: "#ffffff",
+          boxShadow:
+            "0 2px 6px rgba(15,23,42,0.18)",
+          transform: electronicInvoicingActive
+            ? "translateX(20px)"
+            : "translateX(0)",
+          transition: "0.2s ease",
+        }}
+      />
+    </span>
+  </button>
+)}
 
                   {isDO && (
   <button

@@ -55,6 +55,11 @@
   color: #111827;
 }
 
+.expenses-page button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
 .expenses-page button.danger {
   background: #fee2e2;
   color: #991b1b;

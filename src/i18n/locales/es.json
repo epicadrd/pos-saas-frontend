@@ -1882,6 +1882,8 @@
     "eyebrow": "Contabilidad",
     "title": "Gastos",
     "refresh": "Actualizar",
+    "exportExcel": "Exportar Excel",
+    "exporting": "Exportando...",
     "new": "Nuevo gasto"
   },
   "stats": {
@@ -1917,6 +1919,7 @@
     "duplicateMessage": "Este e-NCF ya existe registrado en gastos.",
     "understood": "Entendido",
     "close": "Cerrar",
+    "exportError": "No se pudo exportar el archivo Excel de gastos",
     "deleteError": "No se pudo eliminar el gasto"
   },
   "confirm": {

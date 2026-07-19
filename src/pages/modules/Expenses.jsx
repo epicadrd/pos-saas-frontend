@@ -9,6 +9,7 @@ import {
   WalletCards,
   Eye,
   FileSearch,
+  Download,
 } from "lucide-react";
 import { api } from "../../api/axios";
 import { useAuth } from "../../context/AuthContext";
@@ -134,6 +135,7 @@ export default function Expenses() {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(initialForm);
@@ -314,6 +316,74 @@ export default function Expenses() {
     }
   };
 
+  const exportMonthlyExpenses = async () => {
+  if (!filters.month) return;
+
+  try {
+    setExporting(true);
+
+    const response = await api.get(
+      "/expenses/export",
+      {
+        params: {
+          month: filters.month,
+        },
+
+        responseType: "blob",
+      }
+    );
+
+    const [year, month] = filters.month
+      .split("-")
+      .map(Number);
+
+    const monthName =
+      new Intl.DateTimeFormat(
+        language === "en"
+          ? "en-US"
+          : "es-DO",
+        {
+          month: "long",
+        }
+      )
+        .format(
+          new Date(year, month - 1, 1)
+        )
+        .toUpperCase();
+
+    const fileName =
+      `606 GASTOS ${monthName} ${year}.xlsx`;
+
+    const url =
+      window.URL.createObjectURL(
+        response.data
+      );
+
+    const link =
+      document.createElement("a");
+
+    link.href = url;
+    link.download = fileName;
+
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error(
+      "Error exportando gastos:",
+      error
+    );
+
+    alert(
+      t("expenses.messages.exportError")
+    );
+  } finally {
+    setExporting(false);
+  }
+};
+
   return (
     <div className="expenses-page">
       <section className="expenses-hero">
@@ -323,6 +393,19 @@ export default function Expenses() {
         </div>
 
         <div className="expenses-actions">
+           
+           <button
+              className="secondary"
+              onClick={exportMonthlyExpenses}
+              disabled={exporting || loading}
+            >
+              <Download size={18} />
+
+              {exporting
+                ? t("expenses.header.exporting")
+                : t("expenses.header.exportExcel")}
+            </button>
+            
           <button className="secondary" onClick={loadExpenses}>
             <RefreshCcw size={18} />
             {t("expenses.header.refresh")}

@@ -1865,10 +1865,12 @@
   }
 },
 "expenses": {
-  "header": {
+    "header": {
     "eyebrow": "Accounting",
     "title": "Expenses",
     "refresh": "Refresh",
+    "exportExcel": "Export Excel",
+    "exporting": "Exporting...",
     "new": "New expense"
   },
   "stats": {
@@ -1904,6 +1906,7 @@
     "duplicateMessage": "This e-NCF is already registered in expenses.",
     "understood": "Understood",
     "close": "Close",
+    "exportError": "The expense Excel file could not be exported",
     "deleteError": "Could not delete the expense"
   },
   "confirm": {

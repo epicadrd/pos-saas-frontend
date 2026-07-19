@@ -1018,3 +1018,270 @@
   height: 20px !important;
   display: block !important;
 }
+
+/* FILTRO POR FECHA */
+
+.quote-date-filter {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 48px;
+  padding: 0 14px;
+  border: 1px solid #dbe3ef;
+  border-radius: 16px;
+  background: #ffffff;
+  color: #334155;
+  font-weight: 800;
+}
+
+.quote-date-filter input {
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #334155;
+  font: inherit;
+}
+
+/* PAGINACIÓN */
+
+.quote-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 18px 16px;
+  border-top: 1px solid #edf2f7;
+}
+
+.quote-pagination button {
+  min-height: 40px;
+  padding: 0 16px;
+  border: 1px solid #dbe3ef;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #334155;
+  font-weight: 800;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.quote-pagination button:hover:not(:disabled) {
+  border-color: #00bfae;
+  background: #f0fdfa;
+  color: #0f766e;
+}
+
+.quote-pagination button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.quote-pagination span {
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+@media (max-width: 1000px) {
+  .quote-date-filter {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .quote-date-filter input {
+    flex: 1;
+  }
+}
+
+@media (max-width: 480px) {
+  .quote-pagination {
+    gap: 8px;
+    padding: 16px 10px;
+  }
+
+  .quote-pagination button {
+    min-height: 38px;
+    padding: 0 12px;
+    font-size: 13px;
+  }
+
+  .quote-pagination span {
+    font-size: 12px;
+    text-align: center;
+  }
+}
+
+/* ELIMINAR SCROLL HORIZONTAL DE COTIZACIONES EN COMPUTADORA */
+
+@media (min-width: 769px) {
+  .quote-table-wrap {
+    width: 100%;
+    overflow-x: hidden;
+  }
+
+  .quote-table {
+    width: 100%;
+    min-width: 0 !important;
+    table-layout: fixed;
+  }
+
+  .quote-table th,
+  .quote-table td {
+    padding: 14px 10px;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    vertical-align: middle;
+  }
+
+
+  .quote-table td:nth-child(1) {
+    width: 11%;
+  }
+
+  .quote-table td:nth-child(2) {
+    width: 7%;
+  }
+
+  .quote-table td:nth-child(3) {
+    width: 8%;
+  }
+
+  .quote-table td:nth-child(4) {
+    width: 7%;
+  }
+
+  .quote-table td:nth-child(5) {
+    width: 9%;
+  }
+
+  .quote-table td:nth-child(6) {
+    width: 8%;
+  }
+
+  .quote-table td:nth-child(7) {
+    width: 10%;
+  }
+
+  .quote-table td:nth-child(8) {
+    width: 9%;
+  }
+
+  .quote-table td:nth-child(9) {
+    width: 10%;
+  }
+
+  .quote-table td:nth-child(10) {
+    width: 21%;
+  }
+
+  .quote-number-cell {
+    min-width: 0;
+    gap: 8px;
+  }
+
+  .quote-number-cell strong {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .quote-actions {
+    width: 100%;
+    gap: 5px;
+    flex-wrap: wrap;
+  }
+
+  .quote-actions button {
+    width: 34px;
+    height: 34px;
+    min-width: 34px;
+    border-radius: 11px;
+  }
+}
+
+/* DISTRIBUCIÓN DE LA TABLA SIN LA COLUMNA ESTADO */
+
+@media (min-width: 769px) {
+  .quote-table-wrap {
+    width: 100%;
+    overflow-x: hidden;
+  }
+
+  .quote-table {
+    width: 100%;
+    min-width: 0 !important;
+    table-layout: fixed;
+  }
+
+  .quote-table th,
+  .quote-table td {
+    padding: 16px 12px;
+    vertical-align: middle;
+  }
+
+  .quote-table th:nth-child(1),
+  .quote-table td:nth-child(1) {
+    width: 13%;
+  }
+
+  .quote-table th:nth-child(2),
+  .quote-table td:nth-child(2) {
+    width: 9%;
+  }
+
+  .quote-table th:nth-child(3),
+  .quote-table td:nth-child(3) {
+    width: 10%;
+  }
+
+  .quote-table th:nth-child(4),
+  .quote-table td:nth-child(4) {
+    width: 9%;
+  }
+
+  .quote-table th:nth-child(5),
+  .quote-table td:nth-child(5) {
+    width: 11%;
+  }
+
+  .quote-table th:nth-child(6),
+  .quote-table td:nth-child(6) {
+    width: 10%;
+  }
+
+  .quote-table th:nth-child(7),
+  .quote-table td:nth-child(7) {
+    width: 12%;
+  }
+
+  .quote-table th:nth-child(8),
+  .quote-table td:nth-child(8) {
+    width: 14%;
+  }
+
+  .quote-table th:nth-child(9),
+  .quote-table td:nth-child(9) {
+    width: 12%;
+    text-align: center;
+  }
+
+  .quote-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: nowrap;
+    gap: 6px;
+  }
+
+  .quote-actions button {
+    width: 34px !important;
+    height: 34px !important;
+    min-width: 34px !important;
+    min-height: 34px !important;
+    padding: 0 !important;
+    flex: 0 0 34px;
+    border-radius: 11px !important;
+  }
+}

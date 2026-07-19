@@ -528,8 +528,16 @@
     "converted": "Convertida"
   },
 
-  "filters": {
-    "all": "Todos"
+    "filters": {
+    "all": "Todos",
+    "date": "Fecha"
+  },
+
+  "pagination": {
+    "label": "Paginación de cotizaciones",
+    "previous": "Anterior",
+    "next": "Siguiente",
+    "page": "Página {{current}} de {{total}}"
   },
 
   "actions": {
@@ -543,7 +551,6 @@
     "approve": "Aprobar",
     "reject": "Rechazar",
     "markSent": "Marcar enviada",
-    "copyWhatsapp": "Copiar WhatsApp",
     "convertToInvoice": "Convertir a factura",
     "addLine": "Agregar línea",
     "cancel": "Cancelar",
@@ -568,7 +575,8 @@
     "price": "Precio",
     "discount": "Descuento",
     "discountShort": "Desc.",
-    "rnc": "RNC / Cédula"
+    "rnc": "RNC / Cédula",
+    "actions": "Acciones"
   },
 
   "messages": {

@@ -519,7 +519,15 @@
   },
 
   "filters": {
-    "all": "All"
+    "all": "All",
+    "date": "Date"
+  },
+
+  "pagination": {
+    "label": "Quotes pagination",
+    "previous": "Previous",
+    "next": "Next",
+    "page": "Page {{current}} of {{total}}"
   },
 
   "actions": {
@@ -533,7 +541,6 @@
     "approve": "Approve",
     "reject": "Reject",
     "markSent": "Mark as Sent",
-    "copyWhatsapp": "Copy WhatsApp",
     "convertToInvoice": "Convert to Invoice",
     "addLine": "Add Line",
     "cancel": "Cancel",
@@ -558,7 +565,8 @@
     "price": "Price",
     "discount": "Discount",
     "discountShort": "Disc.",
-    "rnc": "Tax ID"
+    "rnc": "Tax ID",
+    "actions": "Actions"
   },
 
   "messages": {

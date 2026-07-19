@@ -2,16 +2,14 @@ import { useEffect, useMemo, useState } from "react";
 import {
   CheckCircle,
   ClipboardList,
-  Copy,
   FileText,
   FilePlus2,
+  MoreHorizontal,
   Plus,
   Printer,
   Search,
-  Send,
   Trash2,
   X,
-  XCircle,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../../api/axios";
@@ -30,10 +28,8 @@ const emptyQuote = {
   customerPhone: "",
   customerEmail: "",
   validUntil: "",
-  status: "draft",
   notes: "",
 };
-
 const getStatusLabel = (status, t) =>
   ({
     draft: t("quotes.status.draft"),
@@ -66,6 +62,10 @@ export default function Quotes() {
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [dateFilter, setDateFilter] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const quotesPerPage = 7;
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -108,6 +108,20 @@ const getTodayDateOnly = () => {
   return `${year}-${month}-${day}`;
 };
 
+const getLocalDateOnly = (value) => {
+  if (!value) return "";
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) return "";
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+};
+
 const todayString = getTodayDateOnly();
 
 // En cotizaciones, el impuesto se controla individualmente por cada fila.
@@ -139,13 +153,42 @@ const taxLabel = getTaxLabel(tenant);
   const getStatus = (quote) => quote.effectiveStatus || quote.status || "draft";
 
   const filteredQuotes = quotes.filter((quote) => {
-    const text = `${quote.quoteNumber} ${quote.customerName} ${quote.customerRnc || ""}`.toLowerCase();
-    const matchesSearch = text.includes(search.toLowerCase());
-    const matchesStatus =
-      statusFilter === "all" || getStatus(quote) === statusFilter;
+  const text = `${quote.quoteNumber} ${quote.customerName} ${
+    quote.customerRnc || ""
+  }`.toLowerCase();
 
-    return matchesSearch && matchesStatus;
+  const matchesSearch = text.includes(search.toLowerCase());
+
+  const matchesStatus =
+    statusFilter === "all" || getStatus(quote) === statusFilter;
+
+  const quoteDate = getLocalDateOnly(quote.createdAt);
+
+  const matchesDate =
+    !dateFilter || quoteDate === dateFilter;
+
+  return matchesSearch && matchesStatus && matchesDate;
   });
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredQuotes.length / quotesPerPage)
+  );
+
+  const paginatedQuotes = filteredQuotes.slice(
+    (currentPage - 1) * quotesPerPage,
+    currentPage * quotesPerPage
+  );
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, statusFilter, dateFilter]);
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
 
   const totals = useMemo(() => {
     const subtotal = items.reduce((acc, item) => {
@@ -363,16 +406,17 @@ const cleanItems = items.map((item) => ({
     try {
       setSaving(true);
 
-      if (editingQuoteId) {
-          await api.put(`/quotes/${editingQuoteId}`, {
-            ...quoteForm,
-            items: cleanItems,
-          });
-        } else {
-          await api.post("/quotes", {
-            ...quoteForm,
-            items: cleanItems,
-          });
+     if (editingQuoteId) {
+        await api.put(`/quotes/${editingQuoteId}`, {
+          ...quoteForm,
+          items: cleanItems,
+        });
+      } else {
+        await api.post("/quotes", {
+          ...quoteForm,
+          status: "draft",
+          items: cleanItems,
+        });
       }
 
       closeModal();
@@ -406,15 +450,7 @@ const cleanItems = items.map((item) => ({
   }
 };
 
-  const handleStatus = async (quote, status) => {
-    try {
-      await api.patch(`/quotes/${quote.id}/status`, { status });
-      loadQuotes();
-    } catch (error) {
-      console.log(error);
-      alert(error.response?.data?.message || t("quotes.messages.statusError"));
-    }
-  };
+
 
   const handleConvertToInvoice = async (quote) => {
   const ok = await confirm({
@@ -439,22 +475,7 @@ const cleanItems = items.map((item) => ({
   }
 };
 
-  const copyWhatsAppMessage = async (quote) => {
-  const text = t("quotes.whatsapp.message", {
-    number: quote.quoteNumber,
-    total: money.format(Number(quote.total || 0)),
-    validUntil: quote.validUntil
-  ? formatDateOnly(quote.validUntil)
-  : t("quotes.messages.availability"),
-  });
-
-  try {
-    await navigator.clipboard.writeText(text);
-    alert(t("quotes.messages.whatsappCopied"));
-  } catch {
-    alert(text);
-  }
-};
+ 
 
   const openEditQuote = (quote) => {
   if (quote.status === "converted") {
@@ -463,14 +484,12 @@ const cleanItems = items.map((item) => ({
   }
 
   setEditingQuoteId(quote.id);
-
   setQuoteForm({
     customerName: quote.customerName || "",
     customerRnc: quote.customerRnc || "",
     customerPhone: quote.customerPhone || "",
     customerEmail: quote.customerEmail || "",
     validUntil: quote.validUntil ? quote.validUntil.slice(0, 10) : "",
-    status: quote.status || "draft",
     notes: quote.notes || "",
   });
 
@@ -750,6 +769,17 @@ return (
           </div>
 
           <div className="quote-toolbar-actions">
+            <label className="quote-date-filter">
+              <span>{t("quotes.filters.date")}</span>
+
+              <input
+                type="date"
+                value={dateFilter}
+                onChange={(e) => setDateFilter(e.target.value)}
+                aria-label={t("quotes.filters.date")}
+              />
+            </label>
+
             <select
               className="quote-filter"
               value={statusFilter}
@@ -786,27 +816,26 @@ return (
         <th>{t("quotes.fields.subtotal")}</th>
         <th>{isDO ? taxLabel : t("quotes.tax.total")}</th>
         <th>{t("quotes.fields.total")}</th>
-        <th>{t("quotes.fields.status")}</th>
         <th>{t("quotes.fields.createdBy")}</th>
-        <th>{t("common.actions")}</th>
+        <th>{t("quotes.fields.actions")}</th>
       </tr>
     </thead>
 
     <tbody>
       {loading ? (
         <tr>
-          <td colSpan="10" className="table-empty">
+          <td colSpan="9" className="table-empty">
             {t("quotes.messages.loading")}
           </td>
         </tr>
       ) : filteredQuotes.length === 0 ? (
         <tr>
-          <td colSpan="10" className="table-empty">
+          <td colSpan="9" className="table-empty">
             {t("quotes.messages.empty")}
           </td>
         </tr>
       ) : (
-        filteredQuotes.map((quote) => {
+        paginatedQuotes.map((quote) => {
           const status = getStatus(quote);
 
           return (
@@ -832,75 +861,103 @@ return (
               <td>
                 <strong>{money.format(Number(quote.total || 0))}</strong>
               </td>
-              <td>
-                <span className={statusClass[status] || "badge warning"}>
-                  {getStatusLabel(status, t)}
-                </span>
-              </td>
               <td>{quote.creator?.name || t("common.system")}</td>
 
               <td>
-                <div className="table-actions quote-actions">
-                  {status !== "converted" && status !== "expired" && (
-                    <>
-                      <button title={t("quotes.actions.markSent")}onClick={() => handleStatus(quote, "sent")}>
-                        <Send size={16} />
-                      </button>
+  <div className="table-actions quote-actions">
+    <button
+      type="button"
+      title={t("quotes.actions.print")}
+      aria-label={t("quotes.actions.print")}
+      onClick={() => handlePrint(quote)}
+    >
+      <Printer size={16} />
+    </button>
 
-                      <button title={t("quotes.actions.approve")} onClick={() => handleStatus(quote, "approved")}>
-                        <CheckCircle size={16} />
-                      </button>
+    {status !== "converted" && status !== "expired" && (
+      <button
+        type="button"
+        title={t("quotes.actions.convertToInvoice")}
+        aria-label={t("quotes.actions.convertToInvoice")}
+        onClick={() => handleConvertToInvoice(quote)}
+      >
+        <FilePlus2 size={16} />
+      </button>
+    )}
 
-                      <button title={t("quotes.actions.reject")}onClick={() => handleStatus(quote, "rejected")}>
-                        <XCircle size={16} />
-                      </button>
-                    </>
-                  )}
+    {status !== "converted" && (
+      <button
+        type="button"
+        title={t("quotes.actions.edit")}
+        aria-label={t("quotes.actions.edit")}
+        onClick={() => openEditQuote(quote)}
+      >
+        <Pencil size={16} />
+      </button>
+    )}
 
-                  <button title={t("quotes.actions.copyWhatsapp")} onClick={() => copyWhatsAppMessage(quote)}>
-                    <Copy size={16} />
-                  </button>
-
-                  {status !== "converted" && (
-                    <button title={t("quotes.actions.edit")} onClick={() => openEditQuote(quote)}>
-                      <Pencil size={16} />
-                    </button>
-                  )}
-
-                  <button title={t("quotes.actions.print")} onClick={() => handlePrint(quote)}>
-                    <Printer size={16} />
-                  </button>
-
-                  {status !== "converted" && status !== "expired" && (
-                    <button title={t("quotes.actions.convertToInvoice")} onClick={() => handleConvertToInvoice(quote)}>
-                      <FilePlus2 size={16} />
-                    </button>
-                  )}
-
-                  {status !== "converted" && (
-                    <button
-                      className="danger-btn quote-delete-btn"
-                      title={t("quotes.actions.delete")}
-                      onClick={() => handleDeleteQuote(quote)}
-                    >
-                      <Trash2 size={19} strokeWidth={2.2} />
-                    </button>
-                  )}
-                </div>
-              </td>
+    {status !== "converted" && (
+      <button
+        type="button"
+        className="danger-btn quote-delete-btn"
+        title={t("quotes.actions.delete")}
+        aria-label={t("quotes.actions.delete")}
+        onClick={() => handleDeleteQuote(quote)}
+      >
+        <Trash2 size={16} />
+      </button>
+    )}
+  </div>
+</td>
             </tr>
           );
         })
       )}
     </tbody>
-  </table>
+   </table>
 </div>
+
+{!loading && filteredQuotes.length > 0 && totalPages > 1 && (
+  <nav
+    className="quote-pagination"
+    aria-label={t("quotes.pagination.label")}
+  >
+    <button
+      type="button"
+      onClick={() =>
+        setCurrentPage((page) => Math.max(1, page - 1))
+      }
+      disabled={currentPage === 1}
+    >
+      {t("quotes.pagination.previous")}
+    </button>
+
+    <span>
+      {t("quotes.pagination.page", {
+        current: currentPage,
+        total: totalPages,
+      })}
+    </span>
+
+    <button
+      type="button"
+      onClick={() =>
+        setCurrentPage((page) =>
+          Math.min(totalPages, page + 1)
+        )
+      }
+      disabled={currentPage === totalPages}
+    >
+      {t("quotes.pagination.next")}
+    </button>
+  </nav>
+)}
 
 <div className="quote-mobile-list">
   {loading ? (
     <div className="quote-mobile-empty">{t("quotes.messages.loading")}</div>
   ) : filteredQuotes.length ? (
-    filteredQuotes.map((quote) => {
+    paginatedQuotes.map((quote) => {
       const status = getStatus(quote);
 
       return (
@@ -1062,79 +1119,58 @@ return (
       </div>
 
       <div className="quote-detail-actions">
-        {getStatus(selectedQuote) !== "converted" &&
-          getStatus(selectedQuote) !== "expired" && (
-            <>
-              <button type="button" className="quote-action-btn" onClick={() => handleStatus(selectedQuote, "sent")}>
-                <Send size={16} />
-                {t("quotes.actions.markSent")}
-              </button>
+  <button
+    type="button"
+    className="quote-action-btn"
+    onClick={() => handlePrint(selectedQuote)}
+  >
+    <Printer size={16} />
+    {t("quotes.actions.print")}
+  </button>
 
-              <button type="button" className="quote-action-btn" onClick={() => handleStatus(selectedQuote, "approved")}>
-                <CheckCircle size={16} />
-                {t("quotes.actions.approve")}
-              </button>
+  {getStatus(selectedQuote) !== "converted" &&
+    getStatus(selectedQuote) !== "expired" && (
+      <button
+        type="button"
+        className="quote-action-btn quote-primary-action"
+        onClick={() => {
+          handleConvertToInvoice(selectedQuote);
+          setSelectedQuote(null);
+        }}
+      >
+        <FilePlus2 size={16} />
+        {t("quotes.actions.convertToInvoice")}
+      </button>
+    )}
 
-              <button type="button" className="quote-action-btn" onClick={() => handleStatus(selectedQuote, "rejected")}>
-                <XCircle size={16} />
-                {t("quotes.actions.reject")}
-              </button>
-            </>
-          )}
+  {getStatus(selectedQuote) !== "converted" && (
+    <button
+      type="button"
+      className="quote-action-btn"
+      onClick={() => {
+        openEditQuote(selectedQuote);
+        setSelectedQuote(null);
+      }}
+    >
+      <Pencil size={16} />
+      {t("quotes.actions.edit")}
+    </button>
+  )}
 
-        <button type="button" className="quote-action-btn" onClick={() => copyWhatsAppMessage(selectedQuote)}>
-          <Copy size={16} />
-          {t("quotes.actions.copyWhatsapp")}
-        </button>
-
-        {getStatus(selectedQuote) !== "converted" && (
-          <button
-            type="button"
-            className="quote-action-btn"
-            onClick={() => {
-              openEditQuote(selectedQuote);
-              setSelectedQuote(null);
-            }}
-          >
-            <Pencil size={16} />
-            {t("quotes.actions.edit")}
-          </button>
-        )}
-
-        <button type="button" className="quote-action-btn" onClick={() => handlePrint(selectedQuote)}>
-          <Printer size={16} />
-          {t("quotes.actions.print")}
-        </button>
-
-        {getStatus(selectedQuote) !== "converted" &&
-          getStatus(selectedQuote) !== "expired" && (
-            <button
-              type="button"
-              className="quote-action-btn quote-primary-action"
-              onClick={() => {
-                handleConvertToInvoice(selectedQuote);
-                setSelectedQuote(null);
-              }}
-            >
-              <FilePlus2 size={16} />
-              {t("quotes.actions.convertToInvoice")}
-            </button>
-          )}
-
-        {getStatus(selectedQuote) !== "converted" && (
-          <button
-            type="button"
-            className="quote-danger-action"
-            onClick={() => {
-              handleDeleteQuote(selectedQuote);
-              setSelectedQuote(null);
-            }}
-          >
-            <Trash2 size={16} />
-            {t("quotes.actions.delete")}
-          </button>
-        )}
-      </div>
+  {getStatus(selectedQuote) !== "converted" && (
+    <button
+      type="button"
+      className="quote-danger-action"
+      onClick={() => {
+        handleDeleteQuote(selectedQuote);
+        setSelectedQuote(null);
+      }}
+    >
+      <Trash2 size={16} />
+      {t("quotes.actions.delete")}
+    </button>
+  )}
+</div>
     </div>
   </div>
 )}
@@ -1222,20 +1258,7 @@ return (
     />
   </div>
 
-  <div className="form-row">
-    <label>{t("quotes.fields.status")}</label>
-
-    <select
-      name="status"
-      value={quoteForm.status}
-      onChange={handleQuoteChange}
-    >
-      <option value="draft">{t("quotes.status.draft")}</option>
-      <option value="sent">{t("quotes.status.sent")}</option>
-      <option value="approved">{t("quotes.status.approved")}</option>
-      <option value="rejected">{t("quotes.status.rejected")}</option>
-    </select>
-  </div>
+  
 </div>
 
               <div className="quote-items-box">

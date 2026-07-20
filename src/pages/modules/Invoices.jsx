@@ -1778,11 +1778,6 @@ const handlePrintDraft = async () => {
                   <Settings size={16} />
                   {t("invoices.actions.numbering")}
                 </button>
-
-                <button type="button" disabled>
-                  <Settings size={16} />
-                  {t("invoices.actions.fiscalReceipts")}
-                </button>
               </div>
             )}
           </div>

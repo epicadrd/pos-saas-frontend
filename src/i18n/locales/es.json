@@ -1921,7 +1921,7 @@
     "close": "Cerrar",
     "exportError": "No se pudo exportar el archivo Excel de gastos",
     "deleteError": "No se pudo eliminar el gasto"
-  },
+  }, 
   "confirm": {
     "deleteTitle": "Eliminar gasto",
     "deleteMessage": "¿Eliminar el gasto {{number}}? Esta acción no se puede deshacer.",

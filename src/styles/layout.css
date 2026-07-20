@@ -1564,3 +1564,29 @@
   width: 100% !important;
   min-width: 1350px !important;
 }
+
+/* Eliminar tonos violetas del dashboard */
+.dash-hero span,
+.dash-hero p {
+  color: #ffffff;
+}
+
+.dash-stat-card.main {
+  border-color: #e5e7eb;
+}
+
+.dash-stat-icon,
+.dash-module-icon {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+}
+
+.dash-bar-fill {
+  background: #00bfae;
+}
+
+.dash-badge.issued {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  color: #00bfae;
+}

@@ -812,11 +812,8 @@ return (
         <th>{t("quotes.title")}</th>
         <th>{t("quotes.fields.customer")}</th>
         <th>{t("quotes.fields.date")}</th>
-        <th>{t("quotes.fields.validUntil")}</th>
-        <th>{t("quotes.fields.subtotal")}</th>
         <th>{isDO ? taxLabel : t("quotes.tax.total")}</th>
         <th>{t("quotes.fields.total")}</th>
-        <th>{t("quotes.fields.createdBy")}</th>
         <th>{t("quotes.fields.actions")}</th>
       </tr>
     </thead>
@@ -824,13 +821,13 @@ return (
     <tbody>
       {loading ? (
         <tr>
-          <td colSpan="9" className="table-empty">
+          <td colSpan="6" className="table-empty">
             {t("quotes.messages.loading")}
           </td>
         </tr>
       ) : filteredQuotes.length === 0 ? (
         <tr>
-          <td colSpan="9" className="table-empty">
+          <td colSpan="6" className="table-empty">
             {t("quotes.messages.empty")}
           </td>
         </tr>
@@ -851,17 +848,10 @@ return (
 
               <td>{quote.customerName}</td>
               <td>{new Date(quote.createdAt).toLocaleDateString(locale)}</td>
-              <td>
-                {quote.validUntil
-                  ? formatDateOnly(quote.validUntil)
-                  : "-"}
-              </td>
-              <td>{money.format(Number(quote.subtotal || 0))}</td>
               <td>{money.format(Number(quote.tax || 0))}</td>
               <td>
                 <strong>{money.format(Number(quote.total || 0))}</strong>
               </td>
-              <td>{quote.creator?.name || t("common.system")}</td>
 
               <td>
   <div className="table-actions quote-actions">

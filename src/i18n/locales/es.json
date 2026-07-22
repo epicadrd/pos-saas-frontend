@@ -1044,8 +1044,37 @@
   "loading": "Cargando catálogo...",
   "unavailable": "Catálogo no disponible",
   "empty": "No hay productos para mostrar.",
-  "defaultCategory": "Producto"
+  "defaultCategory": "Producto",
+  "availableStock": "{{stock}} disponibles",
+  "cart": {
+    "title": "Carrito",
+    "open": "Abrir carrito",
+    "add": "Agregar al carrito",
+    "maxReached": "Cantidad máxima agregada",
+    "orderSummary": "Resumen del pedido",
+    "empty": "Tu carrito está vacío.",
+    "continueShopping": "Seguir comprando",
+    "increase": "Aumentar cantidad",
+    "decrease": "Disminuir cantidad",
+    "remove": "Eliminar producto",
+    "total": "Total estimado",
+    "viewCart": "Ver carrito",
+    "sendWhatsApp": "Realizar pedido por WhatsApp",
+    "phoneUnavailable": "Este negocio todavía no tiene un número de WhatsApp válido configurado.",
+    "whatsappGreeting": "Hola, quiero realizar el siguiente pedido:",
+    "confirmationNotice": "El pedido y la disponibilidad están sujetos a confirmación del negocio."
+  },
+  "details": {
+    "open": "Ver detalles de {{name}}",
+    "view": "Ver detalles",
+    "close": "Cerrar detalles",
+    "previous": "Imagen anterior",
+    "next": "Imagen siguiente",
+    "description": "Descripción",
+    "noDescription": "Este producto no tiene una descripción disponible."
+  }
 },
+
 "productCatalog": {
   "title": "Catálogo",
   "subtitle": "Catálogo público de productos",
@@ -1062,6 +1091,28 @@
   "loading": "Cargando catálogo...",
   "empty": "No hay productos visibles.",
   "defaultCategory": "Producto",
+  "availableStock": "{{stock}} disponibles",
+  "images": {
+    "manage": "Administrar imágenes",
+    "title": "Galería del catálogo",
+    "help": "La imagen principal viene de Inventario. Puedes agregar hasta 3 imágenes adicionales.",
+    "main": "Principal",
+    "replace": "Cambiar imagen",
+    "mainUpdateError": "No se pudo cambiar la imagen principal",
+    "additional": "Imagen {{number}}",
+    "add": "Agregar imagen",
+    "remaining": "{{count}} espacios disponibles",
+    "uploading": "Subiendo...",
+    "delete": "Eliminar imagen",
+    "close": "Cerrar",
+    "loadError": "No se pudieron cargar las imágenes",
+    "invalidImage": "Selecciona una imagen JPG, PNG o WEBP válida.",
+    "imageTooLarge": "La imagen original no puede pesar más de 5 MB.",
+    "limitReached": "Este producto ya tiene el máximo de 4 imágenes contando la principal.",
+    "uploadError": "No se pudo agregar la imagen",
+    "deleteConfirm": "¿Deseas eliminar esta imagen del catálogo?",
+    "deleteError": "No se pudo eliminar la imagen"
+  },
   "note": "Para cambiar imagen o quitar un producto del catálogo, edítalo desde Inventario.",
   "alerts": {
     "loadError": "No se pudo cargar el catálogo",
@@ -2202,7 +2253,5 @@
   }
 }
 }
-
-
 
 

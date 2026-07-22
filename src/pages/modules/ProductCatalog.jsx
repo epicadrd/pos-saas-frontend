@@ -3,9 +3,14 @@ import {
   Copy,
   ExternalLink,
   ImagePlus,
+  Images,
+  LoaderCircle,
   Package,
   RefreshCcw,
   Search,
+  Trash2,
+  Upload,
+  X,
 } from "lucide-react";
 import { api } from "../../api/axios";
 import { useAuth } from "../../context/AuthContext";
@@ -26,6 +31,11 @@ export default function ProductCatalog() {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
+  const [imageProduct, setImageProduct] = useState(null);
+  const [catalogImages, setCatalogImages] = useState([]);
+  const [imagesLoading, setImagesLoading] = useState(false);
+  const [imageUploading, setImageUploading] = useState(false);
+  const [mainImageUploading, setMainImageUploading] = useState(false);
 
   const t = (path, fallback = "", vars = {}) => {
     const value = path
@@ -81,6 +91,7 @@ export default function ProductCatalog() {
 
     return products.filter((product) => {
       if (product.showInCatalog === false) return false;
+      if (Number(product.stock || 0) <= 0) return false;
       if (!term) return true;
 
       return (
@@ -108,6 +119,144 @@ export default function ProductCatalog() {
     if (!settings?.catalogUrl) return;
     await navigator.clipboard.writeText(settings.catalogUrl);
     alert(t("productCatalog.alerts.copied"));
+  };
+
+  const resizeImageToDataUrl = (file) =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const image = new Image();
+        image.onload = () => {
+          const maxSize = 1100;
+          let { width, height } = image;
+          if (width > height && width > maxSize) {
+            height = Math.round((height * maxSize) / width);
+            width = maxSize;
+          } else if (height > maxSize) {
+            width = Math.round((width * maxSize) / height);
+            height = maxSize;
+          }
+
+          const canvas = document.createElement("canvas");
+          canvas.width = width;
+          canvas.height = height;
+          const context = canvas.getContext("2d");
+          context.drawImage(image, 0, 0, width, height);
+          resolve(canvas.toDataURL("image/jpeg", 0.78));
+        };
+        image.onerror = reject;
+        image.src = reader.result;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+
+  const openImageManager = async (product) => {
+    try {
+      setImageProduct(product);
+      setCatalogImages([]);
+      setImagesLoading(true);
+      const { data } = await api.get(`/catalog/products/${product.id}/images`);
+      setCatalogImages(data.images || []);
+    } catch (error) {
+      console.log(error);
+      alert(t("productCatalog.images.loadError"));
+      setImageProduct(null);
+    } finally {
+      setImagesLoading(false);
+    }
+  };
+
+  const uploadCatalogImage = async (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file || !imageProduct) return;
+
+    if (!file.type.startsWith("image/")) {
+      alert(t("productCatalog.images.invalidImage"));
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      alert(t("productCatalog.images.imageTooLarge"));
+      return;
+    }
+    if (catalogImages.length >= 3) {
+      alert(t("productCatalog.images.limitReached"));
+      return;
+    }
+
+    try {
+      setImageUploading(true);
+      const imageDataUrl = await resizeImageToDataUrl(file);
+      const { data } = await api.post(
+        `/catalog/products/${imageProduct.id}/images`,
+        { imageDataUrl }
+      );
+      setCatalogImages((current) => [...current, data.image]);
+    } catch (error) {
+      console.log(error);
+      alert(error.response?.data?.message || t("productCatalog.images.uploadError"));
+    } finally {
+      setImageUploading(false);
+    }
+  };
+
+  const replaceMainImage = async (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file || !imageProduct) return;
+
+    if (!file.type.startsWith("image/")) {
+      alert(t("productCatalog.images.invalidImage"));
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      alert(t("productCatalog.images.imageTooLarge"));
+      return;
+    }
+
+    try {
+      setMainImageUploading(true);
+      const imageDataUrl = await resizeImageToDataUrl(file);
+      const { data } = await api.patch(
+        `/catalog/products/${imageProduct.id}/main-image`,
+        { imageDataUrl }
+      );
+
+      setImageProduct((current) => ({
+        ...current,
+        imageDataUrl: data.imageDataUrl,
+      }));
+
+      setProducts((currentProducts) =>
+        currentProducts.map((product) =>
+          Number(product.id) === Number(imageProduct.id)
+            ? { ...product, imageDataUrl: data.imageDataUrl }
+            : product
+        )
+      );
+    } catch (error) {
+      console.log(error);
+      alert(
+        error.response?.data?.message ||
+          t("productCatalog.images.mainUpdateError")
+      );
+    } finally {
+      setMainImageUploading(false);
+    }
+  };
+
+  const removeCatalogImage = async (imageId) => {
+    if (!imageProduct) return;
+    if (!window.confirm(t("productCatalog.images.deleteConfirm"))) return;
+
+    try {
+      await api.delete(`/catalog/products/${imageProduct.id}/images/${imageId}`);
+      setCatalogImages((current) => current.filter((image) => image.id !== imageId));
+    } catch (error) {
+      console.log(error);
+      alert(error.response?.data?.message || t("productCatalog.images.deleteError"));
+    }
   };
 
   return (
@@ -211,13 +360,96 @@ export default function ProductCatalog() {
                     {product.category || t("productCatalog.defaultCategory")}
                   </span>
                   <h4>{product.name}</h4>
-                  <strong>{money.format(Number(product.salePrice || 0))}</strong>
+                  <div className="catalog-product-footer">
+                    <strong>{money.format(Number(product.salePrice || 0))}</strong>
+
+                    <small className="catalog-stock">
+                      {t("productCatalog.availableStock", "", {
+                        stock: Number(product.stock || 0),
+                      })}
+                    </small>
+                  </div>
+                  <button
+                    type="button"
+                    className="catalog-manage-images-button"
+                    onClick={() => openImageManager(product)}
+                  >
+                    <Images size={17} />
+                    {t("productCatalog.images.manage")}
+                  </button>
                 </div>
               </article>
             ))}
           </div>
         )}
       </section>
+
+      {imageProduct && (
+        <div className="catalog-image-manager-overlay" onClick={() => setImageProduct(null)}>
+          <section className="catalog-image-manager" onClick={(event) => event.stopPropagation()}>
+            <header>
+              <div>
+                <span>{t("productCatalog.images.title")}</span>
+                <h3>{imageProduct.name}</h3>
+                <p>{t("productCatalog.images.help")}</p>
+              </div>
+              <button type="button" onClick={() => setImageProduct(null)} aria-label={t("productCatalog.images.close")}>
+                <X size={21} />
+              </button>
+            </header>
+
+            {imagesLoading ? (
+              <div className="catalog-images-loading"><LoaderCircle size={26} className="spin" /></div>
+            ) : (
+              <div className="catalog-images-manager-grid">
+                <article className="catalog-manager-image is-main">
+                  {imageProduct.imageDataUrl ? (
+                    <img src={imageProduct.imageDataUrl} alt={imageProduct.name} />
+                  ) : (
+                    <ImagePlus size={34} />
+                  )}
+                  <span>{t("productCatalog.images.main")}</span>
+                  <label className={`catalog-replace-main ${mainImageUploading ? "is-loading" : ""}`}>
+                    {mainImageUploading ? (
+                      <LoaderCircle size={17} className="spin" />
+                    ) : (
+                      <Upload size={17} />
+                    )}
+                    {mainImageUploading
+                      ? t("productCatalog.images.uploading")
+                      : t("productCatalog.images.replace")}
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      onChange={replaceMainImage}
+                      disabled={mainImageUploading}
+                    />
+                  </label>
+                </article>
+
+                {catalogImages.map((image, index) => (
+                  <article className="catalog-manager-image" key={image.id}>
+                    <img src={image.imageDataUrl} alt={`${imageProduct.name} ${index + 2}`} />
+                    <span>{t("productCatalog.images.additional", "", { number: index + 2 })}</span>
+                    <button type="button" onClick={() => removeCatalogImage(image.id)} aria-label={t("productCatalog.images.delete")}>
+                      <Trash2 size={17} />
+                    </button>
+                  </article>
+                ))}
+
+                {catalogImages.length < 3 && (
+                  <label className={`catalog-image-upload ${imageUploading ? "is-loading" : ""}`}>
+                    {imageUploading ? <LoaderCircle size={28} className="spin" /> : <Upload size={28} />}
+                    <strong>{imageUploading ? t("productCatalog.images.uploading") : t("productCatalog.images.add")}</strong>
+                    <small>{t("productCatalog.images.remaining", "", { count: 3 - catalogImages.length })}</small>
+                    <input type="file" accept="image/jpeg,image/png,image/webp" onChange={uploadCatalogImage} disabled={imageUploading} />
+                  </label>
+                )}
+              </div>
+            )}
+          </section>
+        </div>
+      )}
 
       <section className="catalog-note">
         <Package size={19} />

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import {
   Ban,
   ChevronDown,
+  CircleCheck,
   FileText,
   Loader2,
   Mail,
@@ -166,12 +167,12 @@ const getTaxAmount = (rate, base = totals.subtotal) => {
   return invoiceType === "credit_fiscal" ? "31" : "32";
   };
 
-  const getFiscalInvoiceNumber = (invoice) => {
-  if (!isDO) {
-    return invoice?.invoiceNumber || t("invoices.common.pending");
-  }
-
-  return invoice?.eNcf || t("invoices.common.pendingENcf");
+ const getFiscalInvoiceNumber = (invoice) => {
+  return (
+    invoice?.eNcf ||
+    invoice?.invoiceNumber ||
+    t("invoices.common.pending")
+  );
 };
 
   const getFiscalInvoiceTitle = (invoiceType) => {
@@ -1438,15 +1439,12 @@ const handlePrintDraft = async () => {
   <table className="qb-table">
     <thead>
       <tr>
-        <th>{isDO ? "e-NCF" : t("invoices.fields.invoiceNumber")}</th>
+        <th>{isDO ? "E-NCF | No." : t("invoices.fields.invoiceNumber")}</th>
         <th>{t("invoices.fields.customer")}</th>
         <th>{t("invoices.fields.subtotal")}</th>
         <th>{t("invoices.fields.taxes")}</th>
         <th>{t("invoices.fields.total")}</th>
-        <th>{t("invoices.fields.paid")}</th>
-        <th>{t("invoices.fields.balance")}</th>
         <th>{t("invoices.fields.status")}</th>
-        <th>{t("invoices.fields.createdBy")}</th>
         <th>{t("invoices.fields.actions")}</th>
       </tr>
     </thead>
@@ -1454,7 +1452,7 @@ const handlePrintDraft = async () => {
     <tbody>
       {loading ? (
         <tr>
-          <td colSpan="10" className="qb-empty">
+          <td colSpan="7" className="qb-empty">
             {t("invoices.messages.loading")}
           </td>
         </tr>
@@ -1462,18 +1460,12 @@ const handlePrintDraft = async () => {
         invoices.map((invoice) => (
           <tr key={invoice.id}>
             <td>
-              <strong>
-                {isDO
-                  ? invoice.eNcf || t("invoices.common.pending")
-                  : invoice.invoiceNumber || t("invoices.common.pending")}
-              </strong>
+              <strong>{getFiscalInvoiceNumber(invoice)}</strong>
             </td>
             <td>{invoice.customerName}</td>
             <td>{money.format(Number(invoice.subtotal || 0))}</td>
             <td>{money.format(Number(invoice.tax || 0))}</td>
             <td>{money.format(Number(invoice.total || 0))}</td>
-            <td>{money.format(Number(invoice.amountPaid || 0))}</td>
-            <td>{money.format(Number(invoice.balance || 0))}</td>
 
             <td>
               <span className={`qb-status qb-${invoice.status}`}>
@@ -1481,7 +1473,6 @@ const handlePrintDraft = async () => {
               </span>
             </td>
 
-            <td>{invoice.creator?.name || t("invoices.common.system")}</td>
 
             <td>
               <div className="qb-actions-cell">
@@ -1497,10 +1488,13 @@ const handlePrintDraft = async () => {
                   invoice.status !== "cancelled" &&
                   invoice.status !== "draft" && (
                     <button
-                      className="qb-secondary-btn"
-                      onClick={() => markAsPaid(invoice)}
-                    >
-                      {t("invoices.actions.markPaid")}
+                        type="button"
+                        className="qb-icon-action qb-icon-paid"
+                        onClick={() => markAsPaid(invoice)}
+                        title={t("invoices.actions.markPaid")}
+                        aria-label={t("invoices.actions.markPaid")}
+                      >
+                        <CircleCheck size={18} />
                     </button>
                   )}
 
@@ -1519,7 +1513,7 @@ const handlePrintDraft = async () => {
         ))
       ) : (
         <tr>
-          <td colSpan="10" className="qb-empty">
+          <td colSpan="7" className="qb-empty">
             {t("invoices.messages.empty")}
           </td>
         </tr>
@@ -1542,11 +1536,7 @@ const handlePrintDraft = async () => {
         <div className="qb-mobile-card-top">
           <div>
             <span className="qb-mobile-label">{t("invoices.common.invoice")}</span>
-            <strong>
-              {isDO
-                ? invoice.eNcf || t("invoices.common.pendingENcf")
-                : invoice.invoiceNumber || t("invoices.common.pending")}
-            </strong>
+            <strong>{getFiscalInvoiceNumber(invoice)}</strong>
           </div>
 
           <span className={`qb-status qb-${invoice.status}`}>
@@ -1588,11 +1578,7 @@ const handlePrintDraft = async () => {
       <div className="qb-mobile-detail-header">
         <div>
           <span>{t("invoices.detail.title")}</span>
-          <h3>
-            {isDO
-              ? selectedInvoice.eNcf || t("invoices.common.pendingENcf")
-              : selectedInvoice.invoiceNumber || t("invoices.common.pending")}
-          </h3>
+          <h3>{getFiscalInvoiceNumber(selectedInvoice)}</h3>
         </div>
 
         <button type="button" onClick={() => setSelectedInvoice(null)}>

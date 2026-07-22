@@ -416,7 +416,8 @@ export default function Receipts() {
             />
           </div>
         </div>
-<div className="receipt-table-wrap receipt-desktop-list">
+
+        <div className="receipt-table-wrap receipt-desktop-list">
   <table className="receipt-table">
     <thead>
       <tr>
@@ -424,10 +425,8 @@ export default function Receipts() {
         <th>{t("receipts.fields.customer")}</th>
         {isDO && <th>{t("receipts.fields.invoice")}</th>}
         <th>{t("receipts.fields.method")}</th>
-        <th>{t("receipts.fields.reference")}</th>
         <th>{t("receipts.fields.amount")}</th>
         <th>{t("receipts.fields.date")}</th>
-        <th>{t("receipts.fields.createdBy")}</th>
         <th>{t("receipts.fields.actions")}</th>
       </tr>
     </thead>
@@ -435,13 +434,13 @@ export default function Receipts() {
     <tbody>
       {loading ? (
         <tr>
-          <td colSpan="9" className="table-empty">
+          <td colSpan={isDO ? 7 : 6} className="table-empty">
             {t("receipts.messages.loading")}
           </td>
         </tr>
       ) : filteredReceipts.length === 0 ? (
         <tr>
-          <td colSpan="9" className="table-empty">
+          <td colSpan={isDO ? 7 : 6} className="table-empty">
             {t("receipts.messages.empty")}
           </td>
         </tr>
@@ -453,31 +452,52 @@ export default function Receipts() {
                 <div className="receipt-icon">
                   <ReceiptText size={18} />
                 </div>
+
                 <strong>{receipt.receiptNumber}</strong>
               </div>
             </td>
 
             <td>{receipt.customerName}</td>
-            {isDO && <td>{getFiscalNumber(receipt.Invoice)}</td>}
-            <td>{getPaymentMethodLabel(receipt.paymentMethod)}</td>
-            <td>{receipt.reference || "-"}</td>
+
+            {isDO && (
+              <td>{getFiscalNumber(receipt.Invoice)}</td>
+            )}
+
             <td>
-              <strong>{money.format(Number(receipt.amount || 0))}</strong>
+              {getPaymentMethodLabel(receipt.paymentMethod)}
             </td>
-            <td>{formatReceiptDate(receipt.receiptDate || receipt.createdAt)}</td>
-            <td>{receipt.creator?.name || t("receipts.messages.system")}</td>
+
+            <td>
+              <strong>
+                {money.format(Number(receipt.amount || 0))}
+              </strong>
+            </td>
+
+            <td>
+              {formatReceiptDate(
+                receipt.receiptDate || receipt.createdAt
+              )}
+            </td>
 
             <td>
               <div className="table-actions">
-                <button onClick={() => handlePrint(receipt)}>
+                <button
+                  type="button"
+                  onClick={() => handlePrint(receipt)}
+                  aria-label={t("receipts.actions.print")}
+                  title={t("receipts.actions.print")}
+                >
                   <Printer size={17} />
                 </button>
 
                 <button
+                  type="button"
                   className="danger-btn"
                   onClick={() => handleDelete(receipt)}
+                  aria-label={t("receipts.actions.delete")}
+                  title={t("receipts.actions.delete")}
                 >
-                  <Trash2 size={18}/>
+                  <Trash2 size={18} />
                 </button>
               </div>
             </td>
@@ -487,6 +507,7 @@ export default function Receipts() {
     </tbody>
   </table>
 </div>
+
 
 <div className="receipt-mobile-list">
   {loading ? (

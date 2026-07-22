@@ -115,13 +115,15 @@
 }
 
 .receipt-table-wrap {
-  overflow-x: auto;
+  width: 100%;
+  overflow-x: hidden;
 }
 
 .receipt-table {
   width: 100%;
   border-collapse: collapse;
 }
+
 
 .receipt-table th {
   text-align: left;
@@ -138,6 +140,15 @@
   border-top: 1px solid #e5e7eb;
   color: #334155;
   font-weight: 650;
+}
+
+.receipt-table th:last-child,
+.receipt-table td:last-child {
+  text-align: center;
+}
+
+.receipt-table .table-actions {
+  justify-content: center;
 }
 
 .receipt-number-cell {

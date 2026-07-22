@@ -1611,8 +1611,8 @@
   }
 
   .receipt-ticket {
-    width: 68mm !important;
-    max-width: 68mm !important;
+    width: 60mm !important;
+    max-width: 60mm !important;
     padding: 2mm !important;
     margin: 0 0 0 2mm !important;
     box-shadow: none !important;
@@ -1620,11 +1620,18 @@
   }
 
   .receipt-item {
-    grid-template-columns: minmax(0, 1fr) 20mm;
+    grid-template-columns: minmax(0, 1fr) 17mm !important;
+    gap: 2mm !important;
   }
 
   .receipt-item-total {
-    font-size: 10px;
+    font-size: 9.5px;
+  }
+
+  .receipt-info-block p,
+  .receipt-totals p {
+    grid-template-columns: 38% 62%;
+    gap: 2mm;
   }
 
   .receipt-modal {
@@ -1641,3 +1648,4 @@
     margin: 0;
   }
 }
+

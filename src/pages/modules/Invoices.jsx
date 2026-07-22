@@ -1441,7 +1441,6 @@ const handlePrintDraft = async () => {
       <tr>
         <th>{isDO ? "E-NCF | No." : t("invoices.fields.invoiceNumber")}</th>
         <th>{t("invoices.fields.customer")}</th>
-        <th>{t("invoices.fields.subtotal")}</th>
         <th>{t("invoices.fields.taxes")}</th>
         <th>{t("invoices.fields.total")}</th>
         <th>{t("invoices.fields.status")}</th>
@@ -1452,7 +1451,7 @@ const handlePrintDraft = async () => {
     <tbody>
       {loading ? (
         <tr>
-          <td colSpan="7" className="qb-empty">
+          <td colSpan="6" className="qb-empty">
             {t("invoices.messages.loading")}
           </td>
         </tr>
@@ -1463,7 +1462,6 @@ const handlePrintDraft = async () => {
               <strong>{getFiscalInvoiceNumber(invoice)}</strong>
             </td>
             <td>{invoice.customerName}</td>
-            <td>{money.format(Number(invoice.subtotal || 0))}</td>
             <td>{money.format(Number(invoice.tax || 0))}</td>
             <td>{money.format(Number(invoice.total || 0))}</td>
 
@@ -1513,7 +1511,7 @@ const handlePrintDraft = async () => {
         ))
       ) : (
         <tr>
-          <td colSpan="7" className="qb-empty">
+          <td colSpan="6" className="qb-empty">
             {t("invoices.messages.empty")}
           </td>
         </tr>

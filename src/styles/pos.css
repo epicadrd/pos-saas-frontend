@@ -1588,3 +1588,56 @@
     gap: 8px;
   }
 }
+
+@media print {
+  body * {
+    visibility: hidden !important;
+  }
+
+  .receipt-print-area,
+  .receipt-print-area * {
+    visibility: visible !important;
+  }
+
+  .receipt-print-area {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 80mm !important;
+    max-width: 80mm !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: #fff !important;
+  }
+
+  .receipt-ticket {
+    width: 68mm !important;
+    max-width: 68mm !important;
+    padding: 2mm !important;
+    margin: 0 0 0 2mm !important;
+    box-shadow: none !important;
+    overflow: hidden !important;
+  }
+
+  .receipt-item {
+    grid-template-columns: minmax(0, 1fr) 20mm;
+  }
+
+  .receipt-item-total {
+    font-size: 10px;
+  }
+
+  .receipt-modal {
+    width: 80mm !important;
+    max-width: 80mm !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  @page {
+    size: 80mm auto;
+    margin: 0;
+  }
+}

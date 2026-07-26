@@ -1,38 +1,56 @@
 import { useState } from "react";
-import { CheckCircle2, ArrowRight } from "lucide-react";
+import {
+  ArrowRight,
+  BadgeCheck,
+  Check,
+  CreditCard,
+  LockKeyhole,
+  Sparkles,
+} from "lucide-react";
 import { api } from "../api/axios";
 
 const plans = [
   {
     id: "emprendedor",
-    name: "Emprendedor",
-    price: "$20",
-    description: "Para negocios que necesitan facturar y organizarse.",
-    features: ["Facturas", "Cotizaciones", "Recibos", "Contabilidad", "2 usuarios", "e-CF"],
+    name: "Básico",
+    price: "20",
+    eyebrow: "Para comenzar",
+    description:
+      "Las herramientas esenciales para facturar y organizar tu negocio.",
+    features: [
+      "Facturas, cotizaciones y recibos",
+      "Contabilidad del negocio",
+      "Hasta 2 usuarios",
+      "Facturación electrónica (e-CF)",
+    ],
   },
   {
     id: "pyme",
     name: "PyME",
-    price: "$45",
+    price: "45",
     popular: true,
-    description: "Para negocios que necesitan inventario, catálogo y punto de venta.",
+    eyebrow: "Para crecer",
+    description:
+      "Controla tus ventas, inventario y operación desde un solo lugar.",
     features: [
-      "Todo lo del plan Básico",
+      "Todo lo incluido en Básico",
       "Inventario completo",
       "Catálogo digital",
       "1 punto de venta con hardware",
-      "3 usuarios",
-      "Registro de actividades por usuario",
+      "Hasta 3 usuarios",
+      "Registro de actividad por usuario",
     ],
   },
   {
     id: "empresarial",
     name: "Pro",
-    price: "$94",
-    description: "Para empresas con operaciones más completas.",
+    price: "94",
+    eyebrow: "Para escalar",
+    description:
+      "Más capacidad y control para empresas con operaciones avanzadas.",
     features: [
-      "Todo lo del plan PyME",
-      "6 usuarios",
+      "Todo lo incluido en PyME",
+      "Hasta 6 usuarios",
       "2 puntos de venta con hardware",
       "Conduces",
       "Órdenes de compra",
@@ -53,7 +71,9 @@ export default function SelectPlan() {
       const { data } = await api.post("/billing/checkout", { plan });
       window.location.href = data.url;
     } catch (error) {
-      setError(error.response?.data?.message || "No pudimos iniciar el pago.");
+      setError(
+        error.response?.data?.message || "No pudimos iniciar el pago.",
+      );
     } finally {
       setLoadingPlan("");
     }
@@ -61,44 +81,89 @@ export default function SelectPlan() {
 
   return (
     <div className="auth-page select-plan-page">
-      <div className="auth-bg"></div>
+      <div className="auth-bg" aria-hidden="true"></div>
 
       <main className="select-plan-container">
+        <div className="select-plan-brand" aria-label="Aventra">
+          <span className="select-plan-brand-mark">
+            <Sparkles size={18} strokeWidth={2.4} />
+          </span>
+
+          <span>Aventra</span>
+        </div>
+
         <header className="select-plan-header">
-          <h1>Elige tu plan</h1>
-          <p>Selecciona un plan para activar tu cuenta y continuar.</p>
+          <span className="select-plan-kicker">
+            Un plan para cada etapa
+          </span>
+
+          <h1>Elige el plan ideal para tu negocio</h1>
+
+          <p>
+            Activa tu cuenta y comienza a gestionar tu empresa con las
+            herramientas que realmente necesitas.
+          </p>
         </header>
 
-        {error && <div className="auth-error">{error}</div>}
+        {error && (
+          <div className="auth-error select-plan-error" role="alert">
+            {error}
+          </div>
+        )}
 
         <section className="select-plan-grid">
           {plans.map((plan) => (
             <article
               key={plan.id}
-              className={`select-plan-card ${plan.popular ? "popular" : ""}`}
+              className={`select-plan-card ${
+                plan.popular ? "popular" : ""
+              }`}
             >
-              {plan.popular && <div className="plan-badge">Más popular</div>}
+              {plan.popular && (
+                <div className="plan-badge">
+                  <BadgeCheck size={15} />
+                  Más popular
+                </div>
+              )}
 
-              <div>
+              <div className="select-plan-card-heading">
+                <span className="select-plan-eyebrow">
+                  {plan.eyebrow}
+                </span>
+
                 <h2>{plan.name}</h2>
                 <p>{plan.description}</p>
               </div>
 
               <div className="select-plan-price">
+                <span className="select-plan-currency">$</span>
                 <strong>{plan.price}</strong>
-                <span>USD/mes</span>
+
+                <span className="select-plan-period">
+                  <small>USD</small>
+                  / mes
+                </span>
               </div>
+
+              <div
+                className="select-plan-divider"
+                aria-hidden="true"
+              ></div>
 
               <div className="select-plan-features">
                 {plan.features.map((feature) => (
                   <div key={feature} className="select-plan-feature">
-                    <CheckCircle2 size={20} />
+                    <span className="select-plan-check">
+                      <Check size={14} strokeWidth={3} />
+                    </span>
+
                     <span>{feature}</span>
                   </div>
                 ))}
               </div>
 
               <button
+                type="button"
                 onClick={() => handleCheckout(plan.id)}
                 disabled={!!loadingPlan}
                 className="plan-button"
@@ -110,7 +175,7 @@ export default function SelectPlan() {
                   </>
                 ) : (
                   <>
-                    Elegir plan
+                    Elegir {plan.name}
                     <ArrowRight size={20} />
                   </>
                 )}
@@ -118,6 +183,13 @@ export default function SelectPlan() {
             </article>
           ))}
         </section>
+
+       <footer className="select-plan-footer">
+        <span>
+          <LockKeyhole size={16} />
+          Pago seguro y protegido
+        </span>
+      </footer>
       </main>
     </div>
   );

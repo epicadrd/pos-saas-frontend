@@ -1,10 +1,12 @@
 import { useState } from "react";
 import {
-  CreditCard,
+  ArrowUpRight,
   CalendarDays,
-  ShieldCheck,
-  Settings,
+  Check,
+  CreditCard,
   Crown,
+  Settings,
+  ShieldCheck,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../../context/AuthContext";
@@ -18,20 +20,25 @@ export default function Billing() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const locale = i18n.language === "en" || tenant?.country === "US" ? "en-US" : "es-DO";
+  const locale =
+    i18n.language === "en" || tenant?.country === "US"
+      ? "en-US"
+      : "es-DO";
 
-  const planName =
-    t(`billing.plans.${tenant?.plan}`, {
-      defaultValue: t("billing.plans.none"),
-    });
+  const planName = t(`billing.plans.${tenant?.plan}`, {
+    defaultValue: t("billing.plans.none"),
+  });
 
-  const statusName =
-    t(`billing.status.${tenant?.subscriptionStatus}`, {
-      defaultValue: t("billing.status.none"),
-    });
+  const statusKey = tenant?.subscriptionStatus || "none";
+
+  const statusName = t(`billing.status.${statusKey}`, {
+    defaultValue: t("billing.status.none"),
+  });
 
   const renewalDate = tenant?.subscriptionCurrentPeriodEnd
-    ? new Date(tenant.subscriptionCurrentPeriodEnd).toLocaleDateString(locale, {
+    ? new Date(
+        tenant.subscriptionCurrentPeriodEnd,
+      ).toLocaleDateString(locale, {
         year: "numeric",
         month: "long",
         day: "numeric",
@@ -40,12 +47,15 @@ export default function Billing() {
     : t("billing.notAvailable");
 
   const cancelDate = tenant?.subscriptionCancelAt
-    ? new Date(tenant.subscriptionCancelAt).toLocaleDateString(locale, {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-        timeZone: "UTC",
-      })
+    ? new Date(tenant.subscriptionCancelAt).toLocaleDateString(
+        locale,
+        {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+          timeZone: "UTC",
+        },
+      )
     : null;
 
   const openBillingPortal = async () => {
@@ -56,7 +66,10 @@ export default function Billing() {
       const { data } = await api.post("/billing/portal");
       window.location.href = data.url;
     } catch (error) {
-      setError(error.response?.data?.message || t("billing.errors.portal"));
+      setError(
+        error.response?.data?.message ||
+          t("billing.errors.portal"),
+      );
     } finally {
       setLoading(false);
     }
@@ -64,118 +77,217 @@ export default function Billing() {
 
   return (
     <div className="billing-page">
-      <div className="billing-hero">
-        <h1>{t("billing.title")}</h1>
-        <p>{t("billing.description")}</p>
-      </div>
+      <header className="billing-hero">
+        <div className="billing-hero-content">
+          <span className="billing-hero-kicker">
+            <ShieldCheck size={16} />
+            {t("billing.kicker")}
+          </span>
 
-      {error && <div className="auth-error">{error}</div>}
+          <h1>{t("billing.title")}</h1>
+          <p>{t("billing.description")}</p>
+        </div>
 
-      <div className="billing-grid">
-        <div className="billing-card">
-          <div className="billing-card-header">
+        <div
+          className="billing-hero-decoration"
+          aria-hidden="true"
+        >
+          <CreditCard size={72} strokeWidth={1.25} />
+        </div>
+      </header>
+
+      {error && (
+        <div
+          className="auth-error billing-error"
+          role="alert"
+        >
+          {error}
+        </div>
+      )}
+
+      <div className="billing-layout">
+        <section className="billing-card billing-plan-card">
+          <div className="billing-card-top">
             <div className="billing-card-title">
               <div className="billing-icon">
                 <Crown size={22} />
               </div>
 
               <div>
-                <h3>{t("billing.currentPlan.title")}</h3>
-                <p>{t("billing.currentPlan.description")}</p>
+                <span className="billing-label">
+                  {t("billing.currentPlan.title")}
+                </span>
+
+                <p>
+                  {t("billing.currentPlan.description")}
+                </p>
               </div>
             </div>
+
+            <span
+              className={`billing-status billing-status-${statusKey}`}
+            >
+              <span className="billing-status-dot"></span>
+              {statusName}
+            </span>
           </div>
 
-          <div className="billing-plan">
+          <div className="billing-plan-name">
+            <span>
+              {t("billing.currentPlan.label")}
+            </span>
+
             <strong>{planName}</strong>
-            <div className="billing-badge">{statusName}</div>
           </div>
-        </div>
 
-        <div className="billing-card">
-          <div className="billing-card-header">
-            <div className="billing-card-title">
-              <div className="billing-icon">
-                <CalendarDays size={22} />
+          <div className="billing-summary">
+            <div className="billing-summary-item">
+              <div className="billing-summary-icon">
+                <CalendarDays size={20} />
               </div>
 
               <div>
-                <h3>{t("billing.renewal.title")}</h3>
-                <p>{t("billing.renewal.description")}</p>
+                <span>
+                  {t("billing.renewal.title")}
+                </span>
+
+                <strong>{renewalDate}</strong>
+
+                <small>
+                  {t("billing.renewal.description")}
+                </small>
               </div>
             </div>
-          </div>
 
-          <div className="billing-renew">{renewalDate}</div>
-        </div>
-
-        <div className="billing-card">
-          <div className="billing-card-header">
-            <div className="billing-card-title">
-              <div className="billing-icon">
-                <ShieldCheck size={22} />
-              </div>
-
-              <div>
-                <h3>{t("billing.subscriptionStatus.title")}</h3>
-                <p>{t("billing.subscriptionStatus.description")}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="billing-info">
-            <div className="billing-info-item">
-              <ShieldCheck size={18} />
-              <span>{statusName}</span>
-            </div>
-
-            <div className="billing-info-item">
-              <CreditCard size={18} />
-              <span>{t("billing.stripeConnected")}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="billing-grid">
-        <div className="billing-card">
-          <div className="billing-card-header">
-            <div className="billing-card-title">
-              <div className="billing-icon">
-                <CreditCard size={22} />
+            <div className="billing-summary-item">
+              <div className="billing-summary-icon">
+                <ShieldCheck size={20} />
               </div>
 
               <div>
-                <h3>{t("billing.managePayments.title")}</h3>
-                <p>{t("billing.managePayments.description")}</p>
+                <span>
+                  {t(
+                    "billing.subscriptionStatus.title",
+                  )}
+                </span>
+
+                <strong>{statusName}</strong>
+
+                <small>
+                  {t(
+                    "billing.subscriptionStatus.description",
+                  )}
+                </small>
               </div>
             </div>
           </div>
 
           {cancelDate && (
             <div className="billing-cancel-notice">
-              <strong>{t("billing.cancelNotice.title")}</strong>
+              <strong>
+                {t("billing.cancelNotice.title")}
+              </strong>
+
               <span>
-                {t("billing.cancelNotice.description", {
-                  date: cancelDate,
-                })}
+                {t(
+                  "billing.cancelNotice.description",
+                  {
+                    date: cancelDate,
+                  },
+                )}
               </span>
             </div>
           )}
+        </section>
 
-          <div className="billing-actions">
-            <button
-              className="billing-btn billing-btn-primary"
-              onClick={openBillingPortal}
-              disabled={loading}
-            >
-              <Settings size={18} />
-              {loading
-                ? t("billing.buttons.openingPortal")
-                : t("billing.buttons.openPortal")}
-            </button>
+        <aside className="billing-card billing-manage-card">
+          <div className="billing-manage-icon">
+            <Settings size={25} />
           </div>
-        </div>
+
+          <div className="billing-manage-copy">
+            <span className="billing-label">
+              {t(
+                "billing.managePayments.eyebrow",
+              )}
+            </span>
+
+            <h2>
+              {t("billing.managePayments.title")}
+            </h2>
+
+            <p>
+              {t(
+                "billing.managePayments.description",
+              )}
+            </p>
+          </div>
+
+          <div className="billing-manage-features">
+            <div>
+              <span>
+                <Check
+                  size={13}
+                  strokeWidth={3}
+                />
+              </span>
+
+              {t(
+                "billing.managePayments.features.paymentMethod",
+              )}
+            </div>
+
+            <div>
+              <span>
+                <Check
+                  size={13}
+                  strokeWidth={3}
+                />
+              </span>
+
+              {t(
+                "billing.managePayments.features.invoices",
+              )}
+            </div>
+
+            <div>
+              <span>
+                <Check
+                  size={13}
+                  strokeWidth={3}
+                />
+              </span>
+
+              {t(
+                "billing.managePayments.features.plan",
+              )}
+            </div>
+          </div>
+
+          <button
+            type="button"
+            className="billing-btn"
+            onClick={openBillingPortal}
+            disabled={loading}
+          >
+            {loading
+              ? t(
+                  "billing.buttons.openingPortal",
+                )
+              : t(
+                  "billing.buttons.openPortal",
+                )}
+
+            {!loading && (
+              <ArrowUpRight size={19} />
+            )}
+          </button>
+
+          <small className="billing-secure-note">
+            <ShieldCheck size={15} />
+            {t("billing.securePortal")}
+          </small>
+        </aside>
       </div>
     </div>
   );

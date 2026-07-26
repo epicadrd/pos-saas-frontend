@@ -188,16 +188,17 @@
   },
 
 
-  "billing": {
+"billing": {
+  "kicker": "Subscription center",
   "title": "Plan and subscription",
-  "description": "Manage your subscription, payment method, and billing status from your secure Stripe-connected portal.",
+  "description": "Review your plan, check the next renewal, and manage payments from one place.",
   "notAvailable": "Not available",
-  "stripeConnected": "Stripe connected",
+  "securePortal": "You will be redirected to a secure portal to complete this action.",
 
   "plans": {
-    "emprendedor": "Starter",
+    "emprendedor": "Basic",
     "pyme": "SMB",
-    "empresarial": "Business",
+    "empresarial": "Pro",
     "none": "No plan"
   },
 
@@ -205,29 +206,40 @@
     "active": "Active",
     "trialing": "Trialing",
     "past_due": "Payment pending",
+    "unpaid": "Payment pending",
     "canceled": "Canceled",
     "inactive": "Inactive",
+    "incomplete": "Incomplete payment",
+    "incomplete_expired": "Payment expired",
+    "paused": "Paused",
     "none": "No status"
   },
 
   "currentPlan": {
     "title": "Current plan",
-    "description": "Your currently active plan"
+    "description": "Summary of your active subscription",
+    "label": "Your plan"
   },
 
   "renewal": {
     "title": "Next renewal",
-    "description": "Estimated renewal date"
+    "description": "Estimated charge date"
   },
 
   "subscriptionStatus": {
     "title": "Subscription status",
-    "description": "Billing information"
+    "description": "Access and billing"
   },
 
   "managePayments": {
-    "title": "Manage payments",
-    "description": "Update your card, download invoices, or change your plan directly from Stripe."
+    "eyebrow": "Management center",
+    "title": "Manage your subscription",
+    "description": "Manage payment details, review receipts, or change your plan.",
+    "features": {
+      "paymentMethod": "Update payment method",
+      "invoices": "Review invoices and payments",
+      "plan": "Change or cancel your plan"
+    }
   },
 
   "cancelNotice": {
@@ -236,8 +248,8 @@
   },
 
   "buttons": {
-    "openPortal": "Open Stripe portal",
-    "openingPortal": "Opening portal..."
+    "openPortal": "Manage subscription",
+    "openingPortal": "Opening secure portal..."
   },
 
   "errors": {

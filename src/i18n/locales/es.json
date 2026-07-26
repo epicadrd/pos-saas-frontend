@@ -196,16 +196,17 @@
     }
   },
 
-  "billing": {
+ "billing": {
+  "kicker": "Centro de suscripción",
   "title": "Plan y suscripción",
-  "description": "Administra tu suscripción, método de pago y estado de facturación desde tu portal seguro conectado con Stripe.",
+  "description": "Consulta tu plan, revisa la próxima renovación y administra tus pagos desde un solo lugar.",
   "notAvailable": "No disponible",
-  "stripeConnected": "Stripe conectado",
+  "securePortal": "Serás dirigido a un portal seguro para completar la gestión.",
 
   "plans": {
-    "emprendedor": "Emprendedor",
+    "emprendedor": "Básico",
     "pyme": "PyME",
-    "empresarial": "Empresarial",
+    "empresarial": "Pro",
     "none": "Sin plan"
   },
 
@@ -213,29 +214,40 @@
     "active": "Activa",
     "trialing": "En prueba",
     "past_due": "Pago pendiente",
+    "unpaid": "Pago pendiente",
     "canceled": "Cancelada",
     "inactive": "Inactiva",
+    "incomplete": "Pago incompleto",
+    "incomplete_expired": "Pago expirado",
+    "paused": "Pausada",
     "none": "Sin estado"
   },
 
   "currentPlan": {
     "title": "Plan actual",
-    "description": "Tu plan activo actualmente"
+    "description": "Resumen de tu suscripción activa",
+    "label": "Tu plan"
   },
 
   "renewal": {
     "title": "Próxima renovación",
-    "description": "Fecha estimada de renovación"
+    "description": "Fecha estimada de cobro"
   },
 
   "subscriptionStatus": {
     "title": "Estado de suscripción",
-    "description": "Información de facturación"
+    "description": "Acceso y facturación"
   },
 
   "managePayments": {
-    "title": "Administrar pagos",
-    "description": "Actualiza tu tarjeta, descarga facturas o cambia tu plan directamente desde Stripe."
+    "eyebrow": "Centro de gestión",
+    "title": "Administra tu suscripción",
+    "description": "Gestiona tus datos de pago, consulta tus comprobantes o cambia tu plan.",
+    "features": {
+      "paymentMethod": "Actualizar método de pago",
+      "invoices": "Consultar facturas y pagos",
+      "plan": "Cambiar o cancelar el plan"
+    }
   },
 
   "cancelNotice": {
@@ -244,14 +256,14 @@
   },
 
   "buttons": {
-    "openPortal": "Abrir portal de Stripe",
-    "openingPortal": "Abriendo portal..."
+    "openPortal": "Gestionar suscripción",
+    "openingPortal": "Abriendo portal seguro..."
   },
 
   "errors": {
     "portal": "No pudimos abrir el portal de facturación."
   }
- },
+},
 
   "layout": {
     "billing": "Facturación",

@@ -13,7 +13,8 @@ const plans = [
   {
     id: "emprendedor",
     name: "Básico",
-    price: "20",
+    monthlyPrice: 20,
+    annualPrice: 200,
     eyebrow: "Para comenzar",
     description:
       "Las herramientas esenciales para facturar y organizar tu negocio.",
@@ -27,7 +28,8 @@ const plans = [
   {
     id: "pyme",
     name: "PyME",
-    price: "45",
+    monthlyPrice: 45,
+    annualPrice: 450,
     popular: true,
     eyebrow: "Para crecer",
     description:
@@ -44,7 +46,8 @@ const plans = [
   {
     id: "empresarial",
     name: "Pro",
-    price: "94",
+    monthlyPrice: 94,
+    annualPrice: 940,
     eyebrow: "Para escalar",
     description:
       "Más capacidad y control para empresas con operaciones avanzadas.",
@@ -60,6 +63,7 @@ const plans = [
 ];
 
 export default function SelectPlan() {
+  const [billingPeriod, setBillingPeriod] = useState("monthly");
   const [loadingPlan, setLoadingPlan] = useState("");
   const [error, setError] = useState("");
 
@@ -68,7 +72,10 @@ export default function SelectPlan() {
       setError("");
       setLoadingPlan(plan);
 
-      const { data } = await api.post("/billing/checkout", { plan });
+      const { data } = await api.post("/billing/checkout", {
+        plan,
+        billingPeriod,
+      });
       window.location.href = data.url;
     } catch (error) {
       setError(
@@ -105,6 +112,33 @@ export default function SelectPlan() {
           </p>
         </header>
 
+        <div
+          className="select-plan-billing-toggle"
+          role="group"
+          aria-label="Modalidad de pago"
+        >
+          <button
+            type="button"
+            className={billingPeriod === "monthly" ? "active" : ""}
+            onClick={() => setBillingPeriod("monthly")}
+            aria-pressed={billingPeriod === "monthly"}
+            disabled={!!loadingPlan}
+          >
+            Mensual
+          </button>
+
+          <button
+            type="button"
+            className={billingPeriod === "annual" ? "active" : ""}
+            onClick={() => setBillingPeriod("annual")}
+            aria-pressed={billingPeriod === "annual"}
+            disabled={!!loadingPlan}
+          >
+            Anual
+            <span>2 meses gratis</span>
+          </button>
+        </div>
+
         {error && (
           <div className="auth-error select-plan-error" role="alert">
             {error}
@@ -135,15 +169,33 @@ export default function SelectPlan() {
                 <p>{plan.description}</p>
               </div>
 
-              <div className="select-plan-price">
+              <div
+                className="select-plan-price"
+                key={`${plan.id}-${billingPeriod}`}
+              >
                 <span className="select-plan-currency">$</span>
-                <strong>{plan.price}</strong>
+                <strong>
+                  {billingPeriod === "annual"
+                    ? plan.annualPrice
+                    : plan.monthlyPrice}
+                </strong>
 
                 <span className="select-plan-period">
                   <small>USD</small>
-                  / mes
+                  / {billingPeriod === "annual" ? "año" : "mes"}
                 </span>
               </div>
+
+              {billingPeriod === "annual" && (
+                <div className="select-plan-annual-note">
+                  Equivale a{" "}
+                  <strong>
+                    US$
+                    {(plan.annualPrice / 12).toFixed(2)}
+                  </strong>{" "}
+                  al mes
+                </div>
+              )}
 
               <div
                 className="select-plan-divider"
@@ -175,7 +227,8 @@ export default function SelectPlan() {
                   </>
                 ) : (
                   <>
-                    Elegir {plan.name}
+                    Elegir {plan.name}{" "}
+                    {billingPeriod === "annual" ? "anual" : ""}
                     <ArrowRight size={20} />
                   </>
                 )}

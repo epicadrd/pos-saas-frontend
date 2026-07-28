@@ -506,7 +506,7 @@ const hasVisibleItems = (items = []) => {
         </button>
         <div className="sidebar-brand">
           <div className="sidebar-logo">
-            <img src="/IconoAventra.png" alt="Aventra" />
+            <img src="/Aventra.png" alt="Aventra" />
           </div>
 
           <div>

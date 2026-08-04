@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Mail, Lock, ArrowRight, ShieldCheck, BarChart3 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import { api } from "../api/axios";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -32,6 +33,26 @@ export default function Login() {
 
     try {
       const data = await login(form);
+
+    const shouldStartTrialCheckout =
+        data.tenant?.subscriptionStatus === "inactive" &&
+        data.tenant?.trialEligible === true &&
+        data.tenant?.trialUsed !== true &&
+        data.tenant?.plan &&
+        data.tenant?.trialBillingPeriod;
+
+      if (shouldStartTrialCheckout) {
+        const { data: checkout } = await api.post(
+          "/billing/checkout",
+          {
+            plan: data.tenant.plan,
+            billingPeriod: data.tenant.trialBillingPeriod,
+          }
+        );
+
+        window.location.assign(checkout.url);
+        return;
+      }  
 
     const activeStatuses = ["active", "trialing"];
 

@@ -54,6 +54,7 @@ function App() {
 
         <Route path="/login" element={<Login />} />
         <Route path="/registro" element={<Register />} />
+        <Route path="/registro-prueba" element={<Register trial />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
         <Route path="/verificar-correo/:token" element={<VerifyEmail />} />

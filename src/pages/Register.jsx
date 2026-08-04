@@ -1,5 +1,9 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import {
+  useNavigate,
+  Link,
+  useSearchParams,
+} from "react-router-dom";
 import {
   Building2,
   Mail,
@@ -12,9 +16,12 @@ import {
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
-export default function Register() {
+export default function Register({ trial = false }) {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { register } = useAuth();
+  const selectedPlan = searchParams.get("plan") || "";
+  const selectedBillingPeriod = searchParams.get("billing") || "";
 
   const [form, setForm] = useState({
     businessName: "",
@@ -41,7 +48,18 @@ export default function Register() {
     setError("");
 
     try {
-      const data = await register(form);
+      const data = await register(
+        {
+          ...form,
+          ...(trial
+            ? {
+                plan: selectedPlan,
+                billingPeriod: selectedBillingPeriod,
+              }
+            : {}),
+        },
+        { trial }
+      );
       navigate("/login", {
         state: {
           message: data.message,
@@ -68,9 +86,19 @@ export default function Register() {
         </div>
 
         <div className="auth-header center">
-          <span className="auth-badge">Nuevo SaaS POS</span>
-          <h1>Crea tu cuenta</h1>
-          <p>Registra tu empresa y empieza a controlar tus operaciones.</p>
+          <span className="auth-badge">
+            {trial ? "15 días gratis" : "Nuevo SaaS POS"}
+          </span>
+
+          <h1>
+            {trial ? "Comienza tu prueba gratis" : "Crea tu cuenta"}
+          </h1>
+
+          <p>
+            {trial
+              ? "Crea tu cuenta, confirma tu correo y registra tu tarjeta. Hoy pagas US$0."
+              : "Registra tu empresa y empieza a controlar tus operaciones."}
+          </p>
         </div>
 
         {error && <div className="auth-error">{error}</div>}

@@ -8,6 +8,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { api } from "../api/axios";
+import { useAuth } from "../context/AuthContext";
 
 const plans = [
   {

@@ -8,6 +8,7 @@ const AuthContext = createContext(null);
 const publicRoutes = [
   "/login",
   "/registro",
+  "/registro-prueba",
   "/forgot-password",
   "/reset-password",
 ];
@@ -65,8 +66,13 @@ export function AuthProvider({ children }) {
     return data;
   };
 
-  const register = async (form) => {
-    const { data } = await api.post("/auth/register", form);
+  const register = async (form, { trial = false } = {}) => {
+    const endpoint = trial
+      ? "/auth/register-trial"
+      : "/auth/register";
+
+    const { data } = await api.post(endpoint, form);
+
     return data;
   };
 

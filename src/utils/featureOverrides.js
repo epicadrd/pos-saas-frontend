@@ -1,8 +1,20 @@
-const FEATURE_OVERRIDES = {
-  13: ["inventory"],
-};
+export const tenantHasFeatureOverride = (
+  tenant,
+  feature
+) => {
+  let features = tenant?.featureOverrides;
 
-export const tenantHasFeatureOverride = (tenantId, feature) => {
-  const features = FEATURE_OVERRIDES[Number(tenantId)] || [];
+  if (typeof features === "string") {
+    try {
+      features = JSON.parse(features);
+    } catch {
+      features = [];
+    }
+  }
+
+  if (!Array.isArray(features)) {
+    features = [];
+  }
+
   return features.includes(feature);
 };

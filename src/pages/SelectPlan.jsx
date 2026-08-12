@@ -3,12 +3,10 @@ import {
   ArrowRight,
   BadgeCheck,
   Check,
-  CreditCard,
   LockKeyhole,
   Sparkles,
 } from "lucide-react";
 import { api } from "../api/axios";
-import { useAuth } from "../context/AuthContext";
 
 const plans = [
   {
@@ -29,8 +27,8 @@ const plans = [
   {
     id: "pyme",
     name: "PyME",
-    monthlyPrice: 45,
-    annualPrice: 450,
+    monthlyPrice: 35,
+    annualPrice: 350,
     popular: true,
     eyebrow: "Para crecer",
     description:
@@ -47,8 +45,8 @@ const plans = [
   {
     id: "empresarial",
     name: "Pro",
-    monthlyPrice: 94,
-    annualPrice: 940,
+    monthlyPrice: 55,
+    annualPrice: 550,
     eyebrow: "Para escalar",
     description:
       "Más capacidad y control para empresas con operaciones avanzadas.",
@@ -77,10 +75,12 @@ export default function SelectPlan() {
         plan,
         billingPeriod,
       });
+
       window.location.href = data.url;
     } catch (error) {
       setError(
-        error.response?.data?.message || "No pudimos iniciar el pago.",
+        error.response?.data?.message ||
+          "No pudimos iniciar el pago.",
       );
     } finally {
       setLoadingPlan("");
@@ -123,7 +123,7 @@ export default function SelectPlan() {
             className={billingPeriod === "monthly" ? "active" : ""}
             onClick={() => setBillingPeriod("monthly")}
             aria-pressed={billingPeriod === "monthly"}
-            disabled={!!loadingPlan}
+            disabled={Boolean(loadingPlan)}
           >
             Mensual
           </button>
@@ -133,7 +133,7 @@ export default function SelectPlan() {
             className={billingPeriod === "annual" ? "active" : ""}
             onClick={() => setBillingPeriod("annual")}
             aria-pressed={billingPeriod === "annual"}
-            disabled={!!loadingPlan}
+            disabled={Boolean(loadingPlan)}
           >
             Anual
             <span>2 meses gratis</span>
@@ -175,6 +175,7 @@ export default function SelectPlan() {
                 key={`${plan.id}-${billingPeriod}`}
               >
                 <span className="select-plan-currency">$</span>
+
                 <strong>
                   {billingPeriod === "annual"
                     ? plan.annualPrice
@@ -191,8 +192,7 @@ export default function SelectPlan() {
                 <div className="select-plan-annual-note">
                   Equivale a{" "}
                   <strong>
-                    US$
-                    {(plan.annualPrice / 12).toFixed(2)}
+                    US${(plan.annualPrice / 12).toFixed(2)}
                   </strong>{" "}
                   al mes
                 </div>
@@ -205,7 +205,10 @@ export default function SelectPlan() {
 
               <div className="select-plan-features">
                 {plan.features.map((feature) => (
-                  <div key={feature} className="select-plan-feature">
+                  <div
+                    key={feature}
+                    className="select-plan-feature"
+                  >
                     <span className="select-plan-check">
                       <Check size={14} strokeWidth={3} />
                     </span>
@@ -218,7 +221,7 @@ export default function SelectPlan() {
               <button
                 type="button"
                 onClick={() => handleCheckout(plan.id)}
-                disabled={!!loadingPlan}
+                disabled={Boolean(loadingPlan)}
                 className="plan-button"
               >
                 {loadingPlan === plan.id ? (
@@ -238,12 +241,12 @@ export default function SelectPlan() {
           ))}
         </section>
 
-       <footer className="select-plan-footer">
-        <span>
-          <LockKeyhole size={16} />
-          Pago seguro y protegido
-        </span>
-      </footer>
+        <footer className="select-plan-footer">
+          <span>
+            <LockKeyhole size={16} />
+            Pago seguro y protegido
+          </span>
+        </footer>
       </main>
     </div>
   );

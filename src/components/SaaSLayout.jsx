@@ -43,17 +43,30 @@ export default function SaaSLayout() {
   const navigate = useNavigate();
 
  const canAccess = (item) => {
-  if (!item.roles.includes(user?.role)) return false;
+  if (!item.roles.includes(user?.role)) {
+    return false;
+  }
 
   if (
     item.feature &&
-    !hasPlanFeature(tenant?.plan, item.feature) &&
-    !tenantHasFeatureOverride(tenant?.id, item.feature)
+    !hasPlanFeature(
+      tenant?.plan,
+      item.feature
+    ) &&
+    !tenantHasFeatureOverride(
+      tenant,
+      item.feature
+    )
   ) {
     return false;
   }
 
-  if (item.requiresCashRegisterAccess && !canUsePos) return false;
+  if (
+    item.requiresCashRegisterAccess &&
+    !canUsePos
+  ) {
+    return false;
+  }
 
   return true;
 };

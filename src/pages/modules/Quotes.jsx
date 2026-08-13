@@ -6,7 +6,7 @@ import {
   FilePlus2,
   MoreHorizontal,
   Plus,
-  Printer,
+  Download,
   Search,
   Trash2,
   X,
@@ -21,6 +21,7 @@ import {
   getTaxLabel,
   isDominicanTenant,
 } from "../../utils/taxConfig";
+import { downloadHtmlAsPdf } from "../../utils/downloadPdf";
 
 const emptyQuote = {
   customerName: "",
@@ -512,7 +513,7 @@ const cleanItems = items.map((item) => ({
   setModalOpen(true);
 };
 
-  const handlePrint = (quote) => {
+  const handlePrint = async (quote) => {
    const html = `
   <html>
     <head>
@@ -645,63 +646,16 @@ const cleanItems = items.map((item) => ({
               ? `<div class="notes"><strong>${t("quotes.print.notes")}:</strong><br/>${quote.notes}</div>`
               : ""
           }
+          <div style="margin-top:28px;border-top:1px solid #e5e7eb;padding-top:8px;color:#64748b;font-size:10px;">
+            ${tenant?.businessName || t("quotes.print.companyFallback")}
+          </div>
         </body>
       </html>
     `;
 
-  const previousPrintFrame =
-  document.getElementById("quote-print-frame");
 
-if (previousPrintFrame) {
-  previousPrintFrame.remove();
-}
 
-const printFrame = document.createElement("iframe");
-
-printFrame.id = "quote-print-frame";
-printFrame.setAttribute("title", "Imprimir cotización");
-
-printFrame.style.position = "fixed";
-printFrame.style.width = "0";
-printFrame.style.height = "0";
-printFrame.style.border = "0";
-printFrame.style.opacity = "0";
-printFrame.style.pointerEvents = "none";
-
-document.body.appendChild(printFrame);
-
-const frameWindow = printFrame.contentWindow;
-const frameDocument = printFrame.contentDocument;
-
-if (!frameWindow || !frameDocument) {
-  printFrame.remove();
-  alert("No se pudo preparar la cotización para imprimir.");
-  return;
-}
-
-frameDocument.open();
-frameDocument.write(html);
-frameDocument.close();
-
-const removePrintFrame = () => {
-  window.setTimeout(() => {
-    printFrame.remove();
-  }, 500);
-};
-
-frameWindow.onafterprint = removePrintFrame;
-
-window.setTimeout(() => {
-  frameWindow.focus();
-  frameWindow.print();
-
-  // Respaldo para navegadores que no ejecuten onafterprint.
-  window.setTimeout(() => {
-    if (document.body.contains(printFrame)) {
-      printFrame.remove();
-    }
-  }, 60000);
-}, 500);
+  await downloadHtmlAsPdf(html, quote.quoteNumber);
 };
 
 return (
@@ -861,7 +815,7 @@ return (
       aria-label={t("quotes.actions.print")}
       onClick={() => handlePrint(quote)}
     >
-      <Printer size={16} />
+      <Download size={16} />
     </button>
 
     {status !== "converted" && status !== "expired" && (
@@ -1114,7 +1068,7 @@ return (
     className="quote-action-btn"
     onClick={() => handlePrint(selectedQuote)}
   >
-    <Printer size={16} />
+    <Download size={16} />
     {t("quotes.actions.print")}
   </button>
 

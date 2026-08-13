@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   Plus,
-  Printer,
+  Download,
   ReceiptText,
   Search,
   Trash2,
@@ -17,6 +17,7 @@ import { isDominicanTenant } from "../../utils/taxConfig";
 import { useAuth } from "../../context/AuthContext";
 import es from "../../i18n/locales/es.json";
 import en from "../../i18n/locales/en.json";
+import { downloadHtmlAsPdf } from "../../utils/downloadPdf";
 
 const emptyReceipt = {
   invoiceId: "",
@@ -32,6 +33,8 @@ const emptyReceipt = {
 export default function Receipts() {
   const { confirm } = useConfirm();
   const { tenant, language } = useAuth();
+  const receiptColor = tenant?.primaryColor || "#00bfae";
+  const receiptLogo = tenant?.logoDataUrl || "";
   const isDO = isDominicanTenant(tenant);
   const dictionary = language === "en" ? en : es;
 
@@ -238,110 +241,307 @@ export default function Receipts() {
   const getPaymentMethodLabel = (method) =>
   t(`receipts.paymentMethods.${method}`, method);
 
-  const handlePrint = (receipt) => {
+  const handlePrint = async (receipt) => {
+  try {
+    const receiptDate = formatReceiptDate(
+      receipt.receiptDate || receipt.createdAt
+    );
+
     const html = `
+      <!DOCTYPE html>
+
       <html>
         <head>
+          <meta charset="UTF-8" />
+
           <title>${receipt.receiptNumber}</title>
+
           <style>
             body {
+              margin: 0;
+              padding: 30px 40px;
+              box-sizing: border-box;
               font-family: Arial, sans-serif;
-              padding: 40px;
               color: #0f172a;
+              background: #ffffff;
+            }
+
+            *,
+            *::before,
+            *::after {
+              box-sizing: border-box;
             }
 
             .header {
               display: flex;
               justify-content: space-between;
-              border-bottom: 2px solid #00bfae;
-              padding-bottom: 20px;
-              margin-bottom: 30px;
+              align-items: flex-start;
+              gap: 30px;
+              padding-bottom: 15px;
+              border-bottom: 2px solid ${receiptColor};
+            }
+
+            .brand {
+              min-width: 0;
+            }
+
+            .logo {
+              display: block;
+              max-width: 120px;
+              max-height: 75px;
+              object-fit: contain;
+              margin-bottom: 8px;
             }
 
             h1 {
               margin: 0;
-              color: #00bfae;
+              color: ${receiptColor};
+              font-size: 27px;
+              line-height: 1.15;
+            }
+
+            .receipt-number {
+              margin: 5px 0 0;
+              color: #475569;
+              font-size: 13px;
+              font-weight: 700;
+            }
+
+            .date {
+              min-width: 150px;
+              text-align: right;
+              font-size: 13px;
+              line-height: 1.45;
+            }
+
+            .company-info {
+              display: flex;
+              align-items: center;
+              flex-wrap: wrap;
+              gap: 5px 18px;
+              padding: 10px 2px 12px;
+              margin-bottom: 12px;
+              color: #475569;
+              font-size: 11px;
+              line-height: 1.3;
+            }
+
+            .company-info span {
+              display: inline-flex;
+              align-items: center;
+            }
+
+            .company-info .company-name {
+              color: #0f172a;
+              font-weight: 700;
             }
 
             .box {
+              margin-bottom: 16px;
+              padding: 15px 17px;
               border: 1px solid #e5e7eb;
-              border-radius: 14px;
-              padding: 18px;
-              margin-bottom: 20px;
+              border-radius: 12px;
+              background: #f8fafc;
+              font-size: 13px;
+              line-height: 1.7;
+              page-break-inside: avoid;
             }
 
             .amount {
-              background: #eef2ff;
-              border-radius: 18px;
-              padding: 24px;
-              font-size: 28px;
-              font-weight: bold;
-              color: #00bfae;
+              margin: 20px 0;
+              padding: 20px;
+              border-radius: 14px;
+              background: ${receiptColor}14;
+              color: ${receiptColor};
               text-align: center;
-              margin: 30px 0;
+              font-size: 28px;
+              font-weight: 700;
+              page-break-inside: avoid;
+            }
+
+            .notes {
+              white-space: pre-wrap;
+              overflow-wrap: anywhere;
             }
 
             .signatures {
               display: flex;
-              gap: 70px;
-              margin-top: 80px;
+              gap: 60px;
+              margin-top: 65px;
+              page-break-inside: avoid;
             }
 
             .signature {
               flex: 1;
-              text-align: center;
+              padding-top: 9px;
               border-top: 1px solid #0f172a;
-              padding-top: 10px;
+              text-align: center;
+              color: #475569;
+              font-size: 12px;
+            }
+
+            .document-footer {
+              margin-top: 28px;
+              padding-top: 8px;
+              border-top: 1px solid #e5e7eb;
+              color: #64748b;
+              font-size: 10px;
             }
           </style>
         </head>
+
         <body>
           <div class="header">
-            <div>
+            <div class="brand">
+              ${
+                receiptLogo
+                  ? `
+                    <img
+                      class="logo"
+                      src="${receiptLogo}"
+                      alt="Logo de la empresa"
+                    />
+                  `
+                  : ""
+              }
+
               <h1>${t("receipts.print.title")}</h1>
-              <p>${receipt.receiptNumber}</p>
+
+              <p class="receipt-number">
+                ${receipt.receiptNumber}
+              </p>
             </div>
-            <div>
+
+            <div class="date">
               <strong>Fecha:</strong><br/>
-             ${formatReceiptDate(receipt.receiptDate || receipt.createdAt)}
+              ${receiptDate}
             </div>
           </div>
 
-          <div class="box">
-            <strong>Cliente:</strong> ${receipt.customerName}<br/>
-            <strong>Concepto:</strong> ${receipt.concept}<br/>
-            <strong>Método:</strong> ${getPaymentMethodLabel(receipt.paymentMethod)}<br/>
-            <strong>Referencia:</strong> ${receipt.reference || "-"}<br/>
+          <div class="company-info">
+            <span class="company-name">
+              ${tenant?.businessName || "Mi empresa"}
+            </span>
+
             ${
-              isDO
-                ? `<strong>Factura:</strong> ${getFiscalNumber(receipt.Invoice)}`
+              isDO && tenant?.rnc
+                ? `
+                  <span>
+                    <strong>RNC/Cédula:</strong>&nbsp;
+                    ${tenant.rnc}
+                  </span>
+                `
+                : ""
+            }
+
+            ${
+              tenant?.phone
+                ? `
+                  <span>
+                    <strong>Teléfono:</strong>&nbsp;
+                    ${tenant.phone}
+                  </span>
+                `
+                : ""
+            }
+
+            ${
+              tenant?.email
+                ? `
+                  <span>
+                    <strong>Email:</strong>&nbsp;
+                    ${tenant.email}
+                  </span>
+                `
+                : ""
+            }
+
+            ${
+              tenant?.address
+                ? `
+                  <span>
+                    <strong>Dirección:</strong>&nbsp;
+                    ${tenant.address}
+                  </span>
+                `
+                : ""
+            }
+          </div>
+
+          <div class="box">
+            <strong>Cliente:</strong>
+            ${receipt.customerName || "-"}
+            <br/>
+
+            <strong>Concepto:</strong>
+            ${receipt.concept || "-"}
+            <br/>
+
+            <strong>Método:</strong>
+            ${getPaymentMethodLabel(receipt.paymentMethod)}
+            <br/>
+
+            <strong>Referencia:</strong>
+            ${receipt.reference || "-"}
+            <br/>
+
+            ${
+              isDO && receipt.Invoice
+                ? `
+                  <strong>Factura:</strong>
+                  ${getFiscalNumber(receipt.Invoice)}
+                `
                 : ""
             }
           </div>
 
           <div class="amount">
-            ${money.format(Number(receipt.amount))}
+            ${money.format(Number(receipt.amount || 0))}
           </div>
 
           ${
             receipt.notes
-              ? `<div class="box"><strong>Notas:</strong><br/>${receipt.notes}</div>`
+              ? `
+                <div class="box notes">
+                  <strong>Notas:</strong><br/>
+                  ${receipt.notes}
+                </div>
+              `
               : ""
           }
 
           <div class="signatures">
-            <div class="signature">${t("receipts.print.receivedBy")}</div>
-            <div class="signature">${t("receipts.print.customer")}</div>
+            <div class="signature">
+              ${t("receipts.print.receivedBy")}
+            </div>
+
+            <div class="signature">
+              ${t("receipts.print.customer")}
+            </div>
+          </div>
+
+          <div class="document-footer">
+            ${tenant?.businessName || "Mi empresa"}
           </div>
         </body>
       </html>
     `;
 
-    const printWindow = window.open("", "_blank");
-    printWindow.document.write(html);
-    printWindow.document.close();
-    printWindow.print();
-  };
+    await downloadHtmlAsPdf(
+      html,
+      receipt.receiptNumber
+    );
+  } catch (error) {
+    console.error(
+      "Error descargando el recibo:",
+      error
+    );
+
+    alert(
+      "No se pudo descargar el recibo. Inténtalo nuevamente."
+    );
+  }
+};
 
   return (
     <div className="receipt-page">
@@ -487,7 +687,7 @@ export default function Receipts() {
                   aria-label={t("receipts.actions.print")}
                   title={t("receipts.actions.print")}
                 >
-                  <Printer size={17} />
+                  <Download size={17} />
                 </button>
 
                 <button
@@ -645,7 +845,7 @@ export default function Receipts() {
           className="receipt-action-btn receipt-primary-action"
           onClick={() => handlePrint(selectedReceipt)}
         >
-          <Printer size={16} />
+          <Download size={16} />
           {t("receipts.actions.print")}
         </button>
 

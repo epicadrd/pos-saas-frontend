@@ -10,7 +10,7 @@ import {
   MoreVertical,
   Phone,
   Plus,
-  Printer,
+  Download,
   Save,
   Settings,
   Trash2,
@@ -29,6 +29,7 @@ import {
   getTaxLabel,
   isDominicanTenant,
 } from "../../utils/taxConfig";
+import { downloadHtmlAsPdf } from "../../utils/downloadPdf";
 
 
 const emptyForm = {
@@ -75,6 +76,9 @@ export default function Invoices() {
     email: "",
     address: "",
   });
+
+  const [selectedCustomerId, setSelectedCustomerId] = useState("");
+  const [editingCustomerId, setEditingCustomerId] = useState(null);
 
   const [view, setView] = useState("list");
   const [activeTab, setActiveTab] = useState("edit");
@@ -546,55 +550,146 @@ const getTaxAmount = (rate, base = totals.subtotal) => {
     setItems(items.filter((_, i) => i !== index));
   };
 
-  const selectCustomer = (customerId) => {
-    if (customerId === "new") {
-      setCustomerModalOpen(true);
-      return;
+  const resetCustomerForm = () => {
+  setNewCustomer({
+    name: "",
+    rnc: "",
+    phone: "",
+    email: "",
+    address: "",
+  });
+
+  setEditingCustomerId(null);
+};
+
+const closeCustomerModal = () => {
+  resetCustomerForm();
+  setCustomerModalOpen(false);
+};
+
+const openNewCustomerModal = () => {
+  resetCustomerForm();
+  setCustomerModalOpen(true);
+};
+
+
+const openEditCustomerModal = () => {
+  if (!selectedCustomerId) {
+    alert("Selecciona un cliente para editar.");
+    return;
+  }
+
+  const customer = customers.find(
+    (item) =>
+      String(item.id) ===
+      String(selectedCustomerId)
+  );
+
+  if (!customer) {
+    alert("No se encontró el cliente seleccionado.");
+    return;
+  }
+
+  setEditingCustomerId(customer.id);
+
+  setNewCustomer({
+    name: customer.name || "",
+    rnc: customer.rnc || "",
+    phone: customer.phone || "",
+    email: customer.email || "",
+    address: customer.address || "",
+  });
+
+  setCustomerModalOpen(true);
+};
+
+const selectCustomer = (customerId) => {
+  if (customerId === "new") {
+    setSelectedCustomerId("");
+    openNewCustomerModal();
+    return;
+  }
+
+  const customer = customers.find(
+    (item) =>
+      String(item.id) === String(customerId)
+  );
+
+  if (!customer) return;
+
+  setSelectedCustomerId(customer.id);
+
+  setForm((currentForm) => ({
+    ...currentForm,
+    customerName: customer.name || "",
+    customerRnc: customer.rnc || "",
+    customerPhone: customer.phone || "",
+    customerEmail: customer.email || "",
+  }));
+};
+
+const saveCustomer = async () => {
+  if (!newCustomer.name.trim()) {
+    alert(
+      t("invoices.fields.customerNameRequired")
+    );
+    return;
+  }
+
+  try {
+    const payload = {
+      name: newCustomer.name.trim(),
+      rnc: newCustomer.rnc.trim(),
+      phone: newCustomer.phone.trim(),
+      email: newCustomer.email.trim(),
+      address: newCustomer.address.trim(),
+    };
+
+    const response = editingCustomerId
+      ? await api.put(
+          `/customers/${editingCustomerId}`,
+          payload
+        )
+      : await api.post(
+          "/customers",
+          payload
+        );
+
+    const savedCustomer =
+      response.data?.customer;
+
+    await loadData();
+
+    if (savedCustomer) {
+      setSelectedCustomerId(
+        savedCustomer.id
+      );
+
+      setForm((currentForm) => ({
+        ...currentForm,
+        customerName:
+          savedCustomer.name || "",
+        customerRnc:
+          savedCustomer.rnc || "",
+        customerPhone:
+          savedCustomer.phone || "",
+        customerEmail:
+          savedCustomer.email || "",
+      }));
     }
 
-    const customer = customers.find((c) => String(c.id) === String(customerId));
-    if (!customer) return;
-
-    setForm({
-      ...form,
-      customerName: customer.name || "",
-      customerRnc: customer.rnc || "",
-      customerPhone: customer.phone || "",
-      customerEmail: customer.email || "",
-    });
-  };
-
-  const saveCustomer = async () => {
-    if (!newCustomer.name.trim()) {
-      alert(t("invoices.fields.customerNameRequired"));
-      return;
-    }
-
-    try {
-      const { data } = await api.post("/customers", newCustomer);
-      await loadData();
-
-      setForm({
-        ...form,
-        customerName: data.customer?.name || "",
-        customerRnc: data.customer?.rnc || "",
-        customerPhone: data.customer?.phone || "",
-        customerEmail: data.customer?.email || "",
-      });
-
-      setNewCustomer({
-        name: "",
-        rnc: "",
-        phone: "",
-        email: "",
-        address: "",
-      });
-
-      setCustomerModalOpen(false);
-    } catch (error) {
-      alert(error.response?.data?.message || t("invoices.messages.createCustomerError"));
-    }
-  };
+    closeCustomerModal();
+  } catch (error) {
+    alert(
+      error.response?.data?.message ||
+        (editingCustomerId
+          ? "No se pudo actualizar el cliente."
+          : t(
+              "invoices.messages.createCustomerError"
+            ))
+    );
+  }
+};
 
   const hasStockError = items.some((item) => {
     const product = products.find((p) => String(p.id) === String(item.productId));
@@ -897,50 +992,23 @@ const emitElectronicInvoice = async (invoice) => {
   };
 };
 
-const printHtml = (html) => {
-  const iframe = document.createElement("iframe");
-
-  iframe.style.position = "fixed";
-  iframe.style.right = "0";
-  iframe.style.bottom = "0";
-  iframe.style.width = "0";
-  iframe.style.height = "0";
-  iframe.style.border = "0";
-
-  document.body.appendChild(iframe);
-
-  const iframeWindow = iframe.contentWindow;
-  const iframeDocument = iframeWindow.document;
-
-  iframeDocument.open();
-  iframeDocument.write(html);
-  iframeDocument.close();
-
-  iframe.onload = () => {
-    iframeWindow.focus();
-    iframeWindow.print();
-
-    iframeWindow.onafterprint = () => {
-      document.body.removeChild(iframe);
-    };
-
-    setTimeout(() => {
-      if (document.body.contains(iframe)) {
-        document.body.removeChild(iframe);
-      }
-    }, 3000);
-  };
-};
+const printHtml = (html, documentNumber) =>
+  downloadHtmlAsPdf(html, documentNumber);
 
   const handlePrintInvoice = async (invoice) => {
     const invoiceItems = invoice.items || [];
     const invoiceElectronic = shouldPrintElectronicInvoice(invoice);
-    const qrDataUrl = invoiceElectronic
-      ? await QRCode.toDataURL(buildInvoiceQrValue(invoice), {
-          width: 150,
-          margin: 1,
-        })
-      : "";
+    const qrDataUrl = await QRCode.toDataURL(
+      buildInvoiceQrValue(invoice),
+      {
+        width: 170,
+        margin: 1,
+        color: {
+          dark: "#111827",
+          light: "#ffffff",
+        },
+      }
+    );
 
     const html = `
       <html>
@@ -949,7 +1017,13 @@ const printHtml = (html) => {
           <style>
             body { font-family: Arial, sans-serif; padding: 26px 40px; color: #111827; }
             .header { display: flex; justify-content: space-between; border-bottom: 2px solid ${invoiceColor}; padding-bottom: 14px; margin-bottom: 18px; }
-            h1 { margin: 0; color: ${invoiceColor}; }
+            h1 {
+              margin: 0;
+              color: ${invoiceColor};
+              font-size: 27px;
+              line-height: 1.15;
+              font-weight: 700;
+            }
             table { width: 100%; border-collapse: collapse; margin-top: 16px; }
             th, td { border-bottom: 1px solid #e5e7eb; padding: 12px; text-align: left; font-size: 14px; }
             th { background: #f8fafc; }
@@ -984,9 +1058,27 @@ const printHtml = (html) => {
             }
             .totals div { display: flex; justify-content: space-between; padding: 5px 0; }
             .total { font-size: 20px; font-weight: bold; border-top: 2px solid #111827; margin-top: 10px; padding-top: 12px; }
-            .qr-section { margin-top: 35px; text-align: center; }
-            .qr-section img { width: 130px; height: 130px; }
-            .qr-section p { margin: 8px 0 0; font-size: 12px; color: #374151; }
+            .qr-section {
+              width: 100%;
+              margin-top: 14px;
+              text-align: center;
+              break-inside: avoid;
+              page-break-inside: avoid;
+            }
+
+            .qr-section img {
+              display: block;
+              width: 110px;
+              height: 110px;
+              margin: 0 auto;
+              object-fit: contain;
+            }
+
+            .qr-section p {
+              margin: 4px 0 0;
+              font-size: 10px;
+              color: #64748b;
+            }
           </style>
         </head>
 
@@ -1117,34 +1209,45 @@ const printHtml = (html) => {
 </div>
 
 
-          ${
-            invoiceElectronic
-              ? `
-                <div class="qr-section">
-                  <img src="${qrDataUrl}" alt="${t("invoices.print.qrAlt")}" />
-                  <p>${t("invoices.print.scanQr")}</p>
-                </div>
-              `
-              : ""
-          }
+       <div class="qr-section">
+          <img
+            src="${qrDataUrl}"
+            alt="${t("invoices.print.qrAlt")}"
+          />
+
+          <p>
+            ${
+              invoiceElectronic
+                ? t("invoices.print.scanQr")
+                : "Escanee para consultar esta factura"
+            }
+          </p>
+        </div>
+
+          <div style="margin-top:28px;border-top:1px solid #e5e7eb;padding-top:8px;color:#64748b;font-size:10px;">
+            ${tenant?.businessName || t("invoices.company.myCompany")}
+          </div>
         </body>
       </html>
     `;
 
-  printHtml(html);
+  await printHtml(html, getFiscalInvoiceNumber(invoice));
 };
 
 const handlePrintDraft = async () => {
   const draftElectronic = electronicInvoicingActive;
-  const qrDataUrl = draftElectronic
-    ? await QRCode.toDataURL(
-        `${window.location.origin}/public/invoice/${invoiceNumberPreview}`,
-        {
-          width: 150,
-          margin: 1,
-        }
-      )
-    : "";  
+  const qrDataUrl = await QRCode.toDataURL(
+    `${window.location.origin}/public/invoice/${invoiceNumberPreview}`,
+    {
+      width: 150,
+      margin: 1,
+      errorCorrectionLevel: "M",
+      color: {
+        dark: "#111827",
+        light: "#ffffff",
+      },
+    }
+  );
  
     const html = `
       <html>
@@ -1152,7 +1255,26 @@ const handlePrintDraft = async () => {
           <title>${t("invoices.common.invoice")} ${invoiceNumberPreview}</title>
           <style>
             body { font-family: Arial, sans-serif; padding: 26px 40px; color: #111827; }
-            .header { display: flex; justify-content: space-between; border-bottom: 2px solid ${invoiceColor}; padding-bottom: 14px; margin-bottom: 18px; }
+            .header {
+              display: flex;
+              justify-content: space-between;
+              align-items: flex-start;
+              gap: 32px;
+              border-bottom: 2px solid ${invoiceColor};
+              padding-bottom: 14px;
+              margin-bottom: 18px;
+            }
+
+            .company-info {
+              min-width: 230px;
+              max-width: 300px;
+              line-height: 1.45;
+            }
+
+            .company-info strong {
+              display: inline-block;
+              margin-bottom: 4px;
+            }
             h1 { margin: 0; color: ${invoiceColor}; }
             table { width: 100%; border-collapse: collapse; margin-top: 16px; }
             th, td { border-bottom: 1px solid #e5e7eb; padding: 12px; text-align: left; font-size: 14px; }
@@ -1197,9 +1319,25 @@ const handlePrintDraft = async () => {
   justify-content: space-between;
   padding: 5px 0;
 }.total { font-size: 20px; font-weight: bold; border-top: 2px solid #111827; margin-top: 10px; padding-top: 12px; }
-            .qr-section { margin-top: 35px; text-align: center; }
-            .qr-section img { width: 130px; height: 130px; }
-            .qr-section p { margin: 8px 0 0; font-size: 12px; color: #374151; }
+           .qr-section {
+              margin-top: 18px;
+              text-align: center;
+              page-break-inside: avoid;
+            }
+
+            .qr-section img {
+              display: block;
+              width: 120px;
+              height: 120px;
+              margin: 0 auto;
+              object-fit: contain;
+            }
+
+            .qr-section p {
+              margin: 5px 0 0;
+              color: #64748b;
+              font-size: 10px;
+            }
           </style>
         </head>
 
@@ -1220,13 +1358,35 @@ const handlePrintDraft = async () => {
     }
   </div>
 
-            <div>
-              <strong>${tenant?.businessName || t("invoices.company.myCompany")}</strong><br/>
-              ${tenant?.address || ""}<br/>
-              ${isDO ? `${t("invoices.preview.rncId")}: ${tenant?.rnc || "-"}<br/>` : ""}
-              ${tenant?.email || ""}<br/>
-              ${tenant?.phone || ""}
-            </div>
+            <div class="company-info">
+  <strong>
+    ${tenant?.businessName || t("invoices.company.myCompany")}
+  </strong><br/>
+
+  ${
+    tenant?.address
+      ? `${tenant.address}<br/>`
+      : ""
+  }
+
+  ${
+    isDO && tenant?.rnc
+      ? `${t("invoices.preview.rncId")}: ${tenant.rnc}<br/>`
+      : ""
+  }
+
+  ${
+    tenant?.email
+      ? `${tenant.email}<br/>`
+      : ""
+  }
+
+  ${
+    tenant?.phone
+      ? `${tenant.phone}`
+      : ""
+  }
+</div>
           </div>
 
           <div class="box">
@@ -1331,21 +1491,28 @@ const handlePrintDraft = async () => {
           </div>
           </div>
 
-          ${
-            draftElectronic
-              ? `
-                <div class="qr-section">
-                  <img src="${qrDataUrl}" alt="${t("invoices.print.qrAlt")}" />
-                  <p>Escanee para consultar esta factura</p>
-                </div>
-              `
-              : ""
-          }
+         <div class="qr-section">
+          <img
+            src="${qrDataUrl}"
+            alt="${t("invoices.print.qrAlt")}"
+          />
+
+          <p>
+            ${
+              draftElectronic
+                ? t("invoices.print.scanQr")
+                : "Escanee para consultar esta factura"
+            }
+          </p>
+        </div>
+           <div style="margin-top:28px;border-top:1px solid #e5e7eb;padding-top:8px;color:#64748b;font-size:10px;">
+              ${tenant?.businessName || t("invoices.company.myCompany")}
+            </div>
         </body>
       </html>
     `;
 
-   printHtml(html);
+   await printHtml(html, invoiceNumberPreview);
   }
   const drafts = invoices.filter((invoice) => invoice.status === "draft");
 
@@ -1478,7 +1645,7 @@ const handlePrintDraft = async () => {
                   className="qb-secondary-btn"
                   onClick={() => handlePrintInvoice(invoice)}
                 >
-                  <Printer size={16} />
+                  <Download size={16} />
                   {t("invoices.actions.print")}
                 </button>
 
@@ -1633,7 +1800,7 @@ const handlePrintDraft = async () => {
           className="qb-primary-btn"
           onClick={() => handlePrintInvoice(selectedInvoice)}
         >
-          <Printer size={16} />
+          <Download size={16} />
           {t("invoices.actions.print")}
         </button>
 
@@ -1782,7 +1949,7 @@ const handlePrintDraft = async () => {
                     handlePrintDraft();
                   }}
                 >
-                  <Printer size={16} />
+                  <Download size={16} />
                   {t("invoices.actions.printOrDownload")}
                 </button>
 
@@ -2095,23 +2262,72 @@ const handlePrintDraft = async () => {
                     marginBottom: "14px",
                   }}
                 >
-                  <select
-                    className="qb-client-select"
-                    onChange={(e) => selectCustomer(e.target.value)}
-                    defaultValue=""
-                  >
-                    <option value="" disabled>
-                      {t("invoices.customer.addOrSelect")}
-                    </option>
+                  <div
+  style={{
+    position: "relative",
+    width: "278px",
+    maxWidth: "100%",
+  }}
+>
+  <select
+    className="qb-client-select"
+    value={selectedCustomerId}
+    onChange={(e) =>
+      selectCustomer(e.target.value)
+    }
+    style={{
+      width: "100%",
+      paddingRight: selectedCustomerId
+        ? "82px"
+        : undefined,
+    }}
+  >
+    <option value="" disabled>
+      {t("invoices.customer.addOrSelect")}
+    </option>
 
-                    <option value="new">{t("invoices.customer.addNew")}</option>
+    <option value="new">
+      {t("invoices.customer.addNew")}
+    </option>
 
-                    {customers.map((customer) => (
-                      <option key={customer.id} value={customer.id}>
-                        {customer.name}
-                      </option>
-                    ))}
-                  </select>
+    {customers.map((customer) => (
+      <option
+        key={customer.id}
+        value={customer.id}
+      >
+        {customer.name}
+      </option>
+    ))}
+  </select>
+
+  {selectedCustomerId && (
+    <button
+  type="button"
+  onClick={openEditCustomerModal}
+  aria-label="Editar cliente seleccionado"
+  title="Editar cliente seleccionado"
+ style={{
+  position: "absolute",
+  top: "46%",
+  right: "52px",
+  transform: "translateY(-80%)",
+  zIndex: 2,
+  border: "none",
+  padding: "4px 8px",
+  background: "#ffffff",
+  color: invoiceColor,
+  fontSize: "12px",
+  fontWeight: 800,
+  lineHeight: 1,
+  cursor: "pointer",
+  textDecoration: "underline",
+  textUnderlineOffset: "2px",
+}}
+>
+  Editar
+</button>
+  )}
+</div>
 
                   {isDO && (
                   <button
@@ -2973,11 +3189,20 @@ const handlePrintDraft = async () => {
           <div className="qb-customer-modal">
             <div className="qb-modal-head">
               <div>
-                <span>{t("invoices.customer.newCustomer")}</span>
-                <h3>{t("invoices.customer.addCustomer")}</h3>
+                <span>
+                  {editingCustomerId
+                    ? "Editar cliente"
+                    : t("invoices.customer.newCustomer")}
+                </span>
+
+                <h3>
+                  {editingCustomerId
+                    ? "Actualizar información"
+                    : t("invoices.customer.addCustomer")}
+                </h3>
               </div>
 
-              <button onClick={() => setCustomerModalOpen(false)}>
+              <button onClick={closeCustomerModal}>
                 <X size={20} />
               </button>
             </div>
@@ -3042,13 +3267,20 @@ const handlePrintDraft = async () => {
             <div className="qb-modal-actions">
               <button
                 className="qb-secondary-btn"
-                onClick={() => setCustomerModalOpen(false)}
+                onClick={closeCustomerModal}
               >
                 {t("invoices.actions.cancel")}
               </button>
 
-              <button className="qb-primary-btn" onClick={saveCustomer}>
-                {t("invoices.actions.save")} {t("invoices.fields.customer").toLowerCase()}
+              <button
+                className="qb-primary-btn"
+                onClick={saveCustomer}
+              >
+                {editingCustomerId
+                  ? "Guardar cambios"
+                  : `${t("invoices.actions.save")} ${t(
+                      "invoices.fields.customer"
+                    ).toLowerCase()}`}
               </button>
             </div>
           </div>

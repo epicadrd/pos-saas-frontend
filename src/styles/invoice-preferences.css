@@ -425,3 +425,31 @@
   flex-shrink: 0;
   color: var(--invoice-color, #00bfae);
 }
+
+.qb-default-invoice-note {
+  display: grid;
+  gap: 8px;
+  color: #334155;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.qb-default-invoice-note textarea {
+  width: 100%;
+  min-height: 120px;
+  resize: vertical;
+  border: 1px solid #dbe3ef;
+  border-radius: 14px;
+  padding: 12px 14px;
+  outline: none;
+  background: #fff;
+  color: #111827;
+  font: inherit;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.qb-default-invoice-note textarea:focus {
+  border-color: #00bfae;
+  box-shadow: 0 0 0 4px rgba(0, 191, 174, 0.1);
+}

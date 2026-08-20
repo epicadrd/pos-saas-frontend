@@ -48,6 +48,20 @@ const emptyForm = {
   applyRetentions: false,
 };
 
+const emptyQuickProductForm = {
+  productType: "product",
+  name: "",
+  description: "",
+  category: "",
+  unit: "unidad",
+  costPrice: "",
+  salePrice: "",
+  trackStock: true,
+  stock: "",
+  minStock: "",
+  showInCatalog: true,
+};
+
 export default function Invoices() {
   const { t } = useTranslation();
   
@@ -67,6 +81,11 @@ export default function Invoices() {
   const [loading, setLoading] = useState(true);
 
   const [customerModalOpen, setCustomerModalOpen] = useState(false);
+  const [quickProductModalOpen, setQuickProductModalOpen] = useState(false);
+  const [savingQuickProduct, setSavingQuickProduct] = useState(false);
+  const [quickProductForm, setQuickProductForm] = useState(
+    emptyQuickProductForm
+  );
   const [showCustomerSuggestions, setShowCustomerSuggestions] = useState(false);
 
   const [newCustomer, setNewCustomer] = useState({
@@ -279,7 +298,7 @@ const getTaxAmount = (rate, base = totals.subtotal) => {
 
     try {
       const productRes = await api.get(
-        "/products?status=active&type=all"
+        "/products/invoice-options?status=active&type=all"
       );
 
       setProducts(
@@ -388,12 +407,13 @@ const getTaxAmount = (rate, base = totals.subtotal) => {
   }, [tenant]);
 
   const resetInvoiceForm = () => {
-  setForm({
-    ...emptyForm,
-    electronicInvoicingEnabled:
-      canUseElectronicInvoicing &&
-      tenant?.electronicInvoicingEnabled === true,
-  });
+    setForm({
+      ...emptyForm,
+      notes: tenant?.defaultInvoiceNotes || "",
+      electronicInvoicingEnabled:
+        canUseElectronicInvoicing &&
+        tenant?.electronicInvoicingEnabled === true,
+    });
 
   setItems([]);
   setEditingInvoiceId(null);
@@ -501,6 +521,132 @@ const getTaxAmount = (rate, base = totals.subtotal) => {
       error.response?.data?.message ||
         "No se pudo guardar la preferencia de facturación electrónica."
     );
+  }
+};
+
+const openQuickProductModal = () => {
+  setQuickProductForm(emptyQuickProductForm);
+  setQuickProductModalOpen(true);
+};
+
+const closeQuickProductModal = () => {
+  if (savingQuickProduct) return;
+
+  setQuickProductModalOpen(false);
+  setQuickProductForm(emptyQuickProductForm);
+};
+
+const changeQuickProductType = (productType) => {
+  const isService = productType === "service";
+
+  setQuickProductForm((previousForm) => ({
+    ...previousForm,
+    productType,
+    trackStock: !isService,
+    unit: isService ? "servicio" : "unidad",
+    stock: "",
+    minStock: "",
+    showInCatalog: !isService,
+  }));
+};
+
+const handleQuickProductChange = (event) => {
+  const { name, value, type, checked } = event.target;
+
+  setQuickProductForm((previousForm) => ({
+    ...previousForm,
+    [name]: type === "checkbox" ? checked : value,
+  }));
+};
+
+const saveQuickProduct = async (event) => {
+  event.preventDefault();
+
+  if (!quickProductForm.name.trim()) {
+    alert("Escribe el nombre del producto o servicio.");
+    return;
+  }
+
+  if (Number(quickProductForm.costPrice || 0) < 0) {
+    alert("El precio de costo no puede ser negativo.");
+    return;
+  }
+
+  if (Number(quickProductForm.salePrice || 0) < 0) {
+    alert("El precio de venta no puede ser negativo.");
+    return;
+  }
+
+  const isService = quickProductForm.productType === "service";
+
+  const controlsStock =
+    !isService && quickProductForm.trackStock === true;
+
+  try {
+    setSavingQuickProduct(true);
+
+    const payload = {
+      name: quickProductForm.name.trim(),
+      description: quickProductForm.description.trim(),
+      category: quickProductForm.category.trim(),
+      unit: isService
+        ? "servicio"
+        : quickProductForm.unit || "unidad",
+      productType: quickProductForm.productType,
+      trackStock: controlsStock,
+      costPrice: Number(quickProductForm.costPrice || 0),
+      salePrice: Number(quickProductForm.salePrice || 0),
+      stock: controlsStock
+        ? Number(quickProductForm.stock || 0)
+        : 0,
+      minStock: controlsStock
+        ? Number(quickProductForm.minStock || 0)
+        : 0,
+      showInCatalog: false,
+    };
+
+    const { data } = await api.post(
+      "/products/from-invoice",
+      payload
+    );
+
+    const createdProduct = data.product;
+
+    setProducts((currentProducts) => [
+      createdProduct,
+      ...currentProducts,
+    ]);
+
+    setItems((currentItems) => [
+      ...currentItems,
+      {
+        productId: createdProduct.id,
+        productName: createdProduct.name,
+        description: createdProduct.description || "",
+        quantity: 1,
+        unit: createdProduct.unit || "unidad",
+        price: Number(createdProduct.salePrice || 0),
+        discount: 0,
+        isTaxable: tenant?.invoiceTaxEnabled !== false,
+        taxRate: Number(tenant?.invoiceTaxRate || 18),
+      },
+    ]);
+
+    setQuickProductModalOpen(false);
+    setQuickProductForm(emptyQuickProductForm);
+
+    alert(
+      isService
+        ? "Servicio guardado y agregado a la factura."
+        : "Producto guardado y agregado a la factura."
+    );
+  } catch (error) {
+    alert(
+      error.response?.data?.message ||
+        "No se pudo guardar el producto o servicio."
+    );
+  } finally {
+    setSavingQuickProduct(false);
   }
 };
 
@@ -2463,6 +2609,16 @@ const handlePrintDraft = async () => {
     </span>
   </button>
 )}
+
+<button
+  type="button"
+  className="qb-quick-product-button"
+  onClick={openQuickProductModal}
+  title="Crear un producto o servicio"
+>
+  <Plus size={17} />
+  <span>Agregar producto o servicio</span>
+</button>
                 </div>
 
                 <div className="qb-form-grid">
@@ -3184,6 +3340,254 @@ const handlePrintDraft = async () => {
         </div>
       )}
 
+      {quickProductModalOpen && (
+  <div
+    className="qb-modal-overlay"
+    onMouseDown={(event) => {
+      if (event.target === event.currentTarget) {
+        closeQuickProductModal();
+      }
+    }}
+  >
+    <div
+      className="qb-quick-product-modal"
+      role="dialog"
+      aria-modal="true"
+    >
+      <div className="qb-modal-head">
+        <div>
+          <span>Inventario</span>
+          <h3>Agregar producto o servicio</h3>
+          <p>
+            Se guardará y se agregará automáticamente a esta factura.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={closeQuickProductModal}
+          disabled={savingQuickProduct}
+          aria-label="Cerrar"
+        >
+          <X size={20} />
+        </button>
+      </div>
+
+      <form onSubmit={saveQuickProduct}>
+        <div className="qb-quick-product-body">
+          <div className="qb-quick-product-type">
+            <button
+              type="button"
+              className={
+                quickProductForm.productType === "product"
+                  ? "active"
+                  : ""
+              }
+              onClick={() => changeQuickProductType("product")}
+            >
+              <span className="qb-quick-product-type-icon">
+                <Plus size={18} />
+              </span>
+
+              <span>
+                <strong>Producto</strong>
+                <small>Puede controlar existencias</small>
+              </span>
+            </button>
+
+            <button
+              type="button"
+              className={
+                quickProductForm.productType === "service"
+                  ? "active"
+                  : ""
+              }
+              onClick={() => changeQuickProductType("service")}
+            >
+              <span className="qb-quick-product-type-icon">
+                <FileText size={18} />
+              </span>
+
+              <span>
+                <strong>Servicio</strong>
+                <small>No utiliza inventario</small>
+              </span>
+            </button>
+          </div>
+
+          <div className="qb-quick-product-grid">
+            <label className="full">
+              Nombre
+              <input
+                autoFocus
+                name="name"
+                value={quickProductForm.name}
+                onChange={handleQuickProductChange}
+                placeholder={
+                  quickProductForm.productType === "service"
+                    ? "Ej.: Consultoría profesional"
+                    : "Ej.: Camiseta negra"
+                }
+                maxLength={120}
+              />
+            </label>
+
+            <label>
+              Categoría
+              <input
+                name="category"
+                value={quickProductForm.category}
+                onChange={handleQuickProductChange}
+                placeholder="Ej.: Ropa, servicios..."
+                maxLength={120}
+              />
+            </label>
+
+            <label>
+              Unidad
+              <select
+                name="unit"
+                value={quickProductForm.unit}
+                onChange={handleQuickProductChange}
+                disabled={
+                  quickProductForm.productType === "service"
+                }
+              >
+                <option value="unidad">Unidad</option>
+                <option value="caja">Caja</option>
+                <option value="paquete">Paquete</option>
+                <option value="metro">Metro</option>
+                <option value="libra">Libra</option>
+                <option value="hora">Hora</option>
+                <option value="servicio">Servicio</option>
+              </select>
+            </label>
+
+            <label>
+              Precio de costo
+              <input
+                name="costPrice"
+                type="number"
+                min="0"
+                step="0.01"
+                value={quickProductForm.costPrice}
+                onChange={handleQuickProductChange}
+                placeholder="0.00"
+              />
+            </label>
+
+            <label>
+              Precio de venta
+              <input
+                name="salePrice"
+                type="number"
+                min="0"
+                step="0.01"
+                value={quickProductForm.salePrice}
+                onChange={handleQuickProductChange}
+                placeholder="0.00"
+              />
+            </label>
+
+            {quickProductForm.productType === "product" && (
+              <label className="full qb-quick-product-check">
+                <input
+                  name="trackStock"
+                  type="checkbox"
+                  checked={quickProductForm.trackStock}
+                  onChange={handleQuickProductChange}
+                />
+
+                <span>
+                  <strong>Controlar existencias</strong>
+                  <small>
+                    Se descontará del inventario al emitir la factura.
+                  </small>
+                </span>
+              </label>
+            )}
+
+            {quickProductForm.productType === "product" &&
+              quickProductForm.trackStock && (
+                <>
+                  <label>
+                    Existencia inicial
+                    <input
+                      name="stock"
+                      type="number"
+                      min="0"
+                      step="1"
+                      value={quickProductForm.stock}
+                      onChange={handleQuickProductChange}
+                      placeholder="0"
+                    />
+                  </label>
+
+                  <label>
+                    Stock mínimo
+                    <input
+                      name="minStock"
+                      type="number"
+                      min="0"
+                      step="1"
+                      value={quickProductForm.minStock}
+                      onChange={handleQuickProductChange}
+                      placeholder="0"
+                    />
+                  </label>
+                </>
+              )}
+
+           
+
+            <label className="full">
+              Descripción
+              <textarea
+                name="description"
+                value={quickProductForm.description}
+                onChange={handleQuickProductChange}
+                placeholder="Detalles adicionales del producto o servicio..."
+                maxLength={1000}
+              />
+            </label>
+          </div>
+        </div>
+
+        <div className="qb-modal-actions">
+          <button
+            type="button"
+            className="qb-secondary-btn"
+            onClick={closeQuickProductModal}
+            disabled={savingQuickProduct}
+          >
+            Cancelar
+          </button>
+
+          <button
+            type="submit"
+            className="qb-primary-btn"
+            disabled={savingQuickProduct}
+          >
+            {savingQuickProduct ? (
+              <>
+                <Loader2 size={17} className="qb-spin" />
+                Guardando...
+              </>
+            ) : (
+              <>
+                <Plus size={17} />
+                Guardar y agregar
+              </>
+            )}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+)}
+
+      
+
       {customerModalOpen && (
         <div className="qb-modal-overlay">
           <div className="qb-customer-modal">
@@ -3600,5 +4004,7 @@ const handlePrintDraft = async () => {
           </div>
         )}
     </div>
+    
   );
 }
+

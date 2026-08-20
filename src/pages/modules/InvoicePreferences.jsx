@@ -31,6 +31,7 @@ const [form, setForm] = useState({
   usStateTaxRate: 0,
   usCountyTaxRate: 0,
   usCityTaxRate: 0,
+  defaultInvoiceNotes: "",
 });
 
   useEffect(() => {
@@ -43,6 +44,7 @@ const [form, setForm] = useState({
         usStateTaxRate: tenant.usStateTaxRate ?? 0,
         usCountyTaxRate: tenant.usCountyTaxRate ?? 0,
         usCityTaxRate: tenant.usCityTaxRate ?? 0,
+        defaultInvoiceNotes: tenant.defaultInvoiceNotes || "",
       });
     }
   }, [tenant]);
@@ -236,6 +238,7 @@ const requestIsProcessing = [
         usStateTaxRate: Number(form.usStateTaxRate || 0),
         usCountyTaxRate: Number(form.usCountyTaxRate || 0),
         usCityTaxRate: Number(form.usCityTaxRate || 0),
+        defaultInvoiceNotes: form.defaultInvoiceNotes,
       });
       
       setTenant(data.tenant);
@@ -597,9 +600,44 @@ const requestIsProcessing = [
           </>
         )}
 
-        <div className="qb-preference-note">
+                <div className="qb-preference-note">
           <strong>Nota:</strong> estos valores serán usados por Aventra para
           calcular los impuestos según el país de la empresa.
+        </div>
+      </div>
+
+      <div className="qb-table-card qb-preferences-card">
+        <div className="qb-preferences-title">
+          <FileKey2 size={22} />
+
+          <div>
+            <h3>Nota predeterminada de factura</h3>
+            <p>
+              Esta nota se colocará automáticamente al crear cada factura nueva.
+            </p>
+          </div>
+        </div>
+
+        <label className="qb-default-invoice-note">
+          Nota predeterminada
+
+          <textarea
+            rows={5}
+            maxLength={2000}
+            value={form.defaultInvoiceNotes}
+            onChange={(event) =>
+              setForm({
+                ...form,
+                defaultInvoiceNotes: event.target.value,
+              })
+            }
+            placeholder="Ej.: Gracias por su compra. Mercancía vendida no tiene devolución."
+          />
+        </label>
+
+        <div className="qb-preference-note">
+          Podrás modificar o borrar esta nota en una factura específica sin
+          cambiar la nota predeterminada.
         </div>
       </div>
     </div>

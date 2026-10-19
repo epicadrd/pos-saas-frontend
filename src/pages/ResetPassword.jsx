@@ -1,6 +1,10 @@
 import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { Lock, ArrowRight, BarChart3, ShieldCheck } from "lucide-react";
+import { Lock, ArrowRight, ShieldCheck, AlertCircle } from "lucide-react";
+import AuthLayout, {
+  AuthHeader,
+  AuthPasswordInput,
+} from "../components/AuthLayout";
 import { api } from "../api/axios";
 
 export default function ResetPassword() {
@@ -61,67 +65,78 @@ export default function ResetPassword() {
     }
   };
 
+  const lengthOk = form.password.length >= 8;
+  const matchOk =
+    form.confirmPassword.length > 0 && form.password === form.confirmPassword;
+
   return (
-    <div className="auth-page">
-      <div className="auth-bg"></div>
+    <AuthLayout
+      asideTitle="Una nueva contraseña, el mismo control."
+      asideText="Elige una contraseña segura y vuelve a gestionar tus ventas, inventario y documentos."
+    >
+      <AuthHeader
+        badge="Nueva contraseña"
+        badgeIcon={ShieldCheck}
+        title="Restablecer contraseña"
+        text="Crea una nueva contraseña segura para acceder a Aventra."
+      />
 
-      <div className="auth-card login-card">
-        <div className="auth-brand">
-          <div className="brand-icon">
-            <BarChart3 size={26} />
-          </div>
-          <span>Aventra</span>
+      {error && (
+        <div className="auth-shell-alert error" role="alert">
+          <AlertCircle size={18} />
+          {error}
         </div>
+      )}
 
-        <div className="auth-header">
-          <span className="auth-badge">
-            <ShieldCheck size={16} />
-            Nueva contraseña
-          </span>
+      <form onSubmit={handleSubmit} className="auth-shell-form">
+        <AuthPasswordInput
+          label="Nueva contraseña"
+          icon={Lock}
+          name="password"
+          autoComplete="new-password"
+          placeholder="Mínimo 8 caracteres"
+          value={form.password}
+          onChange={handleChange}
+        />
+        {form.password && (
+          <p className={`auth-shell-hint ${lengthOk ? "ok" : ""}`}>
+            {lengthOk ? "✓ Longitud correcta" : "Mínimo 8 caracteres"}
+          </p>
+        )}
 
-          <h1>Restablecer contraseña</h1>
-          <p>Crea una nueva contraseña segura para acceder a Aventra.</p>
-        </div>
+        <AuthPasswordInput
+          label="Confirmar contraseña"
+          icon={Lock}
+          name="confirmPassword"
+          autoComplete="new-password"
+          placeholder="Repite la contraseña"
+          value={form.confirmPassword}
+          onChange={handleChange}
+        />
+        {form.confirmPassword && (
+          <p className={`auth-shell-hint ${matchOk ? "ok" : "bad"}`}>
+            {matchOk ? "✓ Las contraseñas coinciden" : "Las contraseñas no coinciden"}
+          </p>
+        )}
 
-        {error && <div className="auth-error">{error}</div>}
+        <button disabled={loading} className="auth-shell-submit">
+          {loading ? (
+            <>
+              <span className="auth-shell-spinner" />
+              Actualizando...
+            </>
+          ) : (
+            <>
+              Actualizar contraseña
+              <ArrowRight size={18} />
+            </>
+          )}
+        </button>
+      </form>
 
-        <form onSubmit={handleSubmit} className="auth-form">
-          <label>Nueva contraseña</label>
-
-          <div className="input-group">
-            <Lock size={19} />
-            <input
-              name="password"
-              type="password"
-              placeholder="Mínimo 8 caracteres"
-              value={form.password}
-              onChange={handleChange}
-            />
-          </div>
-
-          <label>Confirmar contraseña</label>
-
-          <div className="input-group">
-            <Lock size={19} />
-            <input
-              name="confirmPassword"
-              type="password"
-              placeholder="Repite la contraseña"
-              value={form.confirmPassword}
-              onChange={handleChange}
-            />
-          </div>
-
-          <button disabled={loading} className="auth-button">
-            {loading ? "Actualizando..." : "Actualizar contraseña"}
-            <ArrowRight size={20} />
-          </button>
-        </form>
-
-        <p className="auth-switch">
-          ¿Ya tienes acceso? <Link to="/login">Iniciar sesión</Link>
-        </p>
-      </div>
-    </div>
+      <p className="auth-shell-switch">
+        ¿Ya tienes acceso? <Link to="/login">Iniciar sesión</Link>
+      </p>
+    </AuthLayout>
   );
 }

@@ -1,6 +1,18 @@
 import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Mail, Lock, ArrowRight, ShieldCheck, BarChart3 } from "lucide-react";
+import {
+  Mail,
+  Lock,
+  ArrowRight,
+  ShieldCheck,
+  AlertCircle,
+  CheckCircle2,
+} from "lucide-react";
+import AuthLayout, {
+  AuthHeader,
+  AuthInput,
+  AuthPasswordInput,
+} from "../components/AuthLayout";
 import { useAuth } from "../context/AuthContext";
 import { api } from "../api/axios";
 
@@ -124,70 +136,74 @@ navigate("/dashboard");
   };
 
   return (
-    <div className="auth-page">
-      <div className="auth-bg"></div>
+    <AuthLayout>
+      <AuthHeader
+        badge="Sistema seguro"
+        badgeIcon={ShieldCheck}
+        title="Bienvenido de nuevo"
+        text="Accede a tu panel para gestionar ventas, inventario y documentos."
+      />
 
-      <div className="auth-card login-card">
-        <div className="auth-brand">
-          <div className="brand-icon">
-            <BarChart3 size={26} />
-          </div>
-          <span>Aventra</span>
+      {error && (
+        <div className="auth-shell-alert error" role="alert">
+          <AlertCircle size={18} />
+          {error}
+        </div>
+      )}
+
+      {successMessage && (
+        <div className="auth-shell-alert success" role="status">
+          <CheckCircle2 size={18} />
+          {successMessage}
+        </div>
+      )}
+
+      <form onSubmit={handleLogin} className="auth-shell-form">
+        <AuthInput
+          label="Correo electrónico"
+          icon={Mail}
+          name="email"
+          type="email"
+          autoComplete="email"
+          placeholder="ejemplo@empresa.com"
+          value={form.email}
+          onChange={handleChange}
+        />
+
+        <AuthPasswordInput
+          label="Contraseña"
+          icon={Lock}
+          name="password"
+          autoComplete="current-password"
+          placeholder="••••••••"
+          value={form.password}
+          onChange={handleChange}
+        />
+
+        <div className="auth-shell-row">
+          <Link to="/forgot-password" className="auth-shell-link">
+            ¿Olvidaste tu contraseña?
+          </Link>
         </div>
 
-        <div className="auth-header">
-          <span className="auth-badge">
-            <ShieldCheck size={16} />
-            Sistema seguro
-          </span>
+        <button disabled={loading} className="auth-shell-submit">
+          {loading ? (
+            <>
+              <span className="auth-shell-spinner" />
+              Entrando...
+            </>
+          ) : (
+            <>
+              Iniciar sesión
+              <ArrowRight size={18} />
+            </>
+          )}
+        </button>
+      </form>
 
-          <h1>Bienvenido de nuevo</h1>
-          <p>Accede a tu panel para gestionar ventas, inventario y documentos.</p>
-        </div>
-
-        {error && <div className="auth-error">{error}</div>}
-
-        {successMessage && <div className="auth-success">{successMessage}</div>}
-
-        <form onSubmit={handleLogin} className="auth-form">
-          <label>Correo electrónico</label>
-          <div className="input-group">
-            <Mail size={19} />
-            <input
-              name="email"
-              type="email"
-              placeholder="ejemplo@empresa.com"
-              value={form.email}
-              onChange={handleChange}
-            />
-          </div>
-
-          <label>Contraseña</label>
-          <div className="input-group">
-            <Lock size={19} />
-            <input
-              name="password"
-              type="password"
-              placeholder="••••••••"
-              value={form.password}
-              onChange={handleChange}
-            />
-          </div>
-
-          <div className="forgot-password-link">
-            <Link to="/forgot-password">¿Olvidaste tu contraseña?</Link>
-          </div>
-
-          <button disabled={loading} className="auth-button">
-            {loading ? "Entrando..." : "Iniciar sesión"}
-            <ArrowRight size={20} />
-          </button>
-        </form>
-
-        <p className="auth-switch">
-          ¿No tienes cuenta? <Link to="/registro">Crear cuenta</Link>
-        </p>
-      </div>
-    </div>
+      <p className="auth-shell-switch">
+        ¿No tienes cuenta? <Link to="/registro">Crear cuenta</Link>
+      </p>
+    </AuthLayout>
   );
 }

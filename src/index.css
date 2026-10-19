@@ -21,6 +21,7 @@
 @import "./styles/receipts.css";
 @import "./styles/purchase.css";
 @import "./styles/theme-aventra.css";
+@import "./styles/auth-shell.css";
 @import "./styles/accounting.css";
 @import "./styles/expenses.css";
 @import "./styles/reports.css";

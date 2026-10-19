@@ -13,8 +13,41 @@ import {
   FileText,
   ArrowRight,
   Sparkles,
+  AlertCircle,
+  CalendarCheck,
+  CreditCard,
+  LayoutDashboard,
+  Users,
 } from "lucide-react";
+import AuthLayout, {
+  AuthHeader,
+  AuthInput,
+  AuthPasswordInput,
+} from "../components/AuthLayout";
 import { useAuth } from "../context/AuthContext";
+
+const TRIAL_HIGHLIGHTS = [
+  {
+    icon: CalendarCheck,
+    title: "15 días completos",
+    text: "Acceso a las funciones de tu plan desde el primer día.",
+  },
+  {
+    icon: CreditCard,
+    title: "Hoy pagas US$0",
+    text: "El primer cobro llega al terminar la prueba.",
+  },
+  {
+    icon: LayoutDashboard,
+    title: "Todo en un panel",
+    text: "Ventas, inventario, facturas y reportes conectados.",
+  },
+  {
+    icon: Users,
+    title: "Tu equipo incluido",
+    text: "Invita usuarios y asigna roles a cada uno.",
+  },
+];
 
 export default function Register({ trial = false }) {
   const navigate = useNavigate();
@@ -74,128 +107,121 @@ export default function Register({ trial = false }) {
   };
 
   return (
-    <div className="auth-page register-page">
-      <div className="auth-bg"></div>
+    <AuthLayout
+      wide
+      {...(trial
+        ? {
+            asideTitle: "Prueba Aventra 15 días sin costo.",
+            asideText:
+              "Configura tu empresa en minutos y explora todas las herramientas antes de pagar.",
+            highlights: TRIAL_HIGHLIGHTS,
+          }
+        : {
+            asideTitle: "Tu empresa lista para vender hoy.",
+          })}
+    >
+      <AuthHeader
+        badge={trial ? "15 días gratis" : "Nuevo SaaS POS"}
+        badgeIcon={Sparkles}
+        title={trial ? "Comienza tu prueba gratis" : "Crea tu cuenta"}
+        text={
+          trial
+            ? "Crea tu cuenta, confirma tu correo y registra tu tarjeta. Hoy pagas US$0."
+            : "Registra tu empresa y empieza a controlar tus operaciones."
+        }
+      />
 
-      <div className="auth-card register-card">
-        <div className="auth-brand center">
-          <div className="brand-icon">
-            <Sparkles size={26} />
-          </div>
-          <span>Aventra</span>
+      {error && (
+        <div className="auth-shell-alert error" role="alert">
+          <AlertCircle size={18} />
+          {error}
+        </div>
+      )}
+
+      <form onSubmit={handleRegister} className="auth-shell-form">
+        <div className="auth-shell-grid">
+          <AuthInput
+            label="Empresa"
+            icon={Building2}
+            name="businessName"
+            autoComplete="organization"
+            placeholder="Nombre empresa"
+            value={form.businessName}
+            onChange={handleChange}
+          />
+
+          <AuthInput
+            label="RNC"
+            icon={FileText}
+            name="rnc"
+            placeholder="RNC"
+            value={form.rnc}
+            onChange={handleChange}
+          />
+
+          <AuthInput
+            label="Teléfono"
+            icon={Phone}
+            name="phone"
+            type="tel"
+            autoComplete="tel"
+            placeholder="809-000-0000"
+            value={form.phone}
+            onChange={handleChange}
+          />
+
+          <AuthInput
+            label="Nombre admin"
+            icon={User}
+            name="name"
+            autoComplete="name"
+            placeholder="Tu nombre"
+            value={form.name}
+            onChange={handleChange}
+          />
+
+          <AuthInput
+            className="full"
+            label="Correo electrónico"
+            icon={Mail}
+            name="email"
+            type="email"
+            autoComplete="email"
+            placeholder="ejemplo@empresa.com"
+            value={form.email}
+            onChange={handleChange}
+          />
+
+          <AuthPasswordInput
+            className="full"
+            label="Contraseña"
+            icon={Lock}
+            name="password"
+            autoComplete="new-password"
+            placeholder="••••••••"
+            value={form.password}
+            onChange={handleChange}
+          />
         </div>
 
-        <div className="auth-header center">
-          <span className="auth-badge">
-            {trial ? "15 días gratis" : "Nuevo SaaS POS"}
-          </span>
+        <button disabled={loading} className="auth-shell-submit">
+          {loading ? (
+            <>
+              <span className="auth-shell-spinner" />
+              Creando cuenta...
+            </>
+          ) : (
+            <>
+              Crear cuenta
+              <ArrowRight size={18} />
+            </>
+          )}
+        </button>
+      </form>
 
-          <h1>
-            {trial ? "Comienza tu prueba gratis" : "Crea tu cuenta"}
-          </h1>
-
-          <p>
-            {trial
-              ? "Crea tu cuenta, confirma tu correo y registra tu tarjeta. Hoy pagas US$0."
-              : "Registra tu empresa y empieza a controlar tus operaciones."}
-          </p>
-        </div>
-
-        {error && <div className="auth-error">{error}</div>}
-
-        <form onSubmit={handleRegister} className="auth-form">
-          <div className="form-grid">
-            <div>
-              <label>Empresa</label>
-              <div className="input-group">
-                <Building2 size={19} />
-                <input
-                  name="businessName"
-                  placeholder="Nombre empresa"
-                  value={form.businessName}
-                  onChange={handleChange}
-                />
-              </div>
-            </div>
-
-            <div>
-              <label>RNC</label>
-              <div className="input-group">
-                <FileText size={19} />
-                <input
-                  name="rnc"
-                  placeholder="RNC"
-                  value={form.rnc}
-                  onChange={handleChange}
-                />
-              </div>
-            </div>
-
-            <div>
-              <label>Teléfono</label>
-              <div className="input-group">
-                <Phone size={19} />
-                <input
-                  name="phone"
-                  placeholder="809-000-0000"
-                  value={form.phone}
-                  onChange={handleChange}
-                />
-              </div>
-            </div>
-
-            <div>
-              <label>Nombre admin</label>
-              <div className="input-group">
-                <User size={19} />
-                <input
-                  name="name"
-                  placeholder="Tu nombre"
-                  value={form.name}
-                  onChange={handleChange}
-                />
-              </div>
-            </div>
-
-            <div className="full">
-              <label>Correo electrónico</label>
-              <div className="input-group">
-                <Mail size={19} />
-                <input
-                  name="email"
-                  type="email"
-                  placeholder="ejemplo@empresa.com"
-                  value={form.email}
-                  onChange={handleChange}
-                />
-              </div>
-            </div>
-
-            <div className="full">
-              <label>Contraseña</label>
-              <div className="input-group">
-                <Lock size={19} />
-                <input
-                  name="password"
-                  type="password"
-                  placeholder="••••••••"
-                  value={form.password}
-                  onChange={handleChange}
-                />
-              </div>
-            </div>
-          </div>
-
-          <button disabled={loading} className="auth-button">
-            {loading ? "Creando cuenta..." : "Crear cuenta"}
-            <ArrowRight size={20} />
-          </button>
-        </form>
-
-        <p className="auth-switch">
-          ¿Ya tienes cuenta? <Link to="/login">Inicia sesión</Link>
-        </p>
-      </div>
-    </div>
+      <p className="auth-shell-switch">
+        ¿Ya tienes cuenta? <Link to="/login">Inicia sesión</Link>
+      </p>
+    </AuthLayout>
   );
 }

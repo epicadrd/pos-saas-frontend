@@ -1,6 +1,14 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Mail, ArrowRight, BarChart3, ShieldCheck } from "lucide-react";
+import {
+  Mail,
+  MailCheck,
+  ArrowRight,
+  ArrowLeft,
+  ShieldCheck,
+  AlertCircle,
+} from "lucide-react";
+import AuthLayout, { AuthHeader, AuthInput } from "../components/AuthLayout";
 import { api } from "../api/axios";
 
 export default function ForgotPassword() {
@@ -35,56 +43,63 @@ export default function ForgotPassword() {
   };
 
   return (
-    <div className="auth-page">
-      <div className="auth-bg"></div>
+    <AuthLayout
+      asideTitle="Recupera el acceso en segundos."
+      asideText="Te enviaremos un enlace seguro a tu correo para que crees una nueva contraseña y sigas trabajando."
+    >
+      <AuthHeader
+        badge="Recuperación segura"
+        badgeIcon={ShieldCheck}
+        title="Recuperar contraseña"
+        text="Escribe tu correo y te enviaremos un enlace para crear una nueva contraseña."
+      />
 
-      <div className="auth-card login-card">
-        <div className="auth-brand">
-          <div className="brand-icon">
-            <BarChart3 size={26} />
-          </div>
-          <span>Aventra</span>
+      {error && (
+        <div className="auth-shell-alert error" role="alert">
+          <AlertCircle size={18} />
+          {error}
         </div>
+      )}
 
-        <div className="auth-header">
-          <span className="auth-badge">
-            <ShieldCheck size={16} />
-            Recuperación segura
-          </span>
-
-          <h1>Recuperar contraseña</h1>
-          <p>
-            Escribe tu correo y te enviaremos un enlace para crear una nueva
-            contraseña.
-          </p>
+      {message && (
+        <div className="auth-shell-alert success" role="status">
+          <MailCheck size={18} />
+          {message}
         </div>
+      )}
 
-        {error && <div className="auth-error">{error}</div>}
-        {message && <div className="auth-success">{message}</div>}
+      <form onSubmit={handleSubmit} className="auth-shell-form">
+        <AuthInput
+          label="Correo electrónico"
+          icon={Mail}
+          type="email"
+          autoComplete="email"
+          placeholder="ejemplo@empresa.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
 
-        <form onSubmit={handleSubmit} className="auth-form">
-          <label>Correo electrónico</label>
+        <button disabled={loading} className="auth-shell-submit">
+          {loading ? (
+            <>
+              <span className="auth-shell-spinner" />
+              Enviando...
+            </>
+          ) : (
+            <>
+              Enviar enlace
+              <ArrowRight size={18} />
+            </>
+          )}
+        </button>
+      </form>
 
-          <div className="input-group">
-            <Mail size={19} />
-            <input
-              type="email"
-              placeholder="ejemplo@empresa.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-          </div>
-
-          <button disabled={loading} className="auth-button">
-            {loading ? "Enviando..." : "Enviar enlace"}
-            <ArrowRight size={20} />
-          </button>
-        </form>
-
-        <p className="auth-switch">
-          ¿Recordaste tu contraseña? <Link to="/login">Iniciar sesión</Link>
-        </p>
-      </div>
-    </div>
+      <p className="auth-shell-switch">
+        <Link to="/login">
+          <ArrowLeft size={15} style={{ verticalAlign: "-2px", marginRight: 4 }} />
+          Volver a iniciar sesión
+        </Link>
+      </p>
+    </AuthLayout>
   );
 }

@@ -1,0 +1,962 @@
+/* =========================================================
+   PULIDO · COMPONENTES COMPARTIDOS DE LOS MÓDULOS
+   - Prefijo .saas-content para ganar a CSS de módulos que se
+     cargan después (pos.css, Billing.css, etc.).
+   - Colores, bordes, sombras y radios: siempre.
+   - Tamaños y paddings: solo escritorio (>= 769px) para no
+     pisar los ajustes móviles existentes.
+========================================================= */
+
+/* ---------- Encabezados de página ---------- */
+
+.saas-content :is(
+  .inventory-header,
+  .quote-header,
+  .receipt-header,
+  .purchase-header,
+  .delivery-header,
+  .invoice-header,
+  .inventory-count-header,
+  .users-header,
+  .payment-history-header,
+  .activity-header,
+  .pos-header,
+  .page-header
+) {
+  border: 1px solid var(--ui-line);
+  border-radius: 20px;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(0, 191, 174, 0.07), transparent 40%),
+    var(--ui-card);
+  box-shadow: var(--ui-shadow-sm);
+}
+
+.saas-content :is(
+  .inventory-header,
+  .quote-header,
+  .receipt-header,
+  .purchase-header,
+  .delivery-header,
+  .invoice-header,
+  .inventory-count-header,
+  .users-header,
+  .payment-history-header,
+  .page-header
+) > div > span:first-child {
+  color: var(--ui-teal-dark);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+}
+
+.saas-content :is(
+  .inventory-header,
+  .quote-header,
+  .receipt-header,
+  .purchase-header,
+  .delivery-header,
+  .invoice-header,
+  .inventory-count-header,
+  .users-header,
+  .payment-history-header,
+  .activity-header,
+  .pos-header,
+  .page-header
+) h2 {
+  color: var(--ui-ink);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.saas-content :is(
+  .inventory-header,
+  .quote-header,
+  .receipt-header,
+  .purchase-header,
+  .delivery-header,
+  .invoice-header,
+  .inventory-count-header,
+  .users-header,
+  .payment-history-header,
+  .activity-header,
+  .pos-header,
+  .page-header
+) p {
+  color: var(--ui-muted);
+}
+
+@media (min-width: 769px) {
+  .saas-content :is(
+    .inventory-header,
+    .quote-header,
+    .receipt-header,
+    .purchase-header,
+    .delivery-header,
+    .invoice-header,
+    .inventory-count-header,
+    .users-header,
+    .payment-history-header,
+    .activity-header,
+    .page-header
+  ) {
+    padding: 28px 32px;
+  }
+
+  .saas-content :is(
+    .inventory-header,
+    .quote-header,
+    .receipt-header,
+    .purchase-header,
+    .delivery-header,
+    .invoice-header,
+    .inventory-count-header,
+    .users-header,
+    .payment-history-header,
+    .activity-header,
+    .pos-header,
+    .page-header
+  ) h2 {
+    font-size: 30px;
+  }
+}
+
+/* ---------- Tarjetas de estadísticas ---------- */
+
+.saas-content :is(
+  .inventory-stat-card,
+  .quote-stat-card,
+  .receipt-stat-card,
+  .purchase-stat-card,
+  .delivery-stat-card,
+  .invoice-stat-card,
+  .payment-stat-card,
+  .users-stat-card
+) {
+  border: 1px solid var(--ui-line);
+  border-radius: 16px;
+  background: var(--ui-card);
+  box-shadow: var(--ui-shadow-sm);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.saas-content :is(
+  .inventory-stat-card,
+  .quote-stat-card,
+  .receipt-stat-card,
+  .purchase-stat-card,
+  .delivery-stat-card,
+  .invoice-stat-card,
+  .payment-stat-card,
+  .users-stat-card
+):hover {
+  transform: translateY(-2px);
+  border-color: #cfe3e5;
+  box-shadow: var(--ui-shadow-md);
+}
+
+.saas-content :is(
+  .inventory-stat-card,
+  .quote-stat-card,
+  .receipt-stat-card,
+  .purchase-stat-card,
+  .delivery-stat-card,
+  .invoice-stat-card,
+  .payment-stat-card,
+  .users-stat-card
+) span {
+  color: var(--ui-muted);
+  font-weight: 600;
+}
+
+.saas-content :is(
+  .inventory-stat-card,
+  .quote-stat-card,
+  .receipt-stat-card,
+  .purchase-stat-card,
+  .delivery-stat-card,
+  .invoice-stat-card,
+  .payment-stat-card,
+  .users-stat-card
+) strong {
+  color: var(--ui-ink);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+.saas-content :is(.stat-icon, .quote-icon, .product-icon) {
+  border-radius: 12px;
+  color: var(--ui-teal-dark);
+  background: var(--ui-teal-soft);
+}
+
+/* ---------- Paneles y toolbars ---------- */
+
+.saas-content :is(
+  .inventory-panel,
+  .quote-panel,
+  .receipt-panel,
+  .purchase-panel,
+  .delivery-panel,
+  .invoice-panel,
+  .expenses-panel,
+  .accounting-panel,
+  .ar-panel,
+  .ap-panel,
+  .reports-panel
+) {
+  border: 1px solid var(--ui-line);
+  border-radius: 20px;
+  background: var(--ui-card);
+  box-shadow: var(--ui-shadow-sm);
+}
+
+.saas-content :is(
+  .inventory-toolbar,
+  .quote-toolbar,
+  .receipt-toolbar,
+  .purchase-toolbar,
+  .delivery-toolbar,
+  .invoice-toolbar,
+  .inventory-count-toolbar
+) {
+  border-bottom-color: var(--ui-line-soft);
+}
+
+.saas-content :is(
+  .inventory-toolbar,
+  .quote-toolbar,
+  .receipt-toolbar,
+  .purchase-toolbar,
+  .delivery-toolbar,
+  .invoice-toolbar,
+  .inventory-count-toolbar
+) h3 {
+  color: var(--ui-ink);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.saas-content :is(
+  .inventory-toolbar,
+  .quote-toolbar,
+  .receipt-toolbar,
+  .purchase-toolbar,
+  .delivery-toolbar,
+  .invoice-toolbar,
+  .inventory-count-toolbar
+) p {
+  color: var(--ui-muted);
+  font-size: 14px;
+}
+
+@media (min-width: 769px) {
+  .saas-content :is(
+    .inventory-toolbar,
+    .quote-toolbar,
+    .receipt-toolbar,
+    .purchase-toolbar,
+    .delivery-toolbar,
+    .invoice-toolbar,
+    .inventory-count-toolbar
+  ) {
+    padding: 22px 24px;
+  }
+
+  .saas-content :is(
+    .inventory-toolbar,
+    .quote-toolbar,
+    .receipt-toolbar,
+    .purchase-toolbar,
+    .delivery-toolbar,
+    .invoice-toolbar,
+    .inventory-count-toolbar
+  ) h3 {
+    font-size: 18px;
+  }
+}
+
+/* ---------- Buscadores y filtros ---------- */
+
+.saas-content :is(
+  .inventory-search,
+  .quote-search,
+  .receipt-search,
+  .purchase-search,
+  .delivery-search,
+  .invoice-search,
+  .payment-search,
+  .expense-search,
+  .ar-search,
+  .ap-search,
+  .inventory-count-search
+) {
+  border: 1px solid var(--ui-line);
+  border-radius: 12px;
+  color: var(--ui-faint);
+  background: #f5f8fa;
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    background 0.18s ease;
+}
+
+.saas-content :is(
+  .inventory-search,
+  .quote-search,
+  .receipt-search,
+  .purchase-search,
+  .delivery-search,
+  .invoice-search,
+  .payment-search,
+  .expense-search,
+  .ar-search,
+  .ap-search,
+  .inventory-count-search
+):focus-within {
+  border-color: var(--ui-teal);
+  color: var(--ui-teal-dark);
+  background: #ffffff;
+  box-shadow: 0 0 0 4px rgba(0, 191, 174, 0.12);
+}
+
+.saas-content :is(
+  .inventory-search,
+  .quote-search,
+  .receipt-search,
+  .purchase-search,
+  .delivery-search,
+  .invoice-search,
+  .payment-search,
+  .expense-search,
+  .ar-search,
+  .ap-search,
+  .inventory-count-search
+) input {
+  color: var(--ui-ink);
+  font: inherit;
+  font-size: 14px;
+}
+
+.saas-content :is(.quote-filter, .inventory-type-filter, .quote-date-filter) {
+  border-color: var(--ui-line);
+  border-radius: 12px;
+  color: var(--ui-text);
+  font-weight: 600;
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.saas-content :is(.quote-filter, .inventory-type-filter, .quote-date-filter):hover {
+  border-color: #cfdde3;
+}
+
+.saas-content :is(.quote-filter, .inventory-type-filter):focus,
+.saas-content .quote-date-filter:focus-within {
+  border-color: var(--ui-teal);
+  box-shadow: 0 0 0 4px rgba(0, 191, 174, 0.12);
+}
+
+@media (min-width: 769px) {
+  .saas-content :is(
+    .inventory-search,
+    .quote-search,
+    .receipt-search,
+    .purchase-search,
+    .delivery-search,
+    .invoice-search,
+    .payment-search,
+    .expense-search,
+    .ar-search,
+    .ap-search,
+    .inventory-count-search,
+    .quote-filter,
+    .inventory-type-filter,
+    .quote-date-filter
+  ) {
+    height: 44px;
+  }
+}
+
+/* ---------- Tablas ---------- */
+
+.saas-content :is(
+  .inventory-table,
+  .quote-table,
+  .receipt-table,
+  .purchase-table,
+  .delivery-table,
+  .invoice-table,
+  .expenses-table,
+  .ar-table,
+  .ap-table,
+  .reports-table,
+  .users-table,
+  .payment-table,
+  .pos-table,
+  .pos-sales-table,
+  .inventory-count-table,
+  .movements-table
+) th {
+  border-bottom: 1px solid var(--ui-line);
+  color: var(--ui-muted);
+  background: #f8fafb;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.saas-content :is(
+  .inventory-table,
+  .quote-table,
+  .receipt-table,
+  .purchase-table,
+  .delivery-table,
+  .invoice-table,
+  .expenses-table,
+  .ar-table,
+  .ap-table,
+  .reports-table,
+  .users-table,
+  .payment-table,
+  .pos-table,
+  .pos-sales-table,
+  .inventory-count-table,
+  .movements-table
+) td {
+  border-top-color: var(--ui-line-soft);
+  color: var(--ui-text);
+  font-weight: 500;
+  transition: background 0.15s ease;
+}
+
+.saas-content :is(
+  .inventory-table,
+  .quote-table,
+  .receipt-table,
+  .purchase-table,
+  .delivery-table,
+  .invoice-table,
+  .expenses-table,
+  .ar-table,
+  .ap-table,
+  .reports-table,
+  .users-table,
+  .payment-table,
+  .pos-table,
+  .pos-sales-table,
+  .inventory-count-table,
+  .movements-table
+) tbody tr:hover td {
+  background: #f8fbfb;
+}
+
+.saas-content :is(
+  .inventory-table,
+  .quote-table,
+  .receipt-table,
+  .purchase-table,
+  .delivery-table,
+  .invoice-table,
+  .expenses-table,
+  .ar-table,
+  .ap-table,
+  .reports-table,
+  .users-table,
+  .payment-table,
+  .pos-table,
+  .pos-sales-table,
+  .inventory-count-table,
+  .movements-table
+) td strong {
+  color: var(--ui-ink);
+  font-weight: 700;
+}
+
+.saas-content .product-cell strong {
+  color: var(--ui-ink);
+  font-weight: 700;
+}
+
+.saas-content .table-empty {
+  color: var(--ui-faint) !important;
+  font-weight: 500;
+}
+
+/* Botones de acción en filas */
+.saas-content :is(.table-actions, .quote-actions) button {
+  border: 1px solid var(--ui-line);
+  border-radius: 10px;
+  color: var(--ui-text);
+  background: #ffffff;
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease,
+    color 0.18s ease,
+    transform 0.18s ease;
+}
+
+.saas-content :is(.table-actions, .quote-actions) button:hover:not(:disabled) {
+  border-color: rgba(0, 191, 174, 0.4);
+  color: var(--ui-teal-dark);
+  background: var(--ui-teal-soft);
+  transform: translateY(-1px);
+}
+
+.saas-content :is(.table-actions, .quote-actions) :is(.danger-btn, .quote-delete-btn) {
+  border-color: #f6d4d4;
+  color: #c0262d;
+  background: #fff5f5;
+}
+
+.saas-content :is(.table-actions, .quote-actions) :is(.danger-btn, .quote-delete-btn):hover:not(:disabled) {
+  border-color: #f1aeb0;
+  color: #b42318;
+  background: #fee4e2;
+}
+
+/* ---------- Badges ---------- */
+
+.saas-content .badge {
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.4;
+  box-shadow: inset 0 0 0 1px rgba(16, 42, 67, 0.06);
+}
+
+.saas-content .badge.ok {
+  color: #05603a;
+  background: #ecfdf3;
+  box-shadow: inset 0 0 0 1px #b7ebd0;
+}
+
+.saas-content .badge.danger {
+  color: #b42318;
+  background: #fef3f2;
+  box-shadow: inset 0 0 0 1px #fecdca;
+}
+
+.saas-content .badge.warning {
+  color: #93370d;
+  background: #fffaeb;
+  box-shadow: inset 0 0 0 1px #fedf89;
+}
+
+.saas-content .badge.info {
+  color: var(--ui-teal-dark);
+  background: var(--ui-teal-soft);
+  box-shadow: inset 0 0 0 1px rgba(0, 191, 174, 0.25);
+}
+
+.saas-content .badge.neutral {
+  color: #475467;
+  background: #f2f4f7;
+  box-shadow: inset 0 0 0 1px #e4e7ec;
+}
+
+/* ---------- Botones ---------- */
+
+.saas-content .primary-btn {
+  border: none;
+  border-radius: 12px;
+  color: #ffffff;
+  background: linear-gradient(135deg, var(--ui-teal-dark), var(--ui-teal));
+  box-shadow: 0 8px 20px rgba(0, 153, 145, 0.22);
+  font-weight: 700;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    filter 0.18s ease;
+}
+
+.saas-content .primary-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 26px rgba(0, 153, 145, 0.3);
+}
+
+.saas-content .primary-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.saas-content .secondary-btn {
+  border: 1px solid rgba(0, 191, 174, 0.22) !important;
+  border-radius: 12px;
+  font-weight: 700;
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease;
+}
+
+.saas-content .secondary-btn:hover:not(:disabled) {
+  border-color: rgba(0, 191, 174, 0.45) !important;
+  background: rgba(0, 191, 174, 0.16) !important;
+}
+
+.saas-content .cancel-btn {
+  border: 1px solid var(--ui-line);
+  border-radius: 12px;
+  color: var(--ui-text);
+  background: #ffffff;
+  font-weight: 700;
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease;
+}
+
+.saas-content .cancel-btn:hover:not(:disabled) {
+  border-color: #c6d8de;
+  color: var(--ui-ink);
+  background: #f5f8fa;
+}
+
+.saas-content .danger-btn {
+  border-radius: 12px;
+  color: #b42318;
+  background: #fef3f2;
+  font-weight: 700;
+}
+
+.saas-content .danger-btn:hover:not(:disabled) {
+  background: #fee4e2;
+}
+
+.saas-content .delete-confirm-btn {
+  border-radius: 12px;
+  background: linear-gradient(135deg, #b42318, #e5484d);
+  box-shadow: 0 8px 20px rgba(217, 45, 32, 0.22);
+  font-weight: 700;
+}
+
+@media (min-width: 769px) {
+  .saas-content :is(.primary-btn, .secondary-btn, .cancel-btn, .delete-confirm-btn) {
+    height: 44px;
+    min-height: 44px;
+    padding: 0 18px;
+    font-size: 14px;
+  }
+}
+
+/* ---------- Modales ---------- */
+
+.modal-overlay {
+  background: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(6px);
+  animation: polishFade 0.18s ease both;
+}
+
+@keyframes polishFade {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes polishModalIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.saas-content :is(
+  .product-modal,
+  .quote-modal,
+  .receipt-modal,
+  .purchase-modal,
+  .delivery-modal,
+  .invoice-modal,
+  .expense-modal,
+  .expense-detail-modal,
+  .ap-modal,
+  .users-modal,
+  .inventory-count-modal,
+  .movements-modal,
+  .movement-form-modal,
+  .import-inventory-modal,
+  .delete-modal,
+  .pos-modal,
+  .pos-close-modal,
+  .pos-report-modal,
+  .pos-sale-detail-modal
+) {
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow:
+    0 24px 60px rgba(15, 23, 42, 0.22),
+    0 0 0 1px rgba(15, 23, 42, 0.04);
+  animation: polishModalIn 0.22s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+@media (min-width: 769px) {
+  .saas-content :is(
+    .product-modal,
+    .quote-modal,
+    .receipt-modal,
+    .purchase-modal,
+    .delivery-modal,
+    .invoice-modal,
+    .expense-modal,
+    .expense-detail-modal,
+    .ap-modal,
+    .users-modal,
+    .inventory-count-modal,
+    .movements-modal,
+    .movement-form-modal,
+    .import-inventory-modal,
+    .delete-modal,
+    .pos-modal,
+    .pos-close-modal,
+    .pos-report-modal,
+    .pos-sale-detail-modal
+  ) {
+    border-radius: 22px;
+  }
+
+  .saas-content .modal-header {
+    padding: 22px 28px;
+  }
+
+  .saas-content .modal-header h3 {
+    font-size: 22px;
+  }
+}
+
+.saas-content .modal-header {
+  border-bottom-color: var(--ui-line-soft);
+}
+
+.saas-content .modal-header span {
+  color: var(--ui-teal-dark);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+}
+
+.saas-content .modal-header h3 {
+  color: var(--ui-ink);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.saas-content .modal-close {
+  border: 1px solid var(--ui-line);
+  border-radius: 10px !important;
+  color: var(--ui-muted);
+  background: #ffffff;
+  transition:
+    background 0.18s ease,
+    color 0.18s ease,
+    border-color 0.18s ease;
+}
+
+.saas-content .modal-close:hover {
+  border-color: #cfdde3;
+  color: var(--ui-ink);
+  background: #f5f8fa;
+}
+
+.saas-content .delete-modal h3 {
+  color: var(--ui-ink);
+  font-weight: 800;
+}
+
+.saas-content .delete-modal-icon {
+  border-radius: 18px;
+  color: #d92d20;
+  background: #fef3f2;
+  box-shadow: 0 0 0 8px #fffbfa;
+}
+
+.saas-content :is(.delete-warning, .delete-blocked, .delete-error, .stock-error-box) {
+  border: 1px solid;
+  border-radius: 12px;
+  font-weight: 600;
+}
+
+.saas-content .delete-warning {
+  border-color: #fedf89;
+  color: #93370d;
+  background: #fffaeb;
+}
+
+.saas-content :is(.delete-blocked, .delete-error, .stock-error-box) {
+  border-color: #fecdca;
+  color: #b42318;
+  background: #fef3f2;
+}
+
+/* ---------- Formularios ---------- */
+
+.saas-content .form-row label {
+  color: var(--ui-text);
+  font-weight: 700;
+}
+
+.saas-content .form-row :is(input, select, textarea),
+.saas-content .quote-item-row :is(input, select) {
+  border: 1px solid #dce5ea;
+  border-radius: 12px;
+  color: var(--ui-ink);
+  background-color: #ffffff;
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.saas-content .form-row :is(input, select, textarea):hover,
+.saas-content .quote-item-row :is(input, select):hover {
+  border-color: #c6d8de;
+}
+
+.saas-content .form-row :is(input, select, textarea):focus,
+.saas-content .quote-item-row :is(input, select):focus {
+  border-color: var(--ui-teal);
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(0, 191, 174, 0.12);
+}
+
+.saas-content .form-row :is(input, textarea)::placeholder {
+  color: var(--ui-faint);
+}
+
+.saas-content .form-row :is(input, select, textarea):disabled {
+  color: var(--ui-muted);
+  background-color: #f5f8fa;
+}
+
+/* ---------- Paginación ---------- */
+
+.saas-content .quote-pagination {
+  border-top-color: var(--ui-line-soft);
+}
+
+.saas-content .quote-pagination button {
+  border-color: var(--ui-line);
+  border-radius: 10px;
+  color: var(--ui-text);
+  font-weight: 700;
+}
+
+.saas-content .quote-pagination button:hover:not(:disabled) {
+  border-color: rgba(0, 191, 174, 0.45);
+  color: var(--ui-teal-dark);
+  background: var(--ui-teal-soft);
+}
+
+.saas-content .quote-pagination span {
+  color: var(--ui-muted);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Encabezado de sección de productos ---------- */
+
+.saas-content .items-header {
+  border-bottom-color: var(--ui-line-soft);
+}
+
+.saas-content .items-header h4 {
+  color: var(--ui-ink);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.saas-content .items-header p {
+  color: var(--ui-muted);
+}
+
+.saas-content .items-header button {
+  border-radius: 10px;
+  font-weight: 700;
+  box-shadow: 0 6px 16px rgba(0, 153, 145, 0.18);
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.saas-content .items-header button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px rgba(0, 153, 145, 0.26);
+}
+
+.saas-content .items-empty {
+  border-radius: 12px;
+  color: var(--ui-faint);
+  font-weight: 600;
+}
+
+/* ---------- Calendario (react-datepicker) ---------- */
+
+.react-datepicker {
+  overflow: hidden;
+  border: 1px solid var(--ui-line) !important;
+  border-radius: 14px !important;
+  font-family: inherit !important;
+  box-shadow: var(--ui-shadow-lg);
+}
+
+.react-datepicker__header {
+  border-bottom: 1px solid var(--ui-line-soft) !important;
+  background: #f8fafb !important;
+}
+
+.react-datepicker__current-month,
+.react-datepicker-time__header,
+.react-datepicker-year-header {
+  color: var(--ui-ink) !important;
+  font-weight: 800 !important;
+}
+
+.react-datepicker__day-name {
+  color: var(--ui-faint) !important;
+  font-weight: 700;
+}
+
+.react-datepicker__day {
+  border-radius: 8px !important;
+  color: var(--ui-text);
+}
+
+.react-datepicker__day:hover {
+  background: var(--ui-teal-soft) !important;
+}
+
+.react-datepicker__day--today {
+  color: var(--ui-teal-dark);
+  font-weight: 800;
+}
+
+.react-datepicker__day--selected,
+.react-datepicker__day--keyboard-selected,
+.react-datepicker__day--in-range,
+.react-datepicker__day--in-selecting-range {
+  color: #ffffff !important;
+  background: var(--ui-teal) !important;
+}
+
+.react-datepicker__day--outside-month {
+  color: #c4d1d9;
+}
+
+.react-datepicker__navigation-icon::before {
+  border-color: var(--ui-muted) !important;
+}
+
+.react-datepicker__triangle {
+  display: none;
+}

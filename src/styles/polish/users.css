@@ -1,0 +1,270 @@
+/* =========================================================
+   PULIDO · USUARIOS Y BITÁCORA DE ACTIVIDAD
+   (elimina restos de violeta y unifica con la paleta)
+========================================================= */
+
+/* ---------- Usuarios ---------- */
+
+.users-page .users-kicker,
+.activity-page .activity-header span {
+  color: var(--ui-teal-dark);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+}
+
+.users-page .users-header h1,
+.activity-page .activity-header h1 {
+  color: var(--ui-ink);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+@media (min-width: 769px) {
+  .users-page .users-header h1,
+  .activity-page .activity-header h1 {
+    font-size: 30px;
+  }
+}
+
+.users-page .users-header p,
+.activity-page .activity-header p {
+  color: var(--ui-muted);
+}
+
+.users-page :is(.users-primary-btn, .users-secondary-btn, .users-danger-btn) {
+  border-radius: 12px;
+  font-weight: 700;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    background 0.18s ease;
+}
+
+.users-page .users-primary-btn {
+  background: linear-gradient(135deg, var(--ui-teal-dark), var(--ui-teal));
+  box-shadow: 0 8px 20px rgba(0, 153, 145, 0.22);
+}
+
+.users-page .users-primary-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 26px rgba(0, 153, 145, 0.3);
+}
+
+.users-page .users-secondary-btn {
+  border: 1px solid var(--ui-line);
+  color: var(--ui-text);
+  background: #ffffff;
+}
+
+.users-page .users-secondary-btn:hover:not(:disabled) {
+  border-color: rgba(0, 191, 174, 0.4);
+  color: var(--ui-teal-dark);
+  background: var(--ui-teal-soft);
+}
+
+.users-page .users-danger-btn {
+  border: 1px solid #f6d4d4;
+  color: #b42318;
+  background: #fef3f2;
+}
+
+.users-page .users-danger-btn:hover:not(:disabled) {
+  background: #fee4e2;
+}
+
+.users-page .users-stat-card svg {
+  box-sizing: content-box;
+  padding: 9px;
+  border-radius: 12px;
+  color: var(--ui-teal-dark);
+  background: var(--ui-teal-soft);
+}
+
+.users-page .users-table-card {
+  border-color: var(--ui-line);
+  border-radius: 20px;
+  box-shadow: var(--ui-shadow-sm);
+}
+
+.users-page .users-table-head {
+  border-bottom-color: var(--ui-line-soft);
+}
+
+.users-page .users-table-head h3 {
+  color: var(--ui-ink);
+  font-weight: 800;
+}
+
+.users-page .users-avatar {
+  border-radius: 12px;
+  color: #ffffff;
+  background: linear-gradient(135deg, var(--ui-teal-dark), var(--ui-teal));
+  font-weight: 800;
+  text-transform: uppercase;
+  box-shadow: 0 4px 12px rgba(0, 191, 174, 0.22);
+}
+
+.users-page .users-person strong {
+  color: var(--ui-ink);
+  font-weight: 700;
+}
+
+.users-page .users-person span {
+  color: var(--ui-muted);
+}
+
+.users-page :is(.users-role, .users-status) {
+  font-weight: 700;
+  box-shadow: inset 0 0 0 1px rgba(16, 42, 67, 0.06);
+}
+
+.users-page .users-role.master {
+  color: #93370d;
+  background: #fffaeb;
+}
+
+.users-page .users-role.admin {
+  color: var(--ui-teal-dark);
+  background: var(--ui-teal-soft);
+}
+
+.users-page .users-role.employee {
+  color: #475467;
+  background: #f2f4f7;
+}
+
+.users-page .users-status.active {
+  color: #05603a;
+  background: #ecfdf3;
+}
+
+.users-page .users-status.inactive {
+  color: #b42318;
+  background: #fef3f2;
+}
+
+.users-page .users-empty {
+  color: var(--ui-faint);
+}
+
+/* Modal */
+.users-modal-overlay {
+  background: rgba(15, 23, 42, 0.5) !important;
+  backdrop-filter: blur(6px);
+}
+
+.users-page .users-modal {
+  border-radius: 22px;
+  box-shadow:
+    0 24px 60px rgba(15, 23, 42, 0.22),
+    0 0 0 1px rgba(15, 23, 42, 0.04);
+  animation: polishModalIn 0.22s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.users-page .users-modal-head {
+  border-bottom-color: var(--ui-line-soft);
+}
+
+.users-page .users-modal-head h2 {
+  color: var(--ui-ink);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.users-page .users-modal-head button {
+  border: 1px solid var(--ui-line);
+  border-radius: 10px;
+  color: var(--ui-muted);
+  background: #ffffff;
+}
+
+.users-page .users-modal-head button:hover {
+  color: var(--ui-ink);
+  background: #f5f8fa;
+}
+
+.users-page .users-form label {
+  color: var(--ui-text);
+  font-weight: 700;
+}
+
+.users-page .users-form :is(input, select) {
+  border-color: #dce5ea;
+  border-radius: 12px;
+  color: var(--ui-ink);
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.users-page .users-form :is(input, select):focus {
+  border-color: var(--ui-teal);
+  box-shadow: 0 0 0 4px rgba(0, 191, 174, 0.12);
+}
+
+.users-page .users-denied {
+  border-color: var(--ui-line);
+  border-radius: 20px;
+  box-shadow: var(--ui-shadow-sm);
+}
+
+.users-page .users-denied svg {
+  color: var(--ui-teal-dark);
+}
+
+/* ---------- Bitácora ---------- */
+
+.activity-page .activity-card {
+  border-color: var(--ui-line);
+  border-radius: 20px;
+  box-shadow: var(--ui-shadow-sm);
+}
+
+.activity-page .activity-item {
+  border-bottom-color: var(--ui-line-soft);
+  transition: background 0.15s ease;
+}
+
+.activity-page .activity-item:hover {
+  background: #f8fbfb;
+}
+
+.activity-page .activity-icon {
+  border-radius: 12px;
+  color: var(--ui-teal-dark);
+  background: var(--ui-teal-soft);
+}
+
+.activity-page .activity-item strong {
+  color: var(--ui-ink);
+  font-weight: 700;
+}
+
+.activity-page .activity-item p {
+  color: var(--ui-muted);
+}
+
+.activity-page .activity-empty {
+  color: var(--ui-faint);
+}
+
+.activity-page .qb-secondary-btn {
+  border: 1px solid rgba(0, 191, 174, 0.22);
+  border-radius: 12px;
+  color: var(--ui-teal-dark);
+  background: var(--ui-teal-soft);
+}
+
+.activity-page .qb-secondary-btn:hover {
+  border-color: rgba(0, 191, 174, 0.45);
+  background: rgba(0, 191, 174, 0.16);
+}
+
+/* Estos encabezados eran planos; ahora son tarjeta como el resto */
+@media (max-width: 768px) {
+  .users-page .users-header,
+  .activity-page .activity-header {
+    padding: 20px;
+  }
+}

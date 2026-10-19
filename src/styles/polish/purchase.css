@@ -1,0 +1,199 @@
+/* =========================================================
+   PULIDO · ÓRDENES DE COMPRA
+========================================================= */
+
+.purchase-page .purchase-number-cell strong {
+  color: var(--ui-ink);
+  font-weight: 700;
+}
+
+.purchase-page .purchase-icon {
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  color: var(--ui-teal-dark);
+  background: var(--ui-teal-soft);
+}
+
+/* Acción "Recibir orden" */
+.purchase-page .table-actions .receive-order-btn {
+  border-color: #b7ebd0 !important;
+  color: #05603a !important;
+  background: #ecfdf3 !important;
+}
+
+.purchase-page .table-actions .receive-order-btn:hover {
+  border-color: #75e0a7 !important;
+  background: #d1fadf !important;
+}
+
+/* Proveedor seleccionado */
+.purchase-page .selected-supplier-card {
+  border-color: rgba(0, 191, 174, 0.25);
+  border-radius: 16px;
+  background:
+    linear-gradient(135deg, rgba(0, 191, 174, 0.07), transparent 60%),
+    #fbfcfd;
+}
+
+.purchase-page .selected-supplier-card span {
+  color: var(--ui-teal-dark);
+  font-weight: 700;
+}
+
+.purchase-page .selected-supplier-card strong,
+.purchase-page .supplier-business-grid strong,
+.purchase-page .supplier-last-orders h4 {
+  color: var(--ui-ink);
+  font-weight: 700;
+}
+
+.purchase-page :is(.supplier-info-grid p, .supplier-business-grid div, .supplier-last-order-row) {
+  border-color: var(--ui-line-soft);
+  border-radius: 12px;
+  color: var(--ui-text);
+  background: #ffffff;
+}
+
+.purchase-page :is(.supplier-info-grid small, .supplier-business-grid small, .supplier-last-order-row span, .supplier-empty-history) {
+  color: var(--ui-muted);
+}
+
+.purchase-page .product-last-cost {
+  border-color: #c6d8de;
+  border-radius: 10px;
+  color: var(--ui-text);
+  background: #f8fafb;
+}
+
+.purchase-page .product-last-cost strong {
+  color: var(--ui-teal-dark);
+}
+
+/* Productos de la orden */
+.purchase-page .purchase-items-box {
+  border-color: var(--ui-line);
+  border-radius: 16px;
+  background: #fbfcfd;
+}
+
+.purchase-page .items-header {
+  background: #ffffff;
+}
+
+.purchase-page .purchase-item-row {
+  padding: 10px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.purchase-page .purchase-item-row:hover {
+  border-color: var(--ui-line-soft);
+  background: #ffffff;
+}
+
+.purchase-page .purchase-item-row :is(input, select) {
+  border-color: #dce5ea;
+  border-radius: 12px;
+  color: var(--ui-ink);
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.purchase-page .purchase-item-row :is(input, select):focus {
+  border-color: var(--ui-teal);
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(0, 191, 174, 0.12);
+}
+
+.purchase-page .purchase-item-row strong {
+  color: var(--ui-ink);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.purchase-page .remove-item-btn {
+  border: 1px solid #f6d4d4;
+  border-radius: 10px;
+  color: #c0262d;
+  background: #fff5f5;
+}
+
+.purchase-page .remove-item-btn:hover {
+  background: #fee4e2;
+}
+
+.purchase-page .purchase-summary {
+  border-color: var(--ui-line);
+  border-radius: 16px;
+  background:
+    linear-gradient(180deg, rgba(0, 191, 174, 0.05), transparent 60%),
+    #fbfcfd;
+}
+
+.purchase-page .purchase-summary div {
+  color: var(--ui-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.purchase-page .purchase-summary .summary-total {
+  border-top: 1px dashed #c6d8de;
+  color: var(--ui-ink);
+  font-weight: 800;
+}
+
+.purchase-page .modal-actions {
+  border-top: 1px solid var(--ui-line-soft);
+}
+
+@media (max-width: 768px) {
+  .purchase-page .purchase-mobile-list {
+    background: transparent;
+  }
+
+  .purchase-page .purchase-mobile-card {
+    border-color: var(--ui-line);
+    border-radius: 18px;
+    box-shadow: var(--ui-shadow-sm);
+  }
+
+  .purchase-page .purchase-mobile-card span,
+  .purchase-page .quote-detail-header span,
+  .purchase-page .quote-detail-list span {
+    color: var(--ui-faint);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+  }
+
+  .purchase-page :is(.purchase-mobile-money-grid div, .quote-detail-list div) {
+    border-color: var(--ui-line-soft);
+    border-radius: 12px;
+    background: #f8fafb;
+  }
+
+  .purchase-page .purchase-mobile-footer strong {
+    color: var(--ui-teal-dark);
+  }
+
+  .purchase-page .purchase-mobile-empty {
+    border-color: var(--ui-line);
+    border-radius: 18px;
+    color: var(--ui-faint);
+    font-weight: 600;
+  }
+
+  .purchase-page .quote-detail-modal {
+    border-radius: 22px 22px 0 0;
+  }
+
+  .purchase-page .quote-detail-header button {
+    border: 1px solid var(--ui-line);
+    border-radius: 10px;
+    background: #ffffff;
+  }
+}

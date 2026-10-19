@@ -1,0 +1,543 @@
+/* =========================================================
+   PULIDO · CONTABILIDAD
+   Resumen, Cuentas por cobrar, Cuentas por pagar, Gastos y
+   Reportes. Antes cada uno tenía su color (azul, naranja,
+   negro); ahora comparten la paleta Aventra y los colores
+   semánticos quedan solo para estados (vencido, pagado...).
+========================================================= */
+
+/* ---------- Hero ---------- */
+
+:is(.accounting-hero, .ar-hero, .ap-hero, .expenses-hero, .reports-hero) {
+  position: relative;
+  overflow: hidden;
+  border-radius: 24px;
+  color: #ffffff;
+  background:
+    radial-gradient(circle at 85% -20%, rgba(94, 234, 212, 0.35), transparent 45%),
+    linear-gradient(135deg, #0b3a42 0%, var(--ui-teal-dark) 45%, var(--ui-teal) 100%) !important;
+  box-shadow: 0 18px 40px rgba(8, 127, 140, 0.22);
+}
+
+:is(.accounting-hero, .ar-hero, .ap-hero, .expenses-hero, .reports-hero)::after {
+  position: absolute;
+  right: -60px;
+  bottom: -120px;
+  width: 300px;
+  height: 300px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 40px rgba(255, 255, 255, 0.03),
+    0 0 0 80px rgba(255, 255, 255, 0.02);
+  pointer-events: none;
+  content: "";
+}
+
+:is(.accounting-hero, .ar-hero, .ap-hero, .expenses-hero, .reports-hero) > * {
+  position: relative;
+  z-index: 1;
+}
+
+:is(.accounting-hero, .ar-hero, .ap-hero, .expenses-hero, .reports-hero) span {
+  color: rgba(255, 255, 255, 0.75) !important;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.18em !important;
+}
+
+:is(.accounting-hero, .ar-hero, .ap-hero, .expenses-hero, .reports-hero) h2 {
+  font-weight: 850;
+  letter-spacing: -0.03em;
+}
+
+:is(.accounting-hero, .ar-hero, .ap-hero, .expenses-hero, .reports-hero) p {
+  color: rgba(255, 255, 255, 0.82) !important;
+}
+
+:is(.accounting-hero, .ar-hero, .ap-hero, .expenses-hero, .reports-hero) button {
+  border: 1px solid rgba(255, 255, 255, 0.22) !important;
+  border-radius: 12px !important;
+  color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.12) !important;
+  backdrop-filter: blur(6px);
+  font-weight: 700 !important;
+  box-shadow: none !important;
+}
+
+:is(.accounting-hero, .ar-hero, .ap-hero, .expenses-hero, .reports-hero) button:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.22) !important;
+}
+
+.reports-hero .reports-actions input {
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 12px;
+}
+
+/* ---------- Botones generales de cada página ---------- */
+
+.accounts-receivable-page button,
+.accounts-payable-page button,
+.expenses-page button {
+  border-radius: 12px;
+  color: #ffffff;
+  background: linear-gradient(135deg, var(--ui-teal-dark), var(--ui-teal));
+  font-weight: 700;
+  box-shadow: 0 6px 16px rgba(0, 153, 145, 0.18);
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    background 0.18s ease;
+}
+
+.accounts-receivable-page button:hover:not(:disabled),
+.accounts-payable-page button:hover:not(:disabled),
+.expenses-page button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px rgba(0, 153, 145, 0.26);
+}
+
+.expenses-page button.secondary,
+.accounts-payable-page .ap-modal-actions .secondary,
+.accounts-payable-page button.secondary {
+  border: 1px solid rgba(0, 191, 174, 0.22);
+  color: var(--ui-teal-dark);
+  background: var(--ui-teal-soft);
+  box-shadow: none;
+}
+
+.expenses-page button.secondary:hover:not(:disabled),
+.accounts-payable-page button.secondary:hover:not(:disabled) {
+  border-color: rgba(0, 191, 174, 0.45);
+  background: rgba(0, 191, 174, 0.16);
+  box-shadow: none;
+}
+
+.expenses-page button.danger {
+  border: 1px solid #f6d4d4;
+  color: #b42318;
+  background: #fef3f2;
+  box-shadow: none;
+}
+
+/* Acciones en filas: botones claros */
+:is(.ar-actions, .ap-actions, .expense-row-actions) button {
+  border: 1px solid var(--ui-line) !important;
+  color: var(--ui-text);
+  background: #ffffff;
+  box-shadow: none;
+}
+
+:is(.ar-actions, .ap-actions, .expense-row-actions) button:hover:not(:disabled) {
+  border-color: rgba(0, 191, 174, 0.4) !important;
+  color: var(--ui-teal-dark);
+  background: var(--ui-teal-soft);
+  box-shadow: none;
+}
+
+.expense-row-actions button.danger {
+  border-color: #f6d4d4 !important;
+  color: #c0262d;
+  background: #fff5f5;
+}
+
+/* Botón de cerrar en modales */
+.expenses-page .expense-modal-header button,
+.accounts-payable-page .ap-modal-header button {
+  border: 1px solid var(--ui-line);
+  color: var(--ui-muted);
+  background: #ffffff;
+  box-shadow: none;
+}
+
+.expenses-page .expense-modal-header button:hover,
+.accounts-payable-page .ap-modal-header button:hover {
+  transform: none;
+  color: var(--ui-ink);
+  background: #f5f8fa;
+  box-shadow: none;
+}
+
+/* Elementos de lista que son botones (no deben verse como CTA) */
+.accounts-payable-page .ap-list-item.clickable {
+  border: 1px solid var(--ui-line-soft);
+  color: inherit;
+  background: #ffffff;
+  font-weight: inherit;
+  box-shadow: none;
+}
+
+.accounts-payable-page .ap-list-item.clickable:hover {
+  transform: none;
+  border-color: rgba(0, 191, 174, 0.35);
+  background: #f8fbfb;
+  box-shadow: none;
+}
+
+/* ---------- Tarjetas de estadísticas ---------- */
+
+:is(.accounting-card, .ar-stat, .ap-stat, .expense-stat, .report-stat) {
+  border: 1px solid var(--ui-line);
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: var(--ui-shadow-sm);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
+}
+
+:is(.accounting-card, .ar-stat, .ap-stat, .expense-stat, .report-stat):hover {
+  transform: translateY(-2px);
+  border-color: #cfe3e5;
+  box-shadow: var(--ui-shadow-md);
+}
+
+:is(.accounting-card, .ar-stat, .ap-stat, .expense-stat, .report-stat).main {
+  border-color: rgba(0, 191, 174, 0.35);
+  background: linear-gradient(180deg, rgba(0, 191, 174, 0.06), #ffffff 55%);
+}
+
+:is(.accounting-card, .ar-stat, .ap-stat, .report-stat) svg {
+  border-radius: 12px;
+  color: var(--ui-teal-dark);
+  background: var(--ui-teal-soft);
+}
+
+:is(.accounting-card, .ar-stat, .ap-stat, .report-stat).danger {
+  border-color: #f6d6d6;
+}
+
+:is(.accounting-card, .ar-stat, .ap-stat, .report-stat).danger svg {
+  color: #d92d20;
+  background: #fef3f2;
+}
+
+:is(.accounting-card, .ar-stat, .ap-stat, .report-stat).success svg {
+  color: #079455;
+  background: #ecfdf3;
+}
+
+.report-stat.warning svg {
+  color: #dc6803;
+  background: #fffaeb;
+}
+
+:is(.accounting-card, .ar-stat, .ap-stat, .expense-stat, .report-stat) span {
+  color: var(--ui-muted);
+  font-weight: 600;
+}
+
+:is(.accounting-card, .ar-stat, .ap-stat, .expense-stat, .report-stat) strong {
+  color: var(--ui-ink);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+:is(.accounting-card, .ar-stat, .ap-stat, .expense-stat, .report-stat) small {
+  color: var(--ui-faint);
+  font-weight: 500;
+}
+
+/* ---------- Paneles ---------- */
+
+:is(.accounting-panel, .ar-panel, .ap-panel, .expenses-panel, .reports-panel) {
+  border-color: var(--ui-line);
+  border-radius: 20px;
+  box-shadow: var(--ui-shadow-sm);
+}
+
+:is(.accounting-panel-header, .ar-panel-header, .ap-panel-header, .reports-panel-header) h3 {
+  color: var(--ui-ink);
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+:is(.accounting-panel-header, .ar-panel-header, .ap-panel-header, .reports-panel-header) :is(p, span) {
+  color: var(--ui-muted);
+  font-weight: 500;
+}
+
+/* ---------- Filtros ---------- */
+
+:is(.ar-filters, .ap-filters, .expenses-filters) :is(input, select),
+.expense-form-grid :is(input, select, textarea),
+.expenses-page .expense-datepicker {
+  border-color: #dce5ea;
+  border-radius: 12px;
+  color: var(--ui-ink);
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+:is(.ar-filters, .ap-filters, .expenses-filters) :is(input, select):focus,
+.expense-form-grid :is(input, select, textarea):focus,
+.expenses-page .expense-datepicker:focus {
+  border-color: var(--ui-teal);
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(0, 191, 174, 0.12);
+}
+
+:is(.ar-search, .ap-search, .expense-search) input,
+:is(.ar-search, .ap-search, .expense-search) input:focus {
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+.expense-form-grid label {
+  color: var(--ui-text);
+  font-weight: 700;
+}
+
+/* ---------- Tablas ---------- */
+
+:is(.ar-table, .ap-table, .expenses-table, .reports-table) td small {
+  color: var(--ui-muted);
+}
+
+:is(.ar-table, .ap-table) tr.is-overdue td {
+  background: #fffbf5;
+}
+
+:is(.ar-overdue-text, .ap-overdue-text) {
+  color: #dc6803 !important;
+  font-weight: 700;
+}
+
+/* Estados */
+:is(.ar-status, .ap-status, .expense-status, .report-status) {
+  font-weight: 700;
+  box-shadow: inset 0 0 0 1px rgba(16, 42, 67, 0.06);
+}
+
+:is(.ar-status, .report-status) {
+  color: var(--ui-teal-dark);
+  background: var(--ui-teal-soft);
+}
+
+/* Por pagar: ámbar = pendiente; recibida = verde */
+.ap-status {
+  color: #93370d !important;
+  background: #fffaeb !important;
+}
+
+.ap-status.received {
+  color: #05603a !important;
+  background: #ecfdf3 !important;
+}
+
+:is(.ar-status, .ap-status, .report-status, .expense-status).paid {
+  color: #05603a;
+  background: #ecfdf3;
+}
+
+:is(.ar-status, .ap-status, .report-status, .expense-status):is(.partial, .pending) {
+  color: #93370d;
+  background: #fffaeb;
+}
+
+:is(.ar-status, .ap-status, .report-status, .expense-status).cancelled {
+  color: #b42318;
+  background: #fef3f2;
+}
+
+.expense-chip {
+  color: var(--ui-teal-dark);
+  background: var(--ui-teal-soft);
+  font-weight: 700;
+}
+
+/* Barras de progreso */
+:is(.ar-balance-bar, .ar-progress, .ap-balance-bar) {
+  height: 6px;
+  background: #e6eef1;
+}
+
+.ar-progress div {
+  background: linear-gradient(90deg, #079455, #47cd89);
+}
+
+:is(.ar-balance-bar, .ap-balance-bar) div {
+  background: linear-gradient(90deg, #d92d20, #f97066);
+}
+
+/* ---------- Listas ---------- */
+
+:is(.accounting-row, .accounting-kpi-list div, .ar-list-item, .ap-list-item, .reports-list-item) {
+  border: 1px solid var(--ui-line-soft);
+  border-radius: 12px;
+  background: #fbfcfd;
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease;
+}
+
+:is(.accounting-row, .accounting-kpi-list div, .ar-list-item, .reports-list-item):hover {
+  border-color: #d6e6e8;
+  background: #ffffff;
+}
+
+:is(.accounting-row, .accounting-kpi-list, .ar-list-item, .ap-list-item, .reports-list-item) :is(strong, b) {
+  color: var(--ui-ink);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+:is(.accounting-row, .accounting-kpi-list, .ar-list-item, .ap-list-item, .reports-list-item) :is(span, small) {
+  color: var(--ui-muted);
+  font-weight: 500;
+}
+
+.accounting-kpi-list svg {
+  color: var(--ui-teal-dark);
+}
+
+:is(.ar-note, .ap-note) {
+  border-color: rgba(0, 191, 174, 0.25) !important;
+  border-radius: 14px !important;
+  color: var(--ui-teal-dark) !important;
+  background: var(--ui-teal-soft) !important;
+  font-weight: 600 !important;
+}
+
+:is(.accounting-empty, .ar-empty, .ap-empty, .expenses-empty, .reports-empty) {
+  color: var(--ui-faint);
+  font-weight: 600;
+}
+
+:is(.accounting-empty, .ar-empty.small, .ap-empty.small, .reports-empty.small) {
+  border: 1px dashed #d3dde3;
+  border-radius: 12px;
+  background: #fbfcfd;
+}
+
+/* ---------- Gráficos ---------- */
+
+:is(.accounting-bar-track, .report-bar-track) {
+  background: #f1f5f7;
+}
+
+.accounting-bar-fill,
+.report-bar-fill {
+  background: linear-gradient(180deg, #2dd4bf, var(--ui-teal-dark));
+}
+
+.report-bar-fill {
+  background: linear-gradient(90deg, var(--ui-teal-dark), #2dd4bf);
+}
+
+.report-bar-fill.expense {
+  background: linear-gradient(90deg, #d92d20, #f97066);
+}
+
+.report-bar-fill.product {
+  background: linear-gradient(90deg, #0b3a42, var(--ui-teal-dark));
+}
+
+:is(.accounting-bar-item span, .report-bar-row span) {
+  color: var(--ui-muted);
+  font-weight: 600;
+}
+
+.report-bar-row strong {
+  color: var(--ui-ink);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Modales ---------- */
+
+:is(.expense-modal-backdrop, .ap-modal-backdrop) {
+  background: rgba(15, 23, 42, 0.5) !important;
+  backdrop-filter: blur(6px);
+}
+
+:is(.expense-modal, .expense-detail-modal, .ap-modal) {
+  border-radius: 22px;
+  box-shadow:
+    0 24px 60px rgba(15, 23, 42, 0.22),
+    0 0 0 1px rgba(15, 23, 42, 0.04);
+  animation: polishModalIn 0.22s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+:is(.expense-modal-header, .ap-modal-header) h3 {
+  color: var(--ui-ink);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+:is(.ap-modal-header span, .expense-detail-kicker) {
+  color: var(--ui-teal-dark);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+}
+
+:is(.expense-detail-summary div, .expense-detail-grid div, .ap-detail-grid div) {
+  border-color: var(--ui-line-soft);
+  border-radius: 12px;
+  background: #f8fafb;
+}
+
+:is(.expense-detail-summary span, .expense-detail-grid span, .ap-detail-grid span) {
+  color: var(--ui-faint);
+  font-weight: 700;
+}
+
+:is(.expense-detail-summary strong, .expense-detail-grid strong, .ap-detail-grid strong) {
+  color: var(--ui-ink);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Importación DGII (gastos) */
+.expense-dgii-import {
+  border-color: rgba(0, 191, 174, 0.25) !important;
+  border-radius: 16px !important;
+  background:
+    linear-gradient(135deg, rgba(0, 191, 174, 0.06), transparent 60%),
+    #ffffff !important;
+}
+
+.expense-dgii-icon {
+  border-radius: 12px;
+  color: var(--ui-teal-dark) !important;
+  background: var(--ui-teal-soft) !important;
+}
+
+.expense-dgii-header h3 {
+  color: var(--ui-ink);
+  font-weight: 800;
+}
+
+.expense-dgii-info {
+  border: 1px solid var(--ui-line-soft);
+  border-radius: 12px;
+  background: #f8fafb;
+}
+
+.expense-dgii-tags span {
+  border-color: var(--ui-line);
+  color: var(--ui-text);
+}
+
+/* ---------- Móvil ---------- */
+
+@media (max-width: 768px) {
+  :is(.ar-mobile-card, .ap-mobile-card, .expense-mobile-card, .reports-mobile-card) {
+    border: 1px solid var(--ui-line) !important;
+    border-radius: 18px !important;
+    box-shadow: var(--ui-shadow-sm) !important;
+    transform: none !important;
+  }
+
+  :is(.ar-mobile-card, .ap-mobile-card).is-overdue {
+    border-color: #fedf89 !important;
+  }
+
+  :is(.accounting-hero, .ar-hero, .ap-hero, .expenses-hero, .reports-hero)::after {
+    display: none;
+  }
+}

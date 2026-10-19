@@ -1,0 +1,153 @@
+/* =========================================================
+   PULIDO · CONFIGURACIÓN DE CUENTA
+   (Billing ya usa este lenguaje visual y no se toca)
+========================================================= */
+
+.account-settings-page .account-settings-hero {
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 85% -20%, rgba(94, 234, 212, 0.3), transparent 45%),
+    linear-gradient(135deg, #0b1324 0%, #0b3a42 55%, var(--ui-teal-dark) 100%);
+  box-shadow: 0 18px 40px rgba(8, 47, 60, 0.22);
+}
+
+.account-settings-page .account-settings-hero span {
+  color: #5eead4;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+}
+
+.account-settings-page .account-settings-hero h2,
+.account-settings-page .account-settings-hero h1 {
+  font-weight: 850;
+  letter-spacing: -0.03em;
+}
+
+.account-settings-page .account-settings-logo {
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 18px;
+  color: #5eead4;
+}
+
+.account-settings-page .account-settings-card {
+  border-color: var(--ui-line);
+  border-radius: 20px;
+  background: #ffffff;
+  box-shadow: var(--ui-shadow-sm);
+}
+
+.account-settings-page .account-settings-card-head {
+  border-bottom-color: var(--ui-line-soft);
+  background: #ffffff;
+}
+
+.account-settings-page .account-settings-card-head h3 {
+  color: var(--ui-ink);
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.account-settings-page .account-settings-card-head p {
+  color: var(--ui-muted);
+}
+
+.account-settings-page .account-settings-row {
+  border-bottom-color: var(--ui-line-soft);
+  transition: background 0.15s ease;
+}
+
+.account-settings-page .account-settings-row:hover:not(.editing) {
+  background: #fbfcfd;
+}
+
+.account-settings-page .account-settings-row.editing {
+  background: linear-gradient(135deg, rgba(0, 191, 174, 0.07), rgba(0, 191, 174, 0.02));
+  box-shadow: inset 3px 0 0 var(--ui-teal);
+}
+
+.account-settings-page .account-settings-label strong {
+  color: var(--ui-ink);
+  font-weight: 700;
+}
+
+.account-settings-page .account-settings-label span {
+  color: var(--ui-muted);
+}
+
+.account-settings-page .account-settings-value span {
+  color: var(--ui-text);
+}
+
+.account-settings-page .account-settings-value :is(input, textarea) {
+  border-color: #dce5ea;
+  border-radius: 12px;
+  color: var(--ui-ink);
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.account-settings-page .account-settings-value :is(input, textarea):focus {
+  border-color: var(--ui-teal);
+  box-shadow: 0 0 0 4px rgba(0, 191, 174, 0.12);
+}
+
+.account-settings-page .account-settings-action > button {
+  border: 1px solid rgba(0, 191, 174, 0.22);
+  border-radius: 10px;
+  color: var(--ui-teal-dark);
+  background: var(--ui-teal-soft);
+  font-weight: 700;
+}
+
+.account-settings-page .account-settings-action > button:hover {
+  border-color: rgba(0, 191, 174, 0.45);
+  background: rgba(0, 191, 174, 0.16);
+}
+
+.account-settings-page :is(.account-settings-cancel, .account-settings-save) {
+  border-radius: 10px;
+  font-weight: 700;
+}
+
+.account-settings-page .account-settings-cancel {
+  border: 1px solid var(--ui-line);
+  color: var(--ui-text);
+  background: #ffffff;
+}
+
+.account-settings-page .account-settings-cancel:hover {
+  background: #f5f8fa;
+}
+
+.account-settings-page .account-settings-save {
+  background: linear-gradient(135deg, var(--ui-teal-dark), var(--ui-teal));
+  box-shadow: 0 8px 20px rgba(0, 153, 145, 0.22);
+}
+
+.account-settings-page .account-settings-loading {
+  border: 1px solid var(--ui-line);
+  border-radius: 20px;
+  color: var(--ui-muted);
+  font-weight: 600;
+}
+
+/* Overlay de cambio de idioma (se monta en <body> con portal) */
+.language-switch-overlay {
+  background: rgba(15, 23, 42, 0.55) !important;
+  backdrop-filter: blur(8px) !important;
+}
+
+.language-switch-card {
+  border-radius: 22px !important;
+}
+
+.language-switch-card h3 {
+  color: var(--ui-ink) !important;
+  font-weight: 800 !important;
+}
+
+.language-spinner {
+  border-top-color: var(--ui-teal) !important;
+}

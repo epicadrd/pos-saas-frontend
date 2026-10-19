@@ -1,0 +1,639 @@
+/* =========================================================
+   PULIDO · FACTURACIÓN
+   Facturas (lista + editor), Historial de pagos,
+   Personalización, Preferencias y Numeración.
+   El documento y la vista previa conservan --invoice-color,
+   que es el color que cada empresa elige para sus facturas.
+========================================================= */
+
+/* ---------- Encabezados ---------- */
+
+.saas-content :is(.qb-list-header, .qb-topbar) h1,
+.payment-history-page .payment-history-header h1 {
+  color: var(--ui-ink);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.saas-content :is(.qb-list-header p, .qb-topbar span),
+.payment-history-page .payment-history-header p {
+  color: var(--ui-muted);
+}
+
+.saas-content .qb-topbar {
+  border-bottom-color: var(--ui-line);
+}
+
+.saas-content .qb-topbar h1 small {
+  border: 1px solid var(--ui-line);
+  color: var(--ui-muted);
+  background: #f5f8fa;
+  font-weight: 700;
+}
+
+/* ---------- Botones ---------- */
+
+.saas-content :is(.qb-primary-btn, .qb-secondary-btn) {
+  border-radius: 12px;
+  font-weight: 700;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    background 0.18s ease,
+    border-color 0.18s ease;
+}
+
+.saas-content .qb-primary-btn {
+  background: linear-gradient(135deg, var(--ui-teal-dark), var(--ui-teal));
+  box-shadow: 0 8px 20px rgba(0, 153, 145, 0.22);
+}
+
+.saas-content .qb-primary-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 26px rgba(0, 153, 145, 0.3);
+}
+
+.saas-content .qb-secondary-btn {
+  border: 1px solid var(--ui-line);
+  color: var(--ui-text);
+  background: #ffffff;
+}
+
+.saas-content .qb-secondary-btn:hover:not(:disabled) {
+  border-color: rgba(0, 191, 174, 0.4);
+  color: var(--ui-teal-dark);
+  background: var(--ui-teal-soft);
+}
+
+.saas-content .qb-back {
+  border: 1px solid var(--ui-line);
+  border-radius: 10px;
+  color: var(--ui-text);
+  background: #ffffff;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.saas-content .qb-back:hover {
+  color: var(--ui-teal-dark);
+  background: var(--ui-teal-soft);
+}
+
+.saas-content .qb-top-actions button {
+  border-color: var(--ui-line);
+  border-radius: 12px;
+  color: var(--ui-text);
+  font-weight: 700;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.saas-content .qb-top-actions button:hover:not(:disabled) {
+  border-color: rgba(0, 191, 174, 0.4);
+  color: var(--ui-teal-dark);
+  background: var(--ui-teal-soft);
+}
+
+/* Iconos de acción en la tabla */
+.saas-content .qb-icon-action {
+  border: 1px solid var(--ui-line);
+  border-radius: 10px;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease,
+    transform 0.15s ease;
+}
+
+.saas-content .qb-icon-action:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.saas-content .qb-icon-paid {
+  border-color: #b7ebd0;
+  color: #05603a;
+  background: #ecfdf3;
+}
+
+.saas-content .qb-icon-paid:hover:not(:disabled) {
+  background: #d1fadf;
+}
+
+.saas-content :is(.qb-icon-danger, .qb-trash) {
+  border: 1px solid #f6d4d4;
+  border-radius: 10px;
+  color: #c0262d;
+  background: #fff5f5;
+}
+
+.saas-content :is(.qb-icon-danger, .qb-trash):hover:not(:disabled) {
+  background: #fee4e2;
+}
+
+/* ---------- Pestañas ---------- */
+
+.saas-content .qb-tabs {
+  border-bottom-color: var(--ui-line);
+}
+
+.saas-content .qb-tabs button {
+  color: var(--ui-muted);
+  font-weight: 700;
+  transition: color 0.15s ease;
+}
+
+.saas-content .qb-tabs button:hover {
+  color: var(--ui-ink);
+}
+
+.saas-content .qb-tabs .active {
+  color: var(--ui-teal-dark);
+  border-bottom-color: var(--ui-teal);
+}
+
+/* ---------- Tarjetas y tablas ---------- */
+
+.saas-content :is(.qb-table-card, .qb-side-panel, .qb-preferences-card, .qb-customization-card),
+.payment-history-page :is(.payment-table-card, .payment-stat-card) {
+  border-color: var(--ui-line);
+  border-radius: 20px;
+  box-shadow: var(--ui-shadow-sm);
+}
+
+.saas-content .qb-document {
+  border-color: var(--ui-line);
+  border-radius: 20px;
+  box-shadow: var(--ui-shadow-md);
+}
+
+.saas-content .qb-table th,
+.payment-history-page .payment-table th {
+  border-bottom-color: var(--ui-line);
+  color: var(--ui-muted);
+  background: #f8fafb;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.saas-content .qb-table td,
+.payment-history-page .payment-table td {
+  border-bottom-color: var(--ui-line-soft);
+  color: var(--ui-text);
+  transition: background 0.15s ease;
+}
+
+.saas-content .qb-table tbody tr:hover td,
+.payment-history-page .payment-table tbody tr:hover td {
+  background: #f8fbfb;
+}
+
+.saas-content .qb-table td strong {
+  color: var(--ui-ink);
+  font-weight: 700;
+}
+
+.saas-content .qb-empty,
+.payment-history-page .payment-empty {
+  color: var(--ui-faint);
+  font-weight: 500;
+}
+
+/* Estados */
+.saas-content .qb-status {
+  font-weight: 700;
+  box-shadow: inset 0 0 0 1px rgba(16, 42, 67, 0.06);
+}
+
+.saas-content .qb-status.qb-paid {
+  color: #05603a;
+  background: #ecfdf3;
+}
+
+.saas-content .qb-status.qb-partial {
+  color: #93370d;
+  background: #fffaeb;
+}
+
+.saas-content .qb-status.qb-issued {
+  color: var(--ui-teal-dark);
+  background: var(--ui-teal-soft);
+}
+
+.saas-content .qb-status.qb-cancelled {
+  color: #b42318;
+  background: #fef3f2;
+}
+
+.saas-content .qb-status.qb-draft {
+  color: #475467;
+  background: #f2f4f7;
+}
+
+/* Menú de acciones */
+.saas-content .qb-actions-menu {
+  overflow: hidden;
+  border-color: var(--ui-line);
+  border-radius: 14px;
+  box-shadow: var(--ui-shadow-lg);
+  animation: polishDrop 0.16s ease both;
+}
+
+.saas-content .qb-actions-menu button {
+  border-bottom-color: var(--ui-line-soft);
+  color: var(--ui-text);
+  font-weight: 600;
+}
+
+.saas-content .qb-actions-menu button:hover {
+  color: var(--ui-teal-dark);
+  background: var(--ui-teal-soft);
+}
+
+/* ---------- Editor de factura (chrome, no el documento) ---------- */
+
+.saas-content .qb-logo-box {
+  background: #f5f8fa;
+}
+
+.saas-content .qb-client-zone {
+  border-color: var(--ui-line-soft);
+  background: #fbfcfd;
+}
+
+.saas-content :is(.qb-client-btn, .qb-client-select, .qb-items-head button) {
+  border-color: rgba(0, 191, 174, 0.3);
+  border-radius: 12px;
+  font-weight: 700;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.saas-content :is(.qb-client-btn, .qb-client-select, .qb-items-head button):hover {
+  border-color: rgba(0, 191, 174, 0.5);
+  background: var(--ui-teal-soft);
+}
+
+.saas-content :is(.qb-form-grid label, .qb-client-right label, .qb-customer-grid label, .qb-quick-product-grid > label) {
+  color: var(--ui-text);
+  font-weight: 700;
+}
+
+.saas-content :is(
+  .qb-form-grid input,
+  .qb-form-grid select,
+  .qb-client-right input,
+  .qb-client-right select,
+  .qb-items-table input,
+  .qb-items-table select,
+  .qb-bottom-area textarea,
+  .qb-totals input,
+  .qb-customer-grid input,
+  .qb-customer-grid textarea,
+  .qb-default-invoice-note textarea,
+  .qb-certificate-password input
+) {
+  border-color: #dce5ea;
+  border-radius: 12px;
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.saas-content :is(
+  .qb-form-grid input,
+  .qb-form-grid select,
+  .qb-client-right input,
+  .qb-client-right select,
+  .qb-items-table input,
+  .qb-items-table select,
+  .qb-bottom-area textarea,
+  .qb-totals input,
+  .qb-customer-grid input,
+  .qb-customer-grid textarea,
+  .qb-default-invoice-note textarea
+):focus {
+  border-color: var(--ui-teal);
+  box-shadow: 0 0 0 4px rgba(0, 191, 174, 0.12);
+}
+
+.saas-content .qb-items-table th {
+  border-bottom-color: var(--ui-line);
+  color: var(--ui-muted);
+  background: #f8fafb;
+  font-weight: 700;
+}
+
+.saas-content .qb-items-table td {
+  border-bottom-color: var(--ui-line-soft);
+}
+
+.saas-content .qb-items-table .service-label {
+  color: var(--ui-teal-dark);
+}
+
+.saas-content .qb-totals {
+  border-color: var(--ui-line);
+  border-radius: 16px;
+  background:
+    linear-gradient(180deg, rgba(0, 191, 174, 0.05), transparent 60%),
+    #fbfcfd;
+  font-variant-numeric: tabular-nums;
+}
+
+.saas-content .qb-totals .big {
+  border-top: 1px dashed #c6d8de;
+}
+
+.saas-content .qb-totals .paid {
+  color: #079455;
+}
+
+.saas-content .qb-totals .pending {
+  color: var(--ui-ink);
+  font-weight: 800;
+}
+
+.saas-content :is(.qb-dgii-inline-switch, .qb-credit-fiscal-card, .qb-side-option) {
+  border-color: var(--ui-line);
+  border-radius: 14px;
+}
+
+.saas-content :is(.qb-dgii-inline-switch, .qb-credit-fiscal-card) strong {
+  color: var(--ui-ink);
+  font-weight: 800;
+}
+
+.saas-content .qb-bottom-actions {
+  border-top-color: var(--ui-line-soft);
+}
+
+.saas-content .manual-invoice-item-note {
+  border-color: #c6d8de;
+  border-radius: 8px;
+  background: #f8fafb;
+  font-weight: 600;
+}
+
+/* Sugerencias de cliente */
+.saas-content .qb-customer-suggestions {
+  overflow: hidden;
+  border-color: var(--ui-line);
+  border-radius: 14px;
+  box-shadow: var(--ui-shadow-lg);
+  animation: polishDrop 0.16s ease both;
+}
+
+.saas-content .qb-customer-suggestion {
+  border-bottom-color: var(--ui-line-soft);
+}
+
+.saas-content .qb-customer-suggestion:hover {
+  background: var(--ui-teal-soft);
+}
+
+.saas-content .qb-customer-suggestion strong {
+  color: var(--ui-ink);
+  font-weight: 700;
+}
+
+.saas-content .qb-customer-suggestion.add {
+  color: var(--ui-teal-dark);
+  font-weight: 700;
+}
+
+/* ---------- Modales ---------- */
+
+.qb-modal-overlay {
+  background: rgba(15, 23, 42, 0.5) !important;
+  backdrop-filter: blur(6px);
+}
+
+.saas-content :is(.qb-customer-modal, .qb-invoice-preview-modal, .qb-quick-product-modal) {
+  border-radius: 22px;
+  box-shadow:
+    0 24px 60px rgba(15, 23, 42, 0.22),
+    0 0 0 1px rgba(15, 23, 42, 0.04);
+  animation: polishModalIn 0.22s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.saas-content .qb-modal-head {
+  border-bottom-color: var(--ui-line-soft);
+}
+
+.saas-content .qb-modal-head span {
+  color: var(--ui-teal-dark);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+}
+
+.saas-content .qb-modal-head h2,
+.saas-content .qb-modal-head h3 {
+  color: var(--ui-ink);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.saas-content .qb-modal-head button {
+  border: 1px solid var(--ui-line);
+  border-radius: 10px;
+  color: var(--ui-muted);
+  background: #ffffff;
+}
+
+.saas-content .qb-modal-head button:hover {
+  color: var(--ui-ink);
+  background: #f5f8fa;
+}
+
+.saas-content .qb-modal-actions {
+  border-top-color: var(--ui-line-soft);
+}
+
+.qb-saving-overlay {
+  background: rgba(15, 23, 42, 0.45) !important;
+}
+
+.qb-saving-box {
+  border-radius: 20px !important;
+}
+
+/* ---------- Historial de pagos ---------- */
+
+.payment-history-page .payment-search {
+  border-color: var(--ui-line);
+  border-radius: 12px;
+  background: #f5f8fa;
+}
+
+.payment-history-page .payment-search input {
+  border-radius: 0;
+  background: transparent;
+  font-weight: 500;
+}
+
+.payment-history-page .payment-history-filters select {
+  border-color: var(--ui-line);
+  border-radius: 12px;
+  font-weight: 600;
+}
+
+.payment-history-page .payment-stat-icon {
+  border-radius: 12px;
+  color: var(--ui-teal-dark);
+  background: var(--ui-teal-soft);
+}
+
+.payment-history-page .payment-stat-card span {
+  color: var(--ui-muted);
+  font-weight: 600;
+}
+
+.payment-history-page .payment-stat-card strong {
+  color: var(--ui-ink);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Preferencias / Numeración / Personalización ---------- */
+
+.saas-content .qb-preferences-title h3 {
+  color: var(--ui-ink);
+  font-weight: 800;
+}
+
+.saas-content .qb-preferences-title p {
+  color: var(--ui-muted);
+}
+
+.saas-content .qb-preference-note {
+  border-color: var(--ui-line-soft);
+  border-radius: 12px;
+  color: var(--ui-text);
+  background: #f8fafb;
+}
+
+.saas-content .qb-preference-switch-row {
+  border-color: var(--ui-line);
+  border-radius: 14px;
+  transition: border-color 0.15s ease;
+}
+
+.saas-content .qb-preference-switch-row:hover {
+  border-color: #c6d8de;
+}
+
+.saas-content .qb-preference-switch-row strong {
+  color: var(--ui-ink);
+  font-weight: 700;
+}
+
+.saas-content .qb-preference-switch-row small {
+  color: var(--ui-muted);
+  font-weight: 500;
+}
+
+.saas-content .qb-ecf-status-row {
+  border-color: var(--ui-line);
+  border-radius: 12px;
+  background: #fbfcfd;
+}
+
+.saas-content .qb-ecf-status {
+  font-weight: 700;
+  box-shadow: inset 0 0 0 1px rgba(16, 42, 67, 0.06);
+}
+
+.saas-content .qb-ecf-status.configured {
+  color: var(--ui-teal-dark);
+  background: var(--ui-teal-soft);
+}
+
+.saas-content .qb-certificate-upload {
+  border: 1.5px dashed #c6d8de;
+  border-radius: 14px;
+  background: #fbfcfd;
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease;
+}
+
+.saas-content .qb-certificate-upload strong {
+  color: var(--ui-ink);
+  font-weight: 700;
+}
+
+.saas-content .qb-certificate-authorization {
+  border-color: var(--ui-line);
+  border-radius: 12px;
+}
+
+.saas-content .qb-certificate-received {
+  border-color: rgba(0, 191, 174, 0.25);
+  border-radius: 12px;
+  background: var(--ui-teal-soft);
+}
+
+.saas-content .qb-certificate-received svg,
+.saas-content .qb-certificate-received :is(strong, small) {
+  color: var(--ui-teal-dark);
+}
+
+.saas-content :is(.qb-ecf-rejection, .qb-ecf-success) {
+  border-radius: 12px;
+  font-weight: 600;
+}
+
+.saas-content .qb-logo-upload {
+  border: 1.5px dashed #c6d8de;
+  border-radius: 14px;
+  color: var(--ui-text);
+  font-weight: 600;
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease;
+}
+
+.saas-content .qb-logo-upload:hover {
+  border-color: var(--ui-teal);
+  background: var(--ui-teal-soft);
+}
+
+.saas-content .qb-invoice-preview-card {
+  border: 1px solid var(--ui-line);
+  border-radius: 20px;
+  box-shadow: var(--ui-shadow-md);
+}
+
+/* ---------- Móvil ---------- */
+
+@media (max-width: 768px) {
+  .saas-content :is(.qb-invoice-mobile-card, .qb-draft-mobile-card),
+  .payment-history-page .payment-mobile-card {
+    border-color: var(--ui-line) !important;
+    border-radius: 18px !important;
+    box-shadow: var(--ui-shadow-sm) !important;
+  }
+
+  .saas-content .qb-mobile-detail-modal,
+  .payment-history-page .payment-detail-modal {
+    border-radius: 22px 22px 0 0 !important;
+  }
+
+  .saas-content :is(.qb-mobile-money-grid div, .qb-mobile-detail-list div),
+  .payment-history-page :is(.payment-mobile-money-grid div, .payment-detail-list div) {
+    border-color: var(--ui-line-soft) !important;
+    border-radius: 12px !important;
+    background: #f8fafb !important;
+  }
+
+  .saas-content .qb-mobile-danger-btn {
+    border: 1px solid #f6d4d4;
+    color: #b42318;
+    background: #fef3f2;
+  }
+}

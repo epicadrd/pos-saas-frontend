@@ -1,0 +1,400 @@
+/* =========================================================
+   PULIDO · POS Y CAJA (Punto de venta, Cajas, Cierres, Ventas)
+   El ticket impreso (.receipt-ticket, .cash-report-print) no
+   se modifica.
+========================================================= */
+
+/* ---------- Contenedores ---------- */
+
+.pos-page :is(.pos-header, .pos-panel, .pos-products-panel, .pos-ticket) {
+  border-color: var(--ui-line);
+  border-radius: 20px;
+  box-shadow: var(--ui-shadow-sm);
+}
+
+.pos-page .pos-header {
+  background:
+    radial-gradient(circle at 100% 0%, rgba(0, 191, 174, 0.07), transparent 40%),
+    #ffffff;
+}
+
+.pos-page .pos-header span {
+  color: var(--ui-teal-dark);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+}
+
+.pos-page .pos-header p {
+  color: var(--ui-muted);
+}
+
+/* ---------- Campos ---------- */
+
+.pos-page :is(
+  .pos-form input,
+  .open-cash-form input,
+  .open-cash-form select,
+  .pos-search input,
+  .pos-ticket input,
+  .pos-ticket select,
+  .close-cash-box input,
+  .ticket-item input,
+  .pos-sales-filters input,
+  .pos-sales-filters select,
+  .pos-filters input,
+  .pos-filters select,
+  .pos-close-modal input,
+  .pos-close-modal textarea
+) {
+  border-color: #dce5ea;
+  border-radius: 12px;
+  color: var(--ui-ink);
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.pos-page :is(
+  .pos-form input,
+  .open-cash-form input,
+  .open-cash-form select,
+  .pos-search input,
+  .pos-ticket input,
+  .pos-ticket select,
+  .close-cash-box input,
+  .ticket-item input,
+  .pos-sales-filters input,
+  .pos-sales-filters select,
+  .pos-filters input,
+  .pos-filters select,
+  .pos-close-modal input,
+  .pos-close-modal textarea
+):focus {
+  border-color: var(--ui-teal);
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(0, 191, 174, 0.12);
+}
+
+.pos-page .pos-search input {
+  background: #f5f8fa;
+}
+
+.pos-page .pos-search input:focus {
+  background: #ffffff;
+}
+
+.pos-page :is(.pos-ticket label, .pos-sales-filters label, .pos-filters label, .pos-close-modal label) {
+  color: var(--ui-text);
+  font-weight: 700;
+}
+
+/* ---------- Productos ---------- */
+
+.pos-page .pos-product-card {
+  overflow: hidden;
+  border-color: var(--ui-line);
+  border-radius: 14px;
+  box-shadow: var(--ui-shadow-sm);
+  transition:
+    transform 0.16s ease,
+    box-shadow 0.16s ease,
+    border-color 0.16s ease;
+}
+
+.pos-page .pos-product-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(0, 191, 174, 0.45);
+  box-shadow: var(--ui-shadow-md);
+}
+
+.pos-page .pos-product-card:active {
+  transform: scale(0.98);
+}
+
+.pos-page .pos-product-image {
+  color: #c4d1d9;
+  background: linear-gradient(135deg, #f5f8fa, #eef3f6);
+}
+
+.pos-page .pos-product-card strong {
+  color: var(--ui-ink);
+  font-weight: 700;
+}
+
+.pos-page .pos-product-card span {
+  color: var(--ui-teal-dark);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Ticket ---------- */
+
+.pos-page .pos-ticket h3 {
+  color: var(--ui-ink);
+  font-weight: 800;
+}
+
+.pos-page .empty-ticket {
+  border: 1px dashed #d3dde3;
+  border-radius: 14px;
+  color: var(--ui-faint);
+  background: #fbfcfd;
+  font-weight: 600;
+}
+
+.pos-page .ticket-item {
+  border-bottom-color: var(--ui-line-soft);
+}
+
+.pos-page .ticket-item strong {
+  color: var(--ui-ink);
+  font-weight: 700;
+}
+
+.pos-page .ticket-item span,
+.pos-page .ticket-discount-label {
+  color: var(--ui-muted);
+}
+
+.pos-page .ticket-actions button {
+  border-color: var(--ui-line);
+  border-radius: 8px;
+  color: var(--ui-text);
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.pos-page .ticket-actions button:hover {
+  border-color: rgba(0, 191, 174, 0.45);
+  color: var(--ui-teal-dark);
+  background: var(--ui-teal-soft);
+}
+
+.pos-page .ticket-total {
+  border-top-color: var(--ui-line-soft);
+  color: var(--ui-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+/* El segundo .ticket-total es el TOTAL a cobrar */
+.pos-page .ticket-total ~ .ticket-total {
+  margin-top: 4px;
+  padding: 14px 16px;
+  border: 1px solid rgba(0, 191, 174, 0.22);
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(0, 191, 174, 0.1), rgba(0, 191, 174, 0.03));
+  font-weight: 800;
+}
+
+.pos-page .ticket-total ~ .ticket-total strong {
+  color: var(--ui-teal-dark);
+}
+
+.pos-page .ticket-change {
+  color: var(--ui-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.saas-content .pos-page .charge-btn {
+  height: 52px;
+  min-height: 52px;
+  border-radius: 14px;
+  font-size: 16px;
+  box-shadow: 0 12px 28px rgba(0, 153, 145, 0.3);
+}
+
+/* ---------- Resumen ---------- */
+
+.pos-page .pos-summary-card {
+  border-color: var(--ui-line);
+  border-radius: 16px;
+  box-shadow: var(--ui-shadow-sm);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.pos-page .pos-summary-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--ui-shadow-md);
+}
+
+.pos-page .pos-summary-card span {
+  color: var(--ui-muted);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.pos-page .pos-summary-card strong {
+  color: var(--ui-ink);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Cajas ---------- */
+
+.pos-page .cash-register-card {
+  border-color: var(--ui-line);
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: var(--ui-shadow-sm);
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.pos-page .cash-register-card:hover {
+  border-color: rgba(0, 191, 174, 0.35);
+  box-shadow: var(--ui-shadow-md);
+}
+
+.pos-page .cash-register-card span {
+  color: var(--ui-teal-dark);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.pos-page .cash-register-card h3 {
+  color: var(--ui-ink);
+  font-weight: 800;
+}
+
+.pos-page :is(.cash-register-card p, .cash-register-card small, .cash-user-row span) {
+  color: var(--ui-muted);
+}
+
+.pos-page .cash-user-row {
+  border-color: var(--ui-line-soft);
+  border-radius: 12px;
+  background: #fbfcfd;
+  transition: border-color 0.15s ease;
+}
+
+.pos-page .cash-user-row:hover {
+  border-color: rgba(0, 191, 174, 0.35);
+}
+
+.pos-page .cash-user-row input {
+  accent-color: var(--ui-teal);
+}
+
+/* ---------- Tablas ---------- */
+
+.pos-page .pos-table td {
+  border-color: var(--ui-line-soft);
+}
+
+.pos-page .pos-table tbody tr:hover td {
+  border-color: rgba(0, 191, 174, 0.3);
+}
+
+.pos-page .table-icon-btn {
+  border-color: var(--ui-line);
+  border-radius: 10px;
+  color: var(--ui-text);
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.pos-page .table-icon-btn:hover {
+  border-color: rgba(0, 191, 174, 0.45);
+  color: var(--ui-teal-dark);
+  background: var(--ui-teal-soft);
+}
+
+.pos-page .pos-empty-state {
+  color: var(--ui-faint);
+  font-weight: 600;
+}
+
+/* ---------- Modales ---------- */
+
+.pos-modal-backdrop {
+  background: rgba(15, 23, 42, 0.5) !important;
+  backdrop-filter: blur(6px);
+}
+
+.pos-page :is(.pos-sale-detail-modal, .pos-close-modal, .pos-report-modal) {
+  border-radius: 22px;
+}
+
+.pos-page :is(.pos-sale-detail-header, .pos-close-modal-header) {
+  border-bottom-color: var(--ui-line-soft);
+}
+
+.pos-page :is(.pos-sale-detail-header span, .pos-close-modal-header span) {
+  color: var(--ui-teal-dark);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+}
+
+.pos-page :is(.pos-sale-detail-header h3, .pos-close-modal-header h3) {
+  color: var(--ui-ink);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.pos-page :is(.pos-sale-detail-header button, .pos-close-modal-header button) {
+  border: 1px solid var(--ui-line);
+  border-radius: 10px;
+  color: var(--ui-muted);
+  background: #ffffff;
+}
+
+.pos-page :is(.pos-sale-detail-header button, .pos-close-modal-header button):hover {
+  color: var(--ui-ink);
+  background: #f5f8fa;
+}
+
+.pos-page :is(.pos-sale-detail-info > div, .pos-close-summary div) {
+  border-color: var(--ui-line-soft);
+  border-radius: 12px;
+  background: #f8fafb;
+}
+
+.pos-page :is(.pos-sale-detail-info span, .pos-close-summary span) {
+  color: var(--ui-faint);
+  font-weight: 700;
+}
+
+.pos-page :is(.pos-sale-detail-info strong, .pos-close-summary strong) {
+  color: var(--ui-ink);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.pos-page .pos-sale-item-row {
+  border-bottom-color: var(--ui-line-soft);
+}
+
+.pos-page .pos-sale-detail-total {
+  border-top: 1px dashed #c6d8de;
+  color: var(--ui-ink);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.pos-page .pos-close-difference {
+  border-color: #c6d8de;
+  border-radius: 12px;
+}
+
+.pos-page .pos-close-difference strong {
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Móvil ---------- */
+
+@media (max-width: 768px) {
+  .pos-page :is(.cash-closure-card, .cash-report-sale-card, .pos-sale-mobile-card) {
+    border-color: var(--ui-line) !important;
+    border-radius: 18px !important;
+    box-shadow: var(--ui-shadow-sm) !important;
+  }
+}

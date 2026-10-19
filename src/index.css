@@ -29,6 +29,19 @@
 @import "./styles/accounts-payable.css";
 @import "./styles/account-settings.css";
 @import "./styles/responsive-corex.css";
+@import "./styles/theme-polish.css";
+@import "./styles/polish/shared.css";
+@import "./styles/polish/quotes.css";
+@import "./styles/polish/receipts.css";
+@import "./styles/polish/purchase.css";
+@import "./styles/polish/inventory.css";
+@import "./styles/polish/inventory-count.css";
+@import "./styles/polish/catalog.css";
+@import "./styles/polish/pos.css";
+@import "./styles/polish/accounting.css";
+@import "./styles/polish/users.css";
+@import "./styles/polish/account-settings.css";
+@import "./styles/polish/invoices.css";
 
 html {
   overflow-y: scroll;

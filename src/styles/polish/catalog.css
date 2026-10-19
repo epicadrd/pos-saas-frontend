@@ -1,0 +1,240 @@
+/* =========================================================
+   PULIDO · CATÁLOGO (vista administrativa)
+   El catálogo público conserva su color de acento propio.
+========================================================= */
+
+.catalog-admin-page :is(.catalog-admin-hero, .catalog-admin-panel, .catalog-note) {
+  border-color: var(--ui-line);
+  border-radius: 20px;
+  box-shadow: var(--ui-shadow-sm);
+}
+
+.catalog-admin-page .catalog-admin-hero {
+  background:
+    radial-gradient(circle at 0% 0%, rgba(0, 191, 174, 0.07), transparent 40%),
+    #ffffff;
+}
+
+.catalog-admin-page .catalog-admin-hero > div > span:first-child {
+  color: var(--ui-teal-dark);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+}
+
+.catalog-admin-page .catalog-admin-hero h2 {
+  color: var(--ui-ink);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.catalog-admin-page .catalog-admin-hero p {
+  color: var(--ui-muted);
+}
+
+/* Enlace público */
+.catalog-admin-page .catalog-link-card {
+  border-color: rgba(0, 191, 174, 0.22);
+  border-radius: 16px;
+  background:
+    linear-gradient(135deg, rgba(0, 191, 174, 0.07), transparent 70%),
+    #fbfcfd;
+}
+
+.catalog-admin-page .catalog-link-card label {
+  color: var(--ui-teal-dark);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.catalog-admin-page :is(.catalog-link-box input, .catalog-search input) {
+  border-color: #dce5ea;
+  border-radius: 12px;
+  color: var(--ui-ink);
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.catalog-admin-page :is(.catalog-link-box input, .catalog-search input):focus {
+  border-color: var(--ui-teal);
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(0, 191, 174, 0.12);
+}
+
+.catalog-admin-page .catalog-link-box button {
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--ui-teal-dark), var(--ui-teal));
+  box-shadow: 0 6px 16px rgba(0, 153, 145, 0.2);
+}
+
+.catalog-admin-page .catalog-link-box button:hover {
+  box-shadow: 0 10px 22px rgba(0, 153, 145, 0.28);
+}
+
+/* Toolbar */
+.catalog-admin-page .catalog-admin-toolbar h3 {
+  color: var(--ui-ink);
+  font-weight: 800;
+}
+
+.catalog-admin-page .catalog-admin-toolbar p {
+  color: var(--ui-muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Tarjetas de producto */
+.catalog-admin-page .catalog-admin-card {
+  border-color: var(--ui-line);
+  border-radius: 16px;
+  box-shadow: var(--ui-shadow-sm);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.catalog-admin-page .catalog-admin-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(0, 191, 174, 0.35);
+  box-shadow: var(--ui-shadow-md);
+}
+
+.catalog-admin-page .catalog-admin-image {
+  color: #c4d1d9;
+  background:
+    linear-gradient(135deg, #f5f8fa, #eef3f6);
+}
+
+.catalog-admin-page .catalog-admin-image img {
+  transition: transform 0.35s ease;
+}
+
+.catalog-admin-page .catalog-admin-card:hover .catalog-admin-image img {
+  transform: scale(1.04);
+}
+
+.catalog-admin-page .catalog-admin-card span {
+  color: var(--ui-faint);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.catalog-admin-page .catalog-admin-card h4 {
+  color: var(--ui-ink);
+  font-weight: 700;
+}
+
+.catalog-admin-page .catalog-admin-card strong {
+  color: var(--ui-teal-dark);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.catalog-admin-page .catalog-manage-images-button {
+  border-color: var(--ui-line);
+  border-radius: 10px;
+  color: var(--ui-text);
+  background: #ffffff;
+  font-weight: 700;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.catalog-admin-page .catalog-manage-images-button:hover {
+  border-color: rgba(0, 191, 174, 0.4);
+  color: var(--ui-teal-dark);
+  background: var(--ui-teal-soft);
+}
+
+.catalog-admin-page .catalog-empty {
+  border-radius: 14px;
+  color: var(--ui-faint);
+  font-weight: 600;
+}
+
+.catalog-admin-page .catalog-note {
+  background: #fbfcfd;
+}
+
+.catalog-admin-page .catalog-note p {
+  color: var(--ui-muted);
+}
+
+/* Galería de imágenes */
+.catalog-admin-page .catalog-image-manager-overlay {
+  background: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(6px);
+}
+
+.catalog-admin-page .catalog-image-manager {
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow:
+    0 24px 60px rgba(15, 23, 42, 0.22),
+    0 0 0 1px rgba(15, 23, 42, 0.04);
+  animation: polishModalIn 0.22s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.catalog-admin-page .catalog-image-manager > header {
+  border-bottom-color: var(--ui-line-soft);
+}
+
+.catalog-admin-page .catalog-image-manager header span {
+  color: var(--ui-teal-dark);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+}
+
+.catalog-admin-page .catalog-image-manager header h3 {
+  color: var(--ui-ink);
+  font-weight: 800;
+}
+
+.catalog-admin-page .catalog-image-manager header > button {
+  border: 1px solid var(--ui-line);
+  border-radius: 10px;
+  color: var(--ui-muted);
+  background: #ffffff;
+}
+
+.catalog-admin-page .catalog-image-manager header > button:hover {
+  color: var(--ui-ink);
+  background: #f5f8fa;
+}
+
+.catalog-admin-page .catalog-manager-image {
+  border-color: var(--ui-line);
+  border-radius: 14px;
+}
+
+.catalog-admin-page .catalog-manager-image.is-main {
+  border-color: var(--ui-teal);
+  box-shadow: 0 0 0 3px rgba(0, 191, 174, 0.15);
+}
+
+.catalog-admin-page .catalog-manager-image.is-main > span {
+  background: linear-gradient(135deg, var(--ui-teal-dark), var(--ui-teal));
+}
+
+.catalog-admin-page .catalog-image-upload {
+  border: 1.5px dashed #c6d8de;
+  border-radius: 14px;
+  color: var(--ui-muted);
+  background: #fbfcfd;
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease;
+}
+
+.catalog-admin-page .catalog-image-upload:hover {
+  border-color: var(--ui-teal);
+  background: var(--ui-teal-soft);
+}
+
+.catalog-admin-page .catalog-image-upload strong {
+  color: var(--ui-ink);
+}

@@ -1,0 +1,105 @@
+/* =========================================================
+   PULIDO · RECIBOS
+========================================================= */
+
+.receipt-page .receipt-number-cell strong {
+  color: var(--ui-ink);
+  font-weight: 700;
+}
+
+.receipt-page .receipt-icon {
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  color: var(--ui-teal-dark);
+  background: var(--ui-teal-soft);
+}
+
+.receipt-page .receipt-form .date-picker-input {
+  border: 1px solid #dce5ea;
+  border-radius: 12px;
+  color: var(--ui-ink);
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.receipt-page .receipt-form .date-picker-input:focus {
+  border-color: var(--ui-teal);
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(0, 191, 174, 0.12);
+}
+
+.receipt-page .modal-actions {
+  border-top: 1px solid var(--ui-line-soft);
+}
+
+@media (max-width: 768px) {
+  .receipt-page .receipt-mobile-list {
+    background: transparent;
+  }
+
+  .receipt-page .receipt-mobile-card {
+    border-color: var(--ui-line);
+    border-radius: 18px;
+    box-shadow: var(--ui-shadow-sm);
+  }
+
+  .receipt-page .receipt-mobile-card:active {
+    border-color: rgba(0, 191, 174, 0.4);
+  }
+
+  .receipt-page .receipt-mobile-card span,
+  .receipt-page .receipt-detail-header span,
+  .receipt-page .receipt-detail-list span {
+    color: var(--ui-faint);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+  }
+
+  .receipt-page :is(.receipt-mobile-money-grid div, .receipt-detail-list div) {
+    border-color: var(--ui-line-soft);
+    border-radius: 12px;
+    background: #f8fafb;
+  }
+
+  .receipt-page .receipt-mobile-footer strong {
+    color: var(--ui-teal-dark);
+  }
+
+  .receipt-page .receipt-mobile-empty {
+    border-color: var(--ui-line);
+    border-radius: 18px;
+    color: var(--ui-faint);
+    font-weight: 600;
+  }
+
+  .receipt-page .receipt-detail-modal {
+    border-radius: 22px 22px 0 0;
+  }
+
+  .receipt-page .receipt-detail-header button {
+    border: 1px solid var(--ui-line);
+    border-radius: 10px;
+    background: #ffffff;
+  }
+
+  .receipt-page .receipt-primary-action {
+    border-color: transparent;
+    background: linear-gradient(135deg, var(--ui-teal-dark), var(--ui-teal));
+  }
+
+  .receipt-page .receipt-action-btn {
+    border-color: var(--ui-line);
+    border-radius: 12px;
+    font-weight: 700;
+  }
+
+  .receipt-page .receipt-danger-action {
+    border: 1px solid #f6d4d4;
+    color: #b42318;
+    background: #fef3f2;
+    font-weight: 700;
+  }
+}

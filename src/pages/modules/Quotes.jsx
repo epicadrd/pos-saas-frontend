@@ -407,14 +407,24 @@ const cleanItems = items.map((item) => ({
     try {
       setSaving(true);
 
+      // Vincula la cotización al perfil del cliente si se eligió uno existente
+      const linkedCustomer = customers.find(
+        (item) =>
+          item.name === quoteForm.customerName &&
+          (!quoteForm.customerRnc || (item.rnc || "") === quoteForm.customerRnc)
+      );
+      const customerId = linkedCustomer?.id || null;
+
      if (editingQuoteId) {
         await api.put(`/quotes/${editingQuoteId}`, {
           ...quoteForm,
+          customerId,
           items: cleanItems,
         });
       } else {
         await api.post("/quotes", {
           ...quoteForm,
+          customerId,
           status: "draft",
           items: cleanItems,
         });

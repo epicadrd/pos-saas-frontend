@@ -92,6 +92,11 @@ const hasVisibleItems = (items = []) => {
         roles: ["master", "admin", "employee"],
       },
       {
+        to: "/dashboard/clientes",
+        label: t("layout.customers"),
+        roles: ["master", "admin", "employee"],
+      },
+      {
         to: "/dashboard/recibos",
         label: t("layout.receipts"),
         roles: ["master", "admin"],
@@ -269,6 +274,12 @@ const hasVisibleItems = (items = []) => {
     label: t("layout.quotes"),
     group: t("layout.billing"),
     path: "/dashboard/cotizaciones",
+    roles: ["master", "admin", "employee"],
+  },
+  {
+    label: t("layout.customers"),
+    group: t("layout.billing"),
+    path: "/dashboard/clientes",
     roles: ["master", "admin", "employee"],
   },
   {

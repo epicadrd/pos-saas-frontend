@@ -262,6 +262,7 @@
     "invoices": "Invoices",
     "quotes": "Quotes",
     "receipts": "Receipts",
+    "customers": "Customers",
     "inventoryManagement": "Inventory Management",
     "inventory": "Inventory",
     "inventoryCount": "Inventory Count",
@@ -2249,5 +2250,114 @@
   "messages": {
     "loadError": "Could not load payment history"
   }
-}
+},
+  "customers": {
+    "eyebrow": "Customers",
+    "title": "Customers",
+    "subtitle": "View each customer's profile with their invoices, quotes and receipts.",
+    "newCustomer": "New customer",
+    "searchPlaceholder": "Search by name, tax ID, phone or email",
+    "filters": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "all": "All"
+    },
+    "stats": {
+      "total": "Customers",
+      "withRnc": "With tax ID",
+      "withEmail": "With email"
+    },
+    "table": {
+      "customer": "Customer",
+      "rnc": "Tax ID",
+      "phone": "Phone",
+      "email": "Email",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "actions": {
+      "viewProfile": "View profile",
+      "edit": "Edit",
+      "deactivate": "Deactivate",
+      "back": "Back to customers"
+    },
+    "empty": "No customers to show.",
+    "loading": "Loading customers...",
+    "form": {
+      "newTitle": "New customer",
+      "editTitle": "Edit customer",
+      "eyebrow": "Customer details",
+      "name": "Name or company *",
+      "rnc": "Tax ID",
+      "phone": "Phone",
+      "email": "Email",
+      "address": "Address",
+      "cancel": "Cancel",
+      "save": "Save customer",
+      "saving": "Saving..."
+    },
+    "confirm": {
+      "deactivateTitle": "Deactivate customer",
+      "deactivateMessage": "Deactivate {{name}}? Their documents are kept and you can still view their profile.",
+      "deactivateButton": "Deactivate"
+    },
+    "messages": {
+      "loadError": "Could not load customers",
+      "saveError": "Could not save the customer",
+      "nameRequired": "Customer name is required",
+      "profileError": "Could not load the customer profile"
+    },
+    "profile": {
+      "eyebrow": "Customer profile",
+      "since": "Customer since {{date}}",
+      "lastActivity": "Last activity: {{date}}",
+      "noContact": "No contact details",
+      "inactiveBadge": "Inactive",
+      "stats": {
+        "totalInvoiced": "Total invoiced",
+        "invoicesCount": "{{count}} invoice(s)",
+        "pendingBalance": "Outstanding balance",
+        "overdue": "{{count}} overdue",
+        "upToDate": "Up to date",
+        "totalReceived": "Total collected",
+        "receiptsCount": "{{count}} receipt(s)",
+        "quotes": "Quotes",
+        "quotesWon": "{{count}} approved or converted"
+      },
+      "tabs": {
+        "invoices": "Invoices",
+        "quotes": "Quotes",
+        "receipts": "Receipts"
+      },
+      "columns": {
+        "number": "Number",
+        "date": "Date",
+        "dueDate": "Due",
+        "validUntil": "Valid until",
+        "total": "Total",
+        "paid": "Paid",
+        "balance": "Balance",
+        "status": "Status",
+        "invoice": "Invoice",
+        "concept": "Concept",
+        "method": "Method",
+        "amount": "Amount"
+      },
+      "overdueTag": "Overdue",
+      "receiptStatus": {
+        "paid": "Paid",
+        "cancelled": "Cancelled"
+      },
+      "empty": {
+        "invoices": "This customer has no issued invoices yet.",
+        "quotes": "This customer has no sent quotes yet.",
+        "receipts": "This customer has no receipts yet."
+      },
+      "legacyNote": "Documents created before this feature are matched by tax ID or name."
+    }
+  }
 }

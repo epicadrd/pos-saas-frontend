@@ -9,6 +9,8 @@ import SaaSLayout from "./components/SaaSLayout";
 import Inventory from "./pages/modules/Inventory";
 import Invoices from "./pages/modules/Invoices";
 import Quotes from "./pages/modules/Quotes";
+import Customers from "./pages/modules/Customers";
+import CustomerProfile from "./pages/modules/CustomerProfile";
 import Receipts from "./pages/modules/Receipts";
 import PurchaseOrders from "./pages/modules/PurchaseOrders";
 import PaymentHistory from "./pages/modules/PaymentHistory";
@@ -90,6 +92,8 @@ function App() {
           <Route path="facturacion" element={<Invoices />} />
           <Route path="facturacion/historial-pagos" element={<PaymentHistory />} />
           <Route path="cotizaciones" element={<Quotes />} />
+          <Route path="clientes" element={<Customers />} />
+          <Route path="clientes/:id" element={<CustomerProfile />} />
           <Route path="facturacion/personalizacion" element={<InvoiceCustomization />} />
           <Route path="facturacion/preferencias" element={<InvoicePreferences />} />
           <Route path="facturacion/numeracion" element={<InvoiceNumbering />} />

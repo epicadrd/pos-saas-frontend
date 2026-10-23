@@ -270,6 +270,7 @@
     "invoices": "Facturas",
     "quotes": "Cotizaciones",
     "receipts": "Recibos",
+    "customers": "Clientes",
     "inventoryManagement": "Gestión de inventario",
     "inventory": "Inventario",
     "inventoryCount": "Conteo de inventario",
@@ -2263,7 +2264,114 @@
   "messages": {
     "loadError": "No se pudo cargar el historial de pagos"
   }
+},
+  "customers": {
+    "eyebrow": "Clientes",
+    "title": "Clientes",
+    "subtitle": "Consulta el perfil de cada cliente con sus facturas, cotizaciones y recibos.",
+    "newCustomer": "Nuevo cliente",
+    "searchPlaceholder": "Buscar por nombre, RNC, teléfono o correo",
+    "filters": {
+      "active": "Activos",
+      "inactive": "Inactivos",
+      "all": "Todos"
+    },
+    "stats": {
+      "total": "Clientes",
+      "withRnc": "Con RNC/Cédula",
+      "withEmail": "Con correo"
+    },
+    "table": {
+      "customer": "Cliente",
+      "rnc": "RNC/Cédula",
+      "phone": "Teléfono",
+      "email": "Correo",
+      "status": "Estado",
+      "actions": "Acciones"
+    },
+    "status": {
+      "active": "Activo",
+      "inactive": "Inactivo"
+    },
+    "actions": {
+      "viewProfile": "Ver perfil",
+      "edit": "Editar",
+      "deactivate": "Desactivar",
+      "back": "Volver a clientes"
+    },
+    "empty": "No hay clientes para mostrar.",
+    "loading": "Cargando clientes...",
+    "form": {
+      "newTitle": "Nuevo cliente",
+      "editTitle": "Editar cliente",
+      "eyebrow": "Datos del cliente",
+      "name": "Nombre o razón social *",
+      "rnc": "RNC/Cédula",
+      "phone": "Teléfono",
+      "email": "Correo electrónico",
+      "address": "Dirección",
+      "cancel": "Cancelar",
+      "save": "Guardar cliente",
+      "saving": "Guardando..."
+    },
+    "confirm": {
+      "deactivateTitle": "Desactivar cliente",
+      "deactivateMessage": "¿Desactivar a {{name}}? Sus documentos se conservan y podrás seguir viendo su perfil.",
+      "deactivateButton": "Desactivar"
+    },
+    "messages": {
+      "loadError": "No se pudieron cargar los clientes",
+      "saveError": "No se pudo guardar el cliente",
+      "nameRequired": "El nombre del cliente es obligatorio",
+      "profileError": "No se pudo cargar el perfil del cliente"
+    },
+    "profile": {
+      "eyebrow": "Perfil del cliente",
+      "since": "Cliente desde {{date}}",
+      "lastActivity": "Última actividad: {{date}}",
+      "noContact": "Sin datos de contacto",
+      "inactiveBadge": "Inactivo",
+      "stats": {
+        "totalInvoiced": "Total facturado",
+        "invoicesCount": "{{count}} factura(s)",
+        "pendingBalance": "Balance pendiente",
+        "overdue": "{{count}} vencida(s)",
+        "upToDate": "Al día",
+        "totalReceived": "Total cobrado",
+        "receiptsCount": "{{count}} recibo(s)",
+        "quotes": "Cotizaciones",
+        "quotesWon": "{{count}} aprobada(s) o convertida(s)"
+      },
+      "tabs": {
+        "invoices": "Facturas",
+        "quotes": "Cotizaciones",
+        "receipts": "Recibos"
+      },
+      "columns": {
+        "number": "Número",
+        "date": "Fecha",
+        "dueDate": "Vence",
+        "validUntil": "Válida hasta",
+        "total": "Total",
+        "paid": "Pagado",
+        "balance": "Balance",
+        "status": "Estado",
+        "invoice": "Factura",
+        "concept": "Concepto",
+        "method": "Método",
+        "amount": "Monto"
+      },
+      "overdueTag": "Vencida",
+      "receiptStatus": {
+        "paid": "Pagado",
+        "cancelled": "Anulado"
+      },
+      "empty": {
+        "invoices": "Este cliente aún no tiene facturas emitidas.",
+        "quotes": "Este cliente aún no tiene cotizaciones enviadas.",
+        "receipts": "Este cliente aún no tiene recibos."
+      },
+      "legacyNote": "Los documentos creados antes de esta función se asocian por RNC o por nombre."
+    }
+  }
 }
-}
-
-

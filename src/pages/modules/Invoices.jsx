@@ -749,6 +749,15 @@ const openEditCustomerModal = () => {
   setCustomerModalOpen(true);
 };
 
+// Solo se vincula al perfil si el nombre sigue siendo el del cliente elegido
+const getLinkedCustomerId = () => {
+  const customer = customers.find(
+    (item) => String(item.id) === String(selectedCustomerId)
+  );
+
+  return customer && customer.name === form.customerName ? customer.id : null;
+};
+
 const selectCustomer = (customerId) => {
   if (customerId === "new") {
     setSelectedCustomerId("");
@@ -891,6 +900,7 @@ const saveCustomer = async () => {
 
       if (editingInvoiceId && status === "draft") {
         await api.put(`/invoices/${editingInvoiceId}/draft`, {
+          customerId: getLinkedCustomerId(),
           customerName: form.customerName,
           customerRnc: form.customerRnc,
           customerPhone: form.customerPhone,
@@ -906,6 +916,7 @@ const saveCustomer = async () => {
         });
       } else {
        const { data } = await api.post("/invoices", {
+          customerId: getLinkedCustomerId(),
           customerName: form.customerName,
           customerRnc: form.customerRnc,
           customerPhone: form.customerPhone,
@@ -986,7 +997,7 @@ const saveCustomer = async () => {
     setActiveTab("edit");
     setEditingInvoiceId(invoice.id);
     setEditingInvoiceNumber(invoice.invoiceNumber);
-    
+    setSelectedCustomerId(invoice.customerId || "");
 
     setForm({
       ...emptyForm,

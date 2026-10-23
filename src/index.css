@@ -42,6 +42,7 @@
 @import "./styles/polish/users.css";
 @import "./styles/polish/account-settings.css";
 @import "./styles/polish/invoices.css";
+@import "./styles/customers.css";
 
 html {
   overflow-y: scroll;

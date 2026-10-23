@@ -243,7 +243,7 @@ export default function Customers() {
                     <th>{t("customers.table.phone")}</th>
                     <th>{t("customers.table.email")}</th>
                     <th>{t("customers.table.status")}</th>
-                    <th>{t("customers.table.actions")}</th>
+                    <th className="actions">{t("customers.table.actions")}</th>
                   </tr>
                 </thead>
 

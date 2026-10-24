@@ -1175,6 +1175,7 @@
     "addProducts": "Add products to the ticket",
     "fiscalRequired": "Customer Tax ID and business name are required for fiscal credit",
     "saleSuccess": "Sale registered successfully",
+    "saleEcfFailed": "The sale was registered, but the electronic receipt (e-CF) was not issued: {{reason}}\n\nAn administrator can retry it from the sales history.",
     "charge": "Could not charge"
   },
   "receipt": {
@@ -1207,7 +1208,14 @@
   "totalTaxes": "Total Taxes",
   "consumerFinal": "Final Consumer",
   "creditFiscal": "Fiscal Credit",
-  "saleReceipt": "Sales Receipt"
+  "saleReceipt": "Sales Receipt",
+  "ecfConsumer": "Electronic Consumer Invoice",
+  "ecfCreditFiscal": "Electronic Tax Credit Invoice",
+  "saleNumber": "No.",
+  "securityCode": "Security code",
+  "signedDate": "Digital signature date",
+  "ecfPending": "Electronic tax receipt pending issuance",
+  "scanDgii": "Verify this receipt with the DGII"
 },
 "cashRegistersPage": {
   "eyebrow": "POS / Cash register",
@@ -1350,7 +1358,13 @@
     "method": "Method",
     "total": "Total",
     "soldProducts": "Products sold",
-    "printTicket": "Print ticket"
+    "printTicket": "Print ticket",
+    "ecfPending": "The electronic receipt (e-CF) for this sale was not issued.",
+    "ecfUnconfirmed": "It was not confirmed whether this sale e-CF reached the DGII. Retrying will check before resending it.",
+    "ecfRetry": "Issue e-CF",
+    "ecfRetrying": "Issuing...",
+    "ecfRetryError": "The e-CF could not be issued",
+    "ecfIssued": "e-CF issued successfully"
   },
   "messages": {
     "loading": "Loading sales...",

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Eye, Filter, Receipt, Search, X } from "lucide-react";
+import { Eye, Filter, Receipt, RotateCw, Search, X } from "lucide-react";
 import { api } from "../../api/axios";
 import PosReceipt from "../../components/PosReceipt";
 import { useAuth } from "../../context/AuthContext";
@@ -23,6 +23,7 @@ export default function PosSales() {
   const [receiptSale, setReceiptSale] = useState(null);
   const [loading, setLoading] = useState(true);
   const [detailLoading, setDetailLoading] = useState(false);
+  const [retryingEcf, setRetryingEcf] = useState(false);
 
   const [filters, setFilters] = useState({
     dateFrom: "",
@@ -147,6 +148,25 @@ export default function PosSales() {
       );
     } finally {
       setDetailLoading(false);
+    }
+  };
+
+  const needsEcfRetry =
+    isDO &&
+    ["Error", "Pendiente"].includes(selectedSale?.electronicInvoiceStatus);
+
+  // Reutiliza el e-NCF de la venta; el servidor verifica antes de reenviar
+  const retryEcf = async () => {
+    try {
+      setRetryingEcf(true);
+      await api.post(`/electronic-invoices/pos-sale/${selectedSale.id}/emit`);
+      alert(t("pos.salesPage.detail.ecfIssued"));
+    } catch (error) {
+      alert(error.response?.data?.message || t("pos.salesPage.detail.ecfRetryError"));
+    } finally {
+      setRetryingEcf(false);
+      const { data } = await api.get(`/pos/sales/${selectedSale.id}`);
+      setSelectedSale(data);
     }
   };
 
@@ -449,6 +469,27 @@ export default function PosSales() {
               <span>{t("pos.salesPage.detail.total")}</span>
               <strong>{money.format(Number(selectedSale.total || 0))}</strong>
             </div>
+
+            {needsEcfRetry && (
+              <div className="pos-sale-ecf-pending">
+                <span>
+                  {selectedSale.electronicInvoiceStatus === "Pendiente"
+                    ? t("pos.salesPage.detail.ecfUnconfirmed")
+                    : t("pos.salesPage.detail.ecfPending")}
+                </span>
+                <button
+                  type="button"
+                  className="secondary-btn"
+                  disabled={retryingEcf}
+                  onClick={retryEcf}
+                >
+                  <RotateCw size={16} />
+                  {retryingEcf
+                    ? t("pos.salesPage.detail.ecfRetrying")
+                    : t("pos.salesPage.detail.ecfRetry")}
+                </button>
+              </div>
+            )}
 
             <button
               type="button"

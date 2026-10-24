@@ -3,6 +3,8 @@ import { ArrowLeft, Hash, Save } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../../api/axios";
 import { useAuth } from "../../context/AuthContext";
+import FiscalSequencesManager from "../../components/FiscalSequencesManager";
+import { isDominicanTenant } from "../../utils/taxConfig";
 
 export default function InvoiceNumbering() {
   const navigate = useNavigate();
@@ -116,6 +118,8 @@ export default function InvoiceNumbering() {
           <strong>Próxima factura:</strong> {preview}
         </div>
       </div>
+
+      {isDominicanTenant(tenant) && <FiscalSequencesManager />}
     </div>
   );
 }

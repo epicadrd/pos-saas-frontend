@@ -79,14 +79,6 @@ export default function PosReceipt({ sale, onClose }) {
     mixed: t("pos.mixed").toUpperCase(),
   };
 
-  const receiptTypeLabels = {
-    consumer_final: t("pos.receipt.consumerFinal").toUpperCase(),
-    credit_fiscal: t("pos.receipt.creditFiscal").toUpperCase(),
-  };
-
-  const getReceiptTypeLabel = (type) =>
-    receiptTypeLabels[type] || receiptTypeLabels.consumer_final;
-
   const usTaxBreakdown = {
     stateRate: Number(tenant?.usStateTaxRate || 0),
     countyRate: Number(tenant?.usCountyTaxRate || 0),
@@ -100,6 +92,12 @@ export default function PosReceipt({ sale, onClose }) {
 
   const items = sale.items || [];
   const receiptType = sale.receiptType || sale.invoiceType || "consumer_final";
+
+  // Solo es comprobante fiscal si la venta ya tiene e-NCF asignado
+  const hasEcf = isDO && Boolean(sale.eNcf);
+  const ecfPending =
+    isDO && !hasEcf && ["Error", "Pendiente"].includes(sale.electronicInvoiceStatus);
+  const isCreditFiscal = (sale.tipoeCF || "") === "31" || receiptType === "credit_fiscal";
 
   useEffect(() => {
     const generateQr = async () => {
@@ -150,14 +148,37 @@ export default function PosReceipt({ sale, onClose }) {
 
             <div className="receipt-center">
               <h3 className="receipt-type-title">
-                {isDO
-                  ? getReceiptTypeLabel(receiptType)
+                {hasEcf
+                  ? (isCreditFiscal
+                      ? t("pos.receipt.ecfCreditFiscal")
+                      : t("pos.receipt.ecfConsumer")
+                    ).toUpperCase()
                   : t("pos.receipt.saleReceipt").toUpperCase()}
               </h3>
             </div>
 
             <div className="receipt-info-block receipt-info-lines">
-              {isDO && <p>e-NCF: {getFiscalNumber(sale)}</p>}
+              {hasEcf ? (
+                <>
+                  <p>e-NCF: {getFiscalNumber(sale)}</p>
+                  {sale.securityCode && (
+                    <p>
+                      {t("pos.receipt.securityCode")}: {sale.securityCode}
+                    </p>
+                  )}
+                  {sale.signedDate && (
+                    <p>
+                      {t("pos.receipt.signedDate")}: {sale.signedDate}
+                    </p>
+                  )}
+                </>
+              ) : (
+                <p>
+                  {t("pos.receipt.saleNumber")}: {sale.saleNumber}
+                </p>
+              )}
+
+              {ecfPending && <p>{t("pos.receipt.ecfPending")}</p>}
 
               {isDO && receiptType === "credit_fiscal" && (
                 <>
@@ -317,7 +338,7 @@ export default function PosReceipt({ sale, onClose }) {
             {isDO && qrDataUrl && (
               <div className="receipt-qr">
                 <img src={qrDataUrl} alt={t("pos.receipt.qrAlt")} />
-                <p>{t("pos.receipt.scanQr")}</p>
+                <p>{hasEcf ? t("pos.receipt.scanDgii") : t("pos.receipt.scanQr")}</p>
               </div>
             )}
 

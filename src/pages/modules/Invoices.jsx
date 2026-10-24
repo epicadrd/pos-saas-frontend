@@ -11,6 +11,7 @@ import {
   Phone,
   Plus,
   Download,
+  RotateCw,
   Save,
   Settings,
   Trash2,
@@ -109,6 +110,7 @@ export default function Invoices() {
   const [ecfRequestStatus, setEcfRequestStatus] = useState("not_requested");
   const [loadingEcfRequest, setLoadingEcfRequest] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [retryingEcfId, setRetryingEcfId] = useState(null);
   const [previewModalOpen, setPreviewModalOpen] = useState(false);
   const [actionsOpen, setActionsOpen] = useState(false);
   const [adminMenuOpen, setAdminMenuOpen] = useState(false);
@@ -149,10 +151,18 @@ const electronicInvoicingActive =
   canUseElectronicInvoicing &&
   form.electronicInvoicingEnabled === true;
 
+// Solo se imprime como e-CF cuando la DGII ya tiene el número asignado
 const shouldPrintElectronicInvoice = (invoice = {}) =>
   isDO &&
   invoice?.electronicInvoicingEnabled !== false &&
-  Boolean(invoice?.eNcf || invoice?.dgiiQrUrl || invoice?.electronicInvoiceStatus);
+  Boolean(invoice?.eNcf);
+
+// Factura emitida cuyo e-CF falló o quedó sin confirmar
+const needsEcfRetry = (invoice = {}) =>
+  isDO &&
+  canUseElectronicInvoicing &&
+  !["draft", "cancelled"].includes(invoice.status) &&
+  ["Error", "Pendiente"].includes(invoice.electronicInvoiceStatus);
 
 const money = new Intl.NumberFormat(isDO ? "es-DO" : "en-US", {
   style: "currency",
@@ -952,8 +962,18 @@ const saveCustomer = async () => {
           };
 
           if (electronicInvoicingActive) {
-            const fiscalInvoice = await emitElectronicInvoice(invoiceWithItems);
-            handlePrintInvoice(fiscalInvoice);
+            // La factura ya quedó guardada: si el e-CF falla no se debe
+            // volver a enviar el formulario (crearía una factura duplicada)
+            try {
+              const fiscalInvoice = await emitElectronicInvoice(invoiceWithItems);
+              handlePrintInvoice(fiscalInvoice);
+            } catch (ecfError) {
+              alert(
+                `La factura ${data.invoice.invoiceNumber} se guardó, pero el e-CF no se emitió:\n\n${
+                  ecfError.response?.data?.message || ecfError.message
+                }\n\nPuedes reintentarlo desde la lista de facturas con el botón "Emitir e-CF".`
+              );
+            }
           } else {
             handlePrintInvoice({
               ...invoiceWithItems,
@@ -1124,15 +1144,13 @@ const emitElectronicInvoice = async (invoice) => {
   const tipoeCF = getTipoECFByInvoiceType(invoice.invoiceType);
 
   const { data } = await api.post(
-    `/electronic-invoices/invoice/${invoice.id}/emit`,
-    {
-      tipoeCF,
-    }
+    `/electronic-invoices/invoice/${invoice.id}/emit`
   );
 
   return {
     ...invoice,
     eNcf:
+      data.invoice?.eNcf ||
       data.electronicInvoice?.eNcf ||
       data.response?.ecf ||
       data.response?.ncf ||
@@ -1677,6 +1695,23 @@ const handlePrintDraft = async () => {
     return t(`invoices.status.${status}`, t("invoices.status.none"));
   };
 
+  // Reutiliza el mismo e-NCF de la factura; si el envío anterior quedó
+  // sin confirmar, el servidor verifica con MSeller antes de reenviar
+  const retryElectronicInvoice = async (invoice) => {
+    try {
+      setRetryingEcfId(invoice.id);
+      const { data } = await api.post(
+        `/electronic-invoices/invoice/${invoice.id}/emit`
+      );
+      alert(`e-CF emitido correctamente: ${data.invoice?.eNcf || data.electronicInvoice?.eNcf}`);
+    } catch (error) {
+      alert(error.response?.data?.message || "No se pudo emitir el e-CF");
+    } finally {
+      setRetryingEcfId(null);
+      await loadData();
+    }
+  };
+
   const markAsPaid = async (invoice) => {
     const ok = await confirm({
       title: t("invoices.confirm.markPaidTitle"),
@@ -1784,6 +1819,13 @@ const handlePrintDraft = async () => {
           <tr key={invoice.id}>
             <td>
               <strong>{getFiscalInvoiceNumber(invoice)}</strong>
+              {needsEcfRetry(invoice) && (
+                <small className="qb-ecf-pending-tag">
+                  {invoice.electronicInvoiceStatus === "Pendiente"
+                    ? "e-CF sin confirmar"
+                    : "e-CF no emitido"}
+                </small>
+              )}
             </td>
             <td>{invoice.customerName}</td>
             <td>{money.format(Number(invoice.tax || 0))}</td>
@@ -1805,6 +1847,22 @@ const handlePrintDraft = async () => {
                   <Download size={16} />
                   {t("invoices.actions.print")}
                 </button>
+
+                {needsEcfRetry(invoice) && (
+                  <button
+                    type="button"
+                    className="qb-secondary-btn"
+                    disabled={retryingEcfId === invoice.id}
+                    onClick={() => retryElectronicInvoice(invoice)}
+                  >
+                    {retryingEcfId === invoice.id ? (
+                      <Loader2 size={16} className="qb-spin" />
+                    ) : (
+                      <RotateCw size={16} />
+                    )}
+                    Emitir e-CF
+                  </button>
+                )}
 
                 {invoice.status !== "paid" &&
                   invoice.status !== "cancelled" &&
@@ -1960,6 +2018,21 @@ const handlePrintDraft = async () => {
           <Download size={16} />
           {t("invoices.actions.print")}
         </button>
+
+        {needsEcfRetry(selectedInvoice) && (
+          <button
+            type="button"
+            className="qb-secondary-btn"
+            disabled={retryingEcfId === selectedInvoice.id}
+            onClick={() => {
+              retryElectronicInvoice(selectedInvoice);
+              setSelectedInvoice(null);
+            }}
+          >
+            <RotateCw size={16} />
+            Emitir e-CF
+          </button>
+        )}
 
         {selectedInvoice.status !== "paid" &&
           selectedInvoice.status !== "cancelled" &&

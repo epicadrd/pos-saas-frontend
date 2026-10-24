@@ -307,7 +307,11 @@ export default function POS() {
       });
 
       setLastSale(data.sale);
-      alert(t("pos.errors.saleSuccess"));
+      alert(
+        data.ecfError
+          ? t("pos.errors.saleEcfFailed", { reason: data.ecfError })
+          : t("pos.errors.saleSuccess")
+      );
       setCart([]);
       setAmountPaid("");
       setDiscountTotal("");

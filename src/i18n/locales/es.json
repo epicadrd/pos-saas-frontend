@@ -1189,6 +1189,7 @@
     "addProducts": "Agrega productos al ticket",
     "fiscalRequired": "El RNC y la razón social del cliente son obligatorios para crédito fiscal",
     "saleSuccess": "Venta registrada correctamente",
+    "saleEcfFailed": "La venta se registró, pero el comprobante electrónico (e-CF) no se emitió: {{reason}}\n\nUn administrador puede reintentarlo desde el historial de ventas.",
     "charge": "No se pudo cobrar"
   },
   "receipt": {
@@ -1221,7 +1222,14 @@
   "totalTaxes": "Total impuestos",
   "consumerFinal": "Consumidor final",
   "creditFiscal": "Crédito fiscal",
-  "saleReceipt": "Recibo de venta"
+  "saleReceipt": "Recibo de venta",
+  "ecfConsumer": "Factura de Consumo Electrónica",
+  "ecfCreditFiscal": "Factura de Crédito Fiscal Electrónica",
+  "saleNumber": "No.",
+  "securityCode": "Código de seguridad",
+  "signedDate": "Fecha de firma digital",
+  "ecfPending": "Comprobante fiscal electrónico pendiente de emisión",
+  "scanDgii": "Consulte este comprobante en la DGII"
 },
 "cashRegistersPage": {
   "eyebrow": "POS / Caja",
@@ -1364,7 +1372,13 @@
     "method": "Método",
     "total": "Total",
     "soldProducts": "Productos vendidos",
-    "printTicket": "Imprimir ticket"
+    "printTicket": "Imprimir ticket",
+    "ecfPending": "El comprobante electrónico (e-CF) de esta venta no se emitió.",
+    "ecfUnconfirmed": "No se confirmó si el e-CF de esta venta llegó a la DGII. Al reintentar se verificará antes de reenviarlo.",
+    "ecfRetry": "Emitir e-CF",
+    "ecfRetrying": "Emitiendo...",
+    "ecfRetryError": "No se pudo emitir el e-CF",
+    "ecfIssued": "e-CF emitido correctamente"
   },
   "messages": {
     "loading": "Cargando ventas...",

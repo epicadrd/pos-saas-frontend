@@ -1,0 +1,306 @@
+/* Numeración fiscal e-NCF (Facturación → Numeración) */
+.fiscal-seq-card {
+  max-width: 1100px;
+  margin-top: 22px;
+}
+
+.fiscal-seq-card h4 {
+  margin: 0 0 14px;
+  font-size: 16px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.fiscal-seq-muted {
+  display: block;
+  color: #64748b;
+  font-size: 12.5px;
+  font-weight: 500;
+}
+
+.fiscal-seq-mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.fiscal-seq-form {
+  padding: 18px;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  background: #fbfdfd;
+}
+
+.fiscal-seq-grid {
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+}
+
+.fiscal-seq-field-error {
+  color: #b42318;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.fiscal-seq-form-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+
+.fiscal-seq-form-footer .qb-primary-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.fiscal-seq-section {
+  display: grid;
+  gap: 4px;
+}
+
+.fiscal-seq-table-wrap {
+  overflow-x: auto;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+}
+
+.fiscal-seq-table {
+  width: 100%;
+  min-width: 760px;
+}
+
+.fiscal-seq-table th.num,
+.fiscal-seq-table td.num {
+  text-align: right;
+}
+
+.fiscal-seq-table th.actions {
+  text-align: center;
+}
+
+.fiscal-seq-actions {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.fiscal-seq-actions button {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+}
+
+.fiscal-seq-actions button:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+
+.fiscal-seq-detail {
+  max-width: 320px;
+  color: #475569;
+  font-size: 13px;
+  white-space: normal;
+  word-break: break-word;
+}
+
+.fiscal-seq-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.fiscal-seq-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.fiscal-seq-alert svg {
+  flex: 0 0 auto;
+  margin-top: 1px;
+}
+
+.fiscal-seq-success {
+  color: #087f8c;
+  background: #e6f8f6;
+  border-color: #b5ebe5;
+}
+
+.fiscal-seq-info {
+  color: #087f8c;
+  background: #f0fbfa;
+  border-color: #cdeeea;
+}
+
+.fiscal-seq-warning {
+  color: #93370d;
+  background: #fffaeb;
+  border-color: #fedf89;
+}
+
+.fiscal-seq-danger {
+  color: #b42318;
+  background: #fef3f2;
+  border-color: #fecdca;
+}
+
+.fiscal-seq-muted.fiscal-seq-badge,
+.fiscal-seq-badge.fiscal-seq-muted {
+  display: inline-block;
+  color: #475569;
+  background: #f1f5f9;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* Etiqueta en la lista de facturas cuando el e-CF quedó pendiente */
+.qb-ecf-pending-tag {
+  display: block;
+  width: fit-content;
+  margin-top: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  color: #93370d;
+  background: #fffaeb;
+  font-size: 11.5px;
+  font-weight: 700;
+}
+
+/* Aviso en el detalle de una venta POS sin e-CF */
+.pos-sale-ecf-pending {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding: 12px 14px;
+  border: 1px solid #fedf89;
+  border-radius: 14px;
+  color: #93370d;
+  background: #fffaeb;
+  font-size: 13.5px;
+  line-height: 1.45;
+}
+
+.pos-sale-ecf-pending button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+@media (max-width: 640px) {
+  .fiscal-seq-form {
+    padding: 14px;
+  }
+
+  .fiscal-seq-form-footer .qb-primary-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* Subida del archivo de la DGII */
+.fiscal-seq-file-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.fiscal-seq-dropzone {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 28px 18px;
+  border: 2px dashed #99d5cf;
+  border-radius: 14px;
+  background: #f0fbfa;
+  color: #0f766e;
+  text-align: center;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.fiscal-seq-dropzone:hover,
+.fiscal-seq-file-input:focus-visible + .fiscal-seq-dropzone {
+  border-color: #0f766e;
+  background: #e3f6f4;
+}
+
+.fiscal-seq-dropzone strong {
+  color: #0f172a;
+  font-size: 15px;
+}
+
+.fiscal-seq-upload-body {
+  display: grid;
+  gap: 12px;
+}
+
+.fiscal-seq-upload-file {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  color: #0f766e;
+}
+
+.fiscal-seq-upload-file strong {
+  color: #0f172a;
+  word-break: break-all;
+}
+
+.fiscal-seq-upload-file .fiscal-seq-muted {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.fiscal-seq-upload-date {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 14px;
+  border-radius: 12px;
+  background: #fff8eb;
+  color: #92400e;
+  font-size: 14px;
+}
+
+.fiscal-seq-upload-date input {
+  max-width: 200px;
+}
+
+.fiscal-seq-manual {
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+}
+
+.fiscal-seq-manual summary {
+  padding: 14px 18px;
+  color: #334155;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.fiscal-seq-manual[open] summary {
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.fiscal-seq-manual .fiscal-seq-form {
+  border: 0;
+  border-radius: 0 0 16px 16px;
+}

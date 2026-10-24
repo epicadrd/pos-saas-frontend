@@ -637,3 +637,9 @@
     background: #fef3f2;
   }
 }
+
+.saas-content .qb-preference-note.qb-preference-warning {
+  border-color: #f5d08a;
+  color: #92400e;
+  background: #fff8eb;
+}

@@ -39,7 +39,13 @@ const [form, setForm] = useState({
       setForm({
         invoiceTaxEnabled: tenant.invoiceTaxEnabled !== false,
         invoiceTaxMode: tenant.invoiceTaxMode || "global",
-        invoiceTaxRate: tenant.invoiceTaxRate ?? 18,
+        // En RD la DGII solo admite ITBIS de 18% o 16%
+        invoiceTaxRate:
+          (tenant.country || "DO") === "DO"
+            ? [16, 18].includes(Number(tenant.invoiceTaxRate))
+              ? Number(tenant.invoiceTaxRate)
+              : 18
+            : tenant.invoiceTaxRate ?? 0,
         country: tenant.country || "DO",
         usStateTaxRate: tenant.usStateTaxRate ?? 0,
         usCountyTaxRate: tenant.usCountyTaxRate ?? 0,
@@ -498,6 +504,14 @@ const requestIsProcessing = [
           </label>
         </div>
 
+        {!form.invoiceTaxEnabled && form.country === "DO" && (
+          <div className="qb-preference-note qb-preference-warning">
+            <strong>Impuestos desactivados:</strong> tus facturas y ventas del POS
+            se emitirán sin {taxLabel}, como exentas. Desactívalo solo si tu empresa
+            vende únicamente bienes o servicios exentos.
+          </div>
+        )}
+
         <div className="qb-form-grid">
           <label>
             País
@@ -536,16 +550,16 @@ const requestIsProcessing = [
           <div className="qb-form-grid">
             <label>
               {taxLabel} %
-              <input
-                type="number"
-                min="0"
-                step="0.01"
-                value={form.invoiceTaxRate}
+              <select
+                value={String(form.invoiceTaxRate)}
                 onChange={(e) =>
-                  setForm({ ...form, invoiceTaxRate: e.target.value })
+                  setForm({ ...form, invoiceTaxRate: Number(e.target.value) })
                 }
                 disabled={!form.invoiceTaxEnabled}
-              />
+              >
+                <option value="18">18% (tasa general)</option>
+                <option value="16">16% (tasa reducida)</option>
+              </select>
             </label>
           </div>
         ) : (

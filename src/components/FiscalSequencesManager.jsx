@@ -476,7 +476,7 @@ export default function FiscalSequencesManager() {
         <div className={`fiscal-seq-alert fiscal-seq-${notice.tone}`}>{notice.text}</div>
       )}
 
-      <div className="fiscal-seq-form">
+      <div className="fiscal-seq-form fiscal-seq-upload">
         <h4>Subir números de la DGII</h4>
 
         <input

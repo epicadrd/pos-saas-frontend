@@ -211,10 +211,19 @@
 }
 
 /* Subida del archivo de la DGII */
+.fiscal-seq-upload {
+  position: relative;
+}
+
+/* Oculto pero accesible; queda dentro de la tarjeta para no agrandar la página */
 .fiscal-seq-file-input {
   position: absolute;
+  top: 0;
+  left: 0;
   width: 1px;
   height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
   opacity: 0;
   pointer-events: none;
 }

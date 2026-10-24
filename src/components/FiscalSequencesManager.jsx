@@ -84,6 +84,7 @@ export default function FiscalSequencesManager() {
   const [notice, setNotice] = useState(null);
   const [upload, setUpload] = useState(null);
   const [uploadDate, setUploadDate] = useState("");
+  const [dragging, setDragging] = useState(false);
   const fileInputRef = useRef(null);
 
   const load = useCallback(async () => {
@@ -268,10 +269,44 @@ export default function FiscalSequencesManager() {
     }
   };
 
-  const handleFile = async (event) => {
-    const file = event.target.files?.[0];
+  const ACCEPTED_FILE = /\.(xlsx|xls|csv|txt)$/i;
+
+  const handleDragOver = (event) => {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = "copy";
+    setDragging(true);
+  };
+
+  const handleDragLeave = (event) => {
+    // Al pasar sobre los elementos internos también se dispara; se ignora
+    if (event.currentTarget.contains(event.relatedTarget)) return;
+    setDragging(false);
+  };
+
+  const handleDrop = (event) => {
+    event.preventDefault();
+    setDragging(false);
+
+    const file = event.dataTransfer.files?.[0];
     if (!file) return;
 
+    if (!ACCEPTED_FILE.test(file.name)) {
+      setUpload({
+        fileName: file.name,
+        error: "Ese archivo no es un Excel. Arrastra el archivo .xlsx, .xls o .csv de la DGII.",
+      });
+      return;
+    }
+
+    processFile(file);
+  };
+
+  const handleFile = (event) => {
+    const file = event.target.files?.[0];
+    if (file) processFile(file);
+  };
+
+  const processFile = async (file) => {
     setNotice(null);
     setUploadDate("");
     setUpload({ fileName: file.name, reading: true });
@@ -489,12 +524,23 @@ export default function FiscalSequencesManager() {
         />
 
         {!upload && (
-          <label htmlFor="fiscal-seq-file" className="fiscal-seq-dropzone">
+          <label
+            htmlFor="fiscal-seq-file"
+            className={`fiscal-seq-dropzone${dragging ? " is-dragging" : ""}`}
+            onDragEnter={handleDragOver}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+          >
             <Upload size={26} />
-            <strong>Selecciona el Excel que te dio la DGII</strong>
+            <strong>
+              {dragging
+                ? "Suelta el archivo aquí"
+                : "Arrastra aquí el Excel que te dio la DGII"}
+            </strong>
             <span className="fiscal-seq-muted">
-              Aventra encuentra los números e-NCF y sus fechas de vencimiento
-              automáticamente.
+              o haz clic para buscarlo. Aventra encuentra los números e-NCF y sus
+              fechas de vencimiento automáticamente.
             </span>
           </label>
         )}

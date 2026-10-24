@@ -243,6 +243,7 @@
 }
 
 .fiscal-seq-dropzone:hover,
+.fiscal-seq-dropzone.is-dragging,
 .fiscal-seq-file-input:focus-visible + .fiscal-seq-dropzone {
   border-color: #0f766e;
   background: #e3f6f4;

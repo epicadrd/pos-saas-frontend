@@ -852,8 +852,8 @@ export default function FiscalSequencesManager() {
                       </td>
                       <td>
                         <span className={`fiscal-seq-badge fiscal-seq-${status.tone}`}>
-                          {item.msellerStatus && item.status === "SENT"
-                            ? item.msellerStatus
+                          {item.dgiiStatus && item.status === "SENT"
+                            ? item.dgiiStatus
                             : status.label}
                         </span>
                       </td>

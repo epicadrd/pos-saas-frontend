@@ -1152,17 +1152,15 @@ const emitElectronicInvoice = async (invoice) => {
     eNcf:
       data.invoice?.eNcf ||
       data.electronicInvoice?.eNcf ||
-      data.response?.ecf ||
-      data.response?.ncf ||
       invoice.eNcf,
     tipoeCF,
     dgiiQrUrl:
+      data.invoice?.dgiiQrUrl ||
       data.electronicInvoice?.qrUrl ||
-      data.response?.qr_url ||
       invoice.dgiiQrUrl,
     electronicInvoiceStatus:
+      data.invoice?.electronicInvoiceStatus ||
       data.electronicInvoice?.status ||
-      data.response?.status ||
       "Enviado",
   };
 };
@@ -1696,7 +1694,7 @@ const handlePrintDraft = async () => {
   };
 
   // Reutiliza el mismo e-NCF de la factura; si el envío anterior quedó
-  // sin confirmar, el servidor verifica con MSeller antes de reenviar
+  // sin confirmar, el servidor verifica si ya fue recibido antes de reenviar
   const retryElectronicInvoice = async (invoice) => {
     try {
       setRetryingEcfId(invoice.id);

@@ -66,6 +66,11 @@
 .auth-shell-aside > *:not(.auth-shell-aside-glow) {
   position: relative;
   z-index: 1;
+  /* Columna centrada en el panel: en pantallas anchas no queda pegada a la izquierda. */
+  width: 100%;
+  max-width: 440px;
+  margin-right: auto;
+  margin-left: auto;
 }
 
 .auth-shell-logo {

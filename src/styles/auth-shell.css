@@ -9,12 +9,19 @@
   --auth-muted: #627d98;
   --auth-line: #dce8ec;
 
+  /* vh primero: navegadores viejos (p. ej. Chrome de macOS 10.12) no
+     entienden dvh; el @supports de abajo lo aplica solo donde existe. */
   min-height: 100vh;
-  min-height: 100dvh;
   display: grid;
   grid-template-columns: minmax(380px, 0.9fr) 1.1fr;
   background: #f5fbfc;
   color: var(--auth-ink);
+}
+
+@supports (min-height: 100dvh) {
+  .auth-shell {
+    min-height: 100dvh;
+  }
 }
 
 /* Panel de marca */

@@ -291,7 +291,6 @@
 
 .select-plan-page {
   min-height: 100vh;
-  min-height: 100dvh;
   height: auto;
   align-items: flex-start;
   overflow-x: hidden;
@@ -314,6 +313,12 @@
       #f8fafc 48%,
       #eef6f7 100%
     );
+}
+
+@supports (min-height: 100dvh) {
+  .select-plan-page {
+    min-height: 100dvh;
+  }
 }
 
 .select-plan-page .auth-bg {

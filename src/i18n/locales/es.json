@@ -420,7 +420,7 @@
   "invoiceTypes": {
     "consumerFinal": "Consumidor final",
     "creditFiscal": "Crédito fiscal",
-    "consumerFinalFiscal": "FACTURA DE CONSUMO FISCAL",
+    "consumerFinalFiscal": "FACTURA DE CONSUMO ELECTRÓNICA",
     "creditFiscalShort": "Crédito fiscal"
   },
   "terms": {
@@ -1159,7 +1159,7 @@
   "cityTax": "City Tax",
   "totalTaxes": "Total Taxes",
   "invoiceType": "Tipo de factura",
-  "consumerFinalFiscal": "Factura de consumo fiscal electrónica",
+  "consumerFinalFiscal": "Factura de consumo electrónica",
   "creditFiscal": "Factura de crédito fiscal electrónica",
   "customerRnc": "RNC del cliente",
   "customerBusinessName": "Razón social del cliente",
@@ -1393,7 +1393,7 @@
   "saleReceipt": "Comprobante de venta",
   "rnc": "RNC",
   "phone": "Tel",
-  "consumerFinal": "Factura de consumo fiscal electrónica",
+  "consumerFinal": "Factura de consumo electrónica",
   "creditFiscal": "Factura de crédito fiscal electrónica",
   "customerRnc": "RNC comprador",
   "customerBusinessName": "Razón social comprador",

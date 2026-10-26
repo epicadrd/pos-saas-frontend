@@ -211,7 +211,7 @@ const getTaxAmount = (rate, base = totals.subtotal) => {
   const getFiscalInvoiceTitle = (invoiceType) => {
     return invoiceType === "credit_fiscal"
       ? "FACTURA DE CRÉDITO FISCAL ELECTRÓNICA"
-      : "FACTURA DE CONSUMO FISCAL ELECTRÓNICA";
+      : "FACTURA DE CONSUMO ELECTRÓNICA";
   };
 
   const getInvoiceQrTarget = (invoice) => {
@@ -1162,7 +1162,24 @@ const emitElectronicInvoice = async (invoice) => {
       data.invoice?.electronicInvoiceStatus ||
       data.electronicInvoice?.status ||
       "Enviado",
+    securityCode:
+      data.invoice?.securityCode ||
+      data.electronicInvoice?.securityCode ||
+      invoice.securityCode,
+    signedDate:
+      data.invoice?.signedDate ||
+      data.electronicInvoice?.signedDate ||
+      invoice.signedDate,
+    sequenceExpirationDate:
+      data.invoice?.sequenceExpirationDate ||
+      invoice.sequenceExpirationDate,
   };
+};
+
+// Fecha YYYY-MM-DD de la secuencia en formato DD-MM-YYYY
+const formatSequenceExpiration = (value) => {
+  const [year, month, day] = String(value || "").split("-");
+  return year && month && day ? `${day}-${month}-${year}` : "";
 };
 
 const printHtml = (html, documentNumber) =>
@@ -1268,6 +1285,14 @@ const printHtml = (html, documentNumber) =>
                 ${
                   invoiceElectronic
                     ? `<p><strong>e-NCF:</strong> ${getFiscalInvoiceNumber(invoice)}</p>`
+                    : ""
+                }
+
+                ${
+                  invoiceElectronic &&
+                  invoice.invoiceType === "credit_fiscal" &&
+                  invoice.sequenceExpirationDate
+                    ? `<p><strong>Fecha de vencimiento de la secuencia:</strong> ${formatSequenceExpiration(invoice.sequenceExpirationDate)}</p>`
                     : ""
                 }
             </div>
@@ -1395,6 +1420,18 @@ const printHtml = (html, documentNumber) =>
                 : "Escanee para consultar esta factura"
             }
           </p>
+
+          ${
+            invoiceElectronic && invoice.securityCode
+              ? `<p><strong>Código de seguridad:</strong> ${invoice.securityCode}</p>`
+              : ""
+          }
+
+          ${
+            invoiceElectronic && invoice.signedDate
+              ? `<p><strong>Fecha de firma digital:</strong> ${invoice.signedDate}</p>`
+              : ""
+          }
         </div>
 
           <div style="margin-top:28px;border-top:1px solid #e5e7eb;padding-top:8px;color:#64748b;font-size:10px;">

@@ -518,6 +518,48 @@
   }
 }
 
+/* Pantallas grandes (iMac, monitores 2K/4K, TV): se escala el contenido
+   en proporción para que no quede diminuto en medio de la pantalla. */
+@media (min-width: 1600px) and (min-height: 820px) {
+  .auth-shell {
+    --auth-zoom: 1.12;
+  }
+
+  .auth-shell-aside {
+    padding: clamp(44px, 3.4vw, 130px) clamp(48px, 4.2vw, 160px);
+  }
+
+  .auth-shell-aside > *:not(.auth-shell-aside-glow),
+  .auth-shell-content {
+    zoom: var(--auth-zoom);
+  }
+
+  .auth-shell-aside-glow {
+    right: -10vw;
+    width: 26vw;
+    height: 26vw;
+    filter: blur(120px);
+  }
+}
+
+@media (min-width: 1900px) and (min-height: 1050px) {
+  .auth-shell {
+    --auth-zoom: 1.25;
+  }
+}
+
+@media (min-width: 2400px) and (min-height: 1250px) {
+  .auth-shell {
+    --auth-zoom: 1.45;
+  }
+}
+
+@media (min-width: 3200px) and (min-height: 1700px) {
+  .auth-shell {
+    --auth-zoom: 1.9;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .auth-shell-content,
   .auth-shell-highlights li,

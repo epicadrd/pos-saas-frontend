@@ -37,6 +37,25 @@ import {
 import { downloadHtmlAsPdf } from "../../utils/downloadPdf";
 
 
+// Plazos de pago: "immediate_payment" o "payment_N_days"
+const TERM_DAY_OPTIONS = [0, 7, 15, 30, 45, 60, 90];
+
+const getTermDays = (terms) => {
+  if (terms === "immediate_payment") return 0;
+  const match = /^payment_(\d+)_days$/.exec(String(terms || ""));
+  return match ? Number(match[1]) : null;
+};
+
+const termsForDays = (days) =>
+  days === 0 ? "immediate_payment" : `payment_${days}_days`;
+
+const addDaysToDate = (isoDate, days) => {
+  if (!isoDate || days === null) return "";
+  const date = new Date(`${isoDate}T00:00:00Z`);
+  date.setUTCDate(date.getUTCDate() + days);
+  return date.toISOString().slice(0, 10);
+};
+
 const emptyForm = {
   customerName: "",
   customerRnc: "",
@@ -120,6 +139,7 @@ export default function Invoices() {
   const [adminMenuOpen, setAdminMenuOpen] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
   const [noteInvoice, setNoteInvoice] = useState(null);
+  const [customTerms, setCustomTerms] = useState(false);
   const [selectedDraft, setSelectedDraft] = useState(null);
   const adminMenuRef = useRef(null);
   const actionsMenuRef = useRef(null);
@@ -197,6 +217,27 @@ const getTaxAmount = (rate, base = totals.subtotal) => {
   special_regime: "FACTURA PARA REGÍMENES ESPECIALES",
   government: "FACTURA GUBERNAMENTAL",
 };
+
+  const getTermsLabel = (terms) => {
+    const days = getTermDays(terms);
+    if (days === 0) return t("invoices.terms.immediate");
+    if (days !== null) return t("invoices.terms.paymentDays", { days });
+    return terms || "-";
+  };
+
+  // Cambiar el plazo o la fecha de factura recalcula el vencimiento
+  const applyTermDays = (days) => {
+    setForm((current) => ({
+      ...current,
+      terms: termsForDays(days),
+      dueDate: addDaysToDate(current.invoiceDate, days),
+    }));
+  };
+
+  const formTermDays = getTermDays(form.terms);
+  const showCustomTerms =
+    customTerms ||
+    (formTermDays !== null && !TERM_DAY_OPTIONS.includes(formTermDays));
 
   const getInvoiceTypeLabel = (type) => {
   if (!isDO) return t("invoices.common.invoice").toUpperCase();
@@ -424,8 +465,13 @@ const getTaxAmount = (rate, base = totals.subtotal) => {
   }, [tenant]);
 
   const resetInvoiceForm = () => {
+    setCustomTerms(false);
     setForm({
       ...emptyForm,
+      dueDate: addDaysToDate(
+        emptyForm.invoiceDate,
+        getTermDays(emptyForm.terms)
+      ),
       notes: tenant?.defaultInvoiceNotes || "",
       electronicInvoicingEnabled:
         canUseElectronicInvoicing &&
@@ -1349,7 +1395,8 @@ const printHtml = (html, documentNumber) =>
             <strong>${t("invoices.fields.emailShort")}:</strong> ${invoice.customerEmail || "-"}<br/><br/>
 
             <strong>${t("invoices.fields.invoiceDate")}:</strong> ${invoice.invoiceDate || "-"}<br/>
-            <strong>${t("invoices.fields.dueDate")}:</strong> ${invoice.dueDate || "-"}
+            <strong>${t("invoices.fields.dueDate")}:</strong> ${invoice.dueDate || "-"}<br/>
+            <strong>${t("invoices.fields.terms")}:</strong> ${getTermsLabel(invoice.terms)}
              
           </div>
 
@@ -1642,7 +1689,8 @@ const handlePrintDraft = async () => {
             <strong>${t("invoices.fields.emailShort")}:</strong> ${form.customerEmail || "-"}<br/><br/>
 
             <strong>${t("invoices.fields.invoiceDate")}:</strong> ${form.invoiceDate || "-"}<br/>
-            <strong>${t("invoices.fields.dueDate")}:</strong> ${form.dueDate || "-"}
+            <strong>${t("invoices.fields.dueDate")}:</strong> ${form.dueDate || "-"}<br/>
+            <strong>${t("invoices.fields.terms")}:</strong> ${getTermsLabel(form.terms)}
           </div>
 
           <table>
@@ -2936,23 +2984,59 @@ const handlePrintDraft = async () => {
                 <label>
                   {t("invoices.fields.terms")}
                   <select
-                    value={form.terms}
-                    onChange={(e) => setForm({ ...form, terms: e.target.value })}
+                    value={showCustomTerms ? "custom" : form.terms}
+                    onChange={(e) => {
+                      if (e.target.value === "custom") {
+                        setCustomTerms(true);
+                        return;
+                      }
+
+                      setCustomTerms(false);
+                      applyTermDays(getTermDays(e.target.value));
+                    }}
                   >
-                    <option value="payment_30_days">{t("invoices.terms.payment30")}</option>
-                    <option value="immediate_payment">{t("invoices.terms.immediate")}</option>
-                    <option value="payment_15_days">{t("invoices.terms.payment15")}</option>
+                    {TERM_DAY_OPTIONS.map((days) => (
+                      <option key={days} value={termsForDays(days)}>
+                        {getTermsLabel(termsForDays(days))}
+                      </option>
+                    ))}
+                    <option value="custom">{t("invoices.terms.custom")}</option>
                   </select>
                 </label>
+
+                {showCustomTerms && (
+                  <label>
+                    {t("invoices.terms.customDays")}
+                    <input
+                      type="number"
+                      min="1"
+                      max="365"
+                      step="1"
+                      value={formTermDays ?? ""}
+                      onChange={(e) => {
+                        const days = Math.min(365, Math.max(1, Math.round(Number(e.target.value))));
+                        if (Number.isFinite(days)) applyTermDays(days);
+                      }}
+                    />
+                  </label>
+                )}
 
                 <label>
                   {t("invoices.fields.invoiceDate")}
                   <input
                     type="date"
                     value={form.invoiceDate}
-                    onChange={(e) =>
-                      setForm({ ...form, invoiceDate: e.target.value })
-                    }
+                    onChange={(e) => {
+                      const invoiceDate = e.target.value;
+                      setForm((current) => ({
+                        ...current,
+                        invoiceDate,
+                        dueDate:
+                          getTermDays(current.terms) !== null
+                            ? addDaysToDate(invoiceDate, getTermDays(current.terms))
+                            : current.dueDate,
+                      }));
+                    }}
                   />
                 </label>
 

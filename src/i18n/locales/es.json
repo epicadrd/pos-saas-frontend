@@ -426,7 +426,10 @@
   "terms": {
     "payment30": "Pago en 30 días",
     "immediate": "Pago inmediato",
-    "payment15": "Pago en 15 días"
+    "payment15": "Pago en 15 días",
+    "paymentDays": "Pago en {{days}} días",
+    "custom": "Otro plazo...",
+    "customDays": "Días de crédito"
   },
   "items": {
     "title": "Productos y servicios",
@@ -1372,7 +1375,8 @@
     "method": "Método",
     "total": "Total",
     "soldProducts": "Productos vendidos",
-    "printTicket": "Imprimir ticket",
+    "printTicket": "Imprimir ticket"
+,
     "ecfPending": "El comprobante electrónico (e-CF) de esta venta no se emitió.",
     "ecfUnconfirmed": "No se confirmó si el e-CF de esta venta llegó a la DGII. Al reintentar se verificará antes de reenviarlo.",
     "ecfRetry": "Emitir e-CF",

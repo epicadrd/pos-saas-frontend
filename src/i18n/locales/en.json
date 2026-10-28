@@ -417,7 +417,10 @@
   "terms": {
     "payment30": "Net 30",
     "immediate": "Immediate Payment",
-    "payment15": "Net 15"
+    "payment15": "Net 15",
+    "paymentDays": "Net {{days}}",
+    "custom": "Other term...",
+    "customDays": "Credit days"
   },
   "items": {
     "title": "Products and Services",
@@ -1358,7 +1361,8 @@
     "method": "Method",
     "total": "Total",
     "soldProducts": "Products sold",
-    "printTicket": "Print ticket",
+    "printTicket": "Print ticket"
+,
     "ecfPending": "The electronic receipt (e-CF) for this sale was not issued.",
     "ecfUnconfirmed": "It was not confirmed whether this sale e-CF reached the DGII. Retrying will check before resending it.",
     "ecfRetry": "Issue e-CF",

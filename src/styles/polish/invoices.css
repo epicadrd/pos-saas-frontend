@@ -657,3 +657,12 @@
 .saas-content .qb-icon-notes:hover:not(:disabled) {
   background: #dbeafe;
 }
+
+.qb-icon-print {
+  color: #334155;
+  background: #ffffff;
+}
+
+.saas-content .qb-icon-print:hover:not(:disabled) {
+  background: #f5f8fa;
+}

@@ -11,6 +11,7 @@ import {
   MoreVertical,
   Phone,
   Plus,
+  Printer,
   Download,
   RotateCw,
   Save,
@@ -1911,11 +1912,13 @@ const handlePrintDraft = async () => {
             <td>
               <div className="qb-actions-cell">
                 <button
-                  className="qb-secondary-btn"
+                  type="button"
+                  className="qb-icon-action qb-icon-print"
                   onClick={() => handlePrintInvoice(invoice)}
+                  title={t("invoices.actions.print")}
+                  aria-label={t("invoices.actions.print")}
                 >
-                  <Download size={16} />
-                  {t("invoices.actions.print")}
+                  <Printer size={18} />
                 </button>
 
                 {needsEcfRetry(invoice) && (
@@ -2097,7 +2100,7 @@ const handlePrintDraft = async () => {
           className="qb-primary-btn"
           onClick={() => handlePrintInvoice(selectedInvoice)}
         >
-          <Download size={16} />
+          <Printer size={16} />
           {t("invoices.actions.print")}
         </button>
 

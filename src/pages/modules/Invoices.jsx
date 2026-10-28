@@ -4,6 +4,7 @@ import {
   Ban,
   ChevronDown,
   CircleCheck,
+  FileMinus,
   FileText,
   Loader2,
   Mail,
@@ -25,6 +26,8 @@ import { useConfirm } from "../../components/ConfirmProvider";
 import { useTranslation } from "react-i18next";
 import QRCode from "qrcode";
 import { getFiscalNumber } from "../../utils/fiscalNumber";
+import { INVOICE_ECF_TYPES, ECF_INVOICE_TITLES } from "../../utils/ecfTypes";
+import FiscalNotesModal from "../../components/FiscalNotesModal";
 import {
   getTaxRate,
   getTaxLabel,
@@ -115,6 +118,7 @@ export default function Invoices() {
   const [actionsOpen, setActionsOpen] = useState(false);
   const [adminMenuOpen, setAdminMenuOpen] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
+  const [noteInvoice, setNoteInvoice] = useState(null);
   const [selectedDraft, setSelectedDraft] = useState(null);
   const adminMenuRef = useRef(null);
   const actionsMenuRef = useRef(null);
@@ -169,7 +173,10 @@ const money = new Intl.NumberFormat(isDO ? "es-DO" : "en-US", {
   currency: isDO ? "DOP" : "USD",
 });
 
-  const taxEnabled = tenant?.invoiceTaxEnabled !== false;
+  // Las facturas para regímenes especiales (E44) van exentas de ITBIS
+  const taxEnabled =
+    tenant?.invoiceTaxEnabled !== false &&
+    form.invoiceType !== "special_regime";
   const taxMode = tenant?.invoiceTaxMode || "global";
   const taxRate = getTaxRate(tenant);
   const taxLabel = getTaxLabel(tenant);
@@ -186,6 +193,8 @@ const getTaxAmount = (rate, base = totals.subtotal) => {
   const invoiceTypeLabels = {
   consumer_final: t("invoices.invoiceTypes.consumerFinalFiscal"),
   credit_fiscal: t("invoices.invoiceTypes.creditFiscal"),
+  special_regime: "FACTURA PARA REGÍMENES ESPECIALES",
+  government: "FACTURA GUBERNAMENTAL",
 };
 
   const getInvoiceTypeLabel = (type) => {
@@ -197,7 +206,7 @@ const getTaxAmount = (rate, base = totals.subtotal) => {
   
 
   const getTipoECFByInvoiceType = (invoiceType) => {
-  return invoiceType === "credit_fiscal" ? "31" : "32";
+  return INVOICE_ECF_TYPES[invoiceType] || "32";
   };
 
  const getFiscalInvoiceNumber = (invoice) => {
@@ -208,11 +217,8 @@ const getTaxAmount = (rate, base = totals.subtotal) => {
   );
 };
 
-  const getFiscalInvoiceTitle = (invoiceType) => {
-    return invoiceType === "credit_fiscal"
-      ? "FACTURA DE CRÉDITO FISCAL ELECTRÓNICA"
-      : "FACTURA DE CONSUMO ELECTRÓNICA";
-  };
+  const getFiscalInvoiceTitle = (invoiceType) =>
+    ECF_INVOICE_TITLES[invoiceType] || ECF_INVOICE_TITLES.consumer_final;
 
   const getInvoiceQrTarget = (invoice) => {
     if (invoice?.dgiiQrUrl) return invoice.dgiiQrUrl;
@@ -879,6 +885,19 @@ const saveCustomer = async () => {
       return;
     }
 
+    if (
+      electronicInvoicingActive &&
+      ["special_regime", "government"].includes(form.invoiceType) &&
+      !form.customerRnc.trim()
+    ) {
+      alert(
+        form.invoiceType === "government"
+          ? "Para emitir una factura gubernamental debes agregar el RNC de la institución."
+          : "Para emitir una factura para regímenes especiales debes agregar el RNC del cliente."
+      );
+      return;
+    }
+
     const cleanItems = items
       .filter((item) => (item.productId || item.productName || item.description) && Number(item.quantity) > 0)
       .map((item) => ({
@@ -995,7 +1014,16 @@ const saveCustomer = async () => {
     }
   };
 
+  // Una factura ya enviada a la DGII solo se corrige con nota de crédito
+  const canHaveFiscalNotes = (invoice) =>
+    Boolean(invoice?.eNcf) && !needsEcfRetry(invoice) && invoice.status !== "draft";
+
   const cancelInvoice = async (invoice) => {
+    if (canHaveFiscalNotes(invoice)) {
+      setNoteInvoice(invoice);
+      return;
+    }
+
     const ok = await confirm({
       title: t("invoices.confirm.cancelTitle"),
       message: t("invoices.confirm.cancelMessage", { number: getFiscalNumber(invoice) }),
@@ -1108,10 +1136,17 @@ const saveCustomer = async () => {
 
     const lineSubtotal = Math.max(quantity * price - discount, 0);
 
-    const isTaxable =
-      taxEnabled && (taxMode === "global" ? true : item.isTaxable !== false);
+    // Una factura guardada ya trae su ITBIS; se usa tal cual
+    const savedTax =
+      item.tax !== undefined && item.tax !== null ? Number(item.tax) : null;
 
-    const lineTax = isTaxable ? lineSubtotal * (taxRate / 100) : 0;
+    const isTaxable =
+      savedTax !== null
+        ? savedTax > 0
+        : taxEnabled && (taxMode === "global" ? true : item.isTaxable !== false);
+
+    const lineTax =
+      savedTax !== null ? savedTax : isTaxable ? lineSubtotal * (taxRate / 100) : 0;
     const lineTotal = lineSubtotal + lineTax;
 
     return {
@@ -1290,7 +1325,7 @@ const printHtml = (html, documentNumber) =>
 
                 ${
                   invoiceElectronic &&
-                  invoice.invoiceType === "credit_fiscal" &&
+                  invoice.invoiceType !== "consumer_final" &&
                   invoice.sequenceExpirationDate
                     ? `<p><strong>Fecha de vencimiento de la secuencia:</strong> ${formatSequenceExpiration(invoice.sequenceExpirationDate)}</p>`
                     : ""
@@ -1913,6 +1948,18 @@ const handlePrintDraft = async () => {
                     </button>
                   )}
 
+                {canHaveFiscalNotes(invoice) && (
+                  <button
+                    type="button"
+                    className="qb-secondary-btn"
+                    onClick={() => setNoteInvoice(invoice)}
+                    title="Notas de crédito y débito"
+                  >
+                    <FileMinus size={16} />
+                    Notas
+                  </button>
+                )}
+
                 {invoice.status !== "cancelled" &&
                   invoice.status !== "draft" && (
                     <button
@@ -2083,6 +2130,20 @@ const handlePrintDraft = async () => {
               {t("invoices.actions.markPaid")}
             </button>
           )}
+
+        {canHaveFiscalNotes(selectedInvoice) && (
+          <button
+            type="button"
+            className="qb-secondary-btn"
+            onClick={() => {
+              setNoteInvoice(selectedInvoice);
+              setSelectedInvoice(null);
+            }}
+          >
+            <FileMinus size={16} />
+            Notas de crédito / débito
+          </button>
+        )}
 
         {selectedInvoice.status !== "cancelled" &&
           selectedInvoice.status !== "draft" && (
@@ -2853,6 +2914,8 @@ const handlePrintDraft = async () => {
                     >
                       <option value="consumer_final">{t("invoices.invoiceTypes.consumerFinal")}</option>
                       <option value="credit_fiscal">{t("invoices.invoiceTypes.creditFiscalShort")}</option>
+                      <option value="government">Gubernamental</option>
+                      <option value="special_regime">Regímenes especiales (sin ITBIS)</option>
                     </select>
                   </label>
                 )}
@@ -3457,6 +3520,15 @@ const handlePrintDraft = async () => {
 
           
         </div>
+      )}
+
+      {noteInvoice && (
+        <FiscalNotesModal
+          invoice={noteInvoice}
+          tenant={tenant}
+          onClose={() => setNoteInvoice(null)}
+          onChanged={loadData}
+        />
       )}
 
       {quickProductModalOpen && (

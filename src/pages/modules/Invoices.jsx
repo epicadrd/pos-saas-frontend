@@ -1951,12 +1951,12 @@ const handlePrintDraft = async () => {
                 {canHaveFiscalNotes(invoice) && (
                   <button
                     type="button"
-                    className="qb-secondary-btn"
+                    className="qb-icon-action qb-icon-notes"
                     onClick={() => setNoteInvoice(invoice)}
                     title="Notas de crédito y débito"
+                    aria-label="Notas de crédito y débito"
                   >
-                    <FileMinus size={16} />
-                    Notas
+                    <FileMinus size={18} />
                   </button>
                 )}
 

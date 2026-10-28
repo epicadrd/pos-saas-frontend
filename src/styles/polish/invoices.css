@@ -643,3 +643,17 @@
   color: #92400e;
   background: #fff8eb;
 }
+
+/* Notas de crédito y débito: mismo tamaño que las otras acciones de la fila */
+.qb-icon-notes {
+  color: #1d4ed8;
+  background: #eff6ff;
+}
+
+.saas-content .qb-icon-notes {
+  border-color: #c7d7fe;
+}
+
+.saas-content .qb-icon-notes:hover:not(:disabled) {
+  background: #dbeafe;
+}

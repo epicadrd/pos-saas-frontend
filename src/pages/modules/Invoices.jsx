@@ -2163,6 +2163,16 @@ const handlePrintDraft = async () => {
     </div>
   </div>
 )}
+
+      {/* Las notas se abren desde la lista de facturas */}
+      {noteInvoice && (
+        <FiscalNotesModal
+          invoice={noteInvoice}
+          tenant={tenant}
+          onClose={() => setNoteInvoice(null)}
+          onChanged={loadData}
+        />
+      )}
       </div>
     );
   }
@@ -3520,15 +3530,6 @@ const handlePrintDraft = async () => {
 
           
         </div>
-      )}
-
-      {noteInvoice && (
-        <FiscalNotesModal
-          invoice={noteInvoice}
-          tenant={tenant}
-          onClose={() => setNoteInvoice(null)}
-          onChanged={loadData}
-        />
       )}
 
       {quickProductModalOpen && (

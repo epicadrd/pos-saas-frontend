@@ -32,7 +32,9 @@ const NOTE_OPTIONS = [
 
 const ITBIS_OPTIONS = [18, 16, 0];
 
-const money = new Intl.NumberFormat("es-DO", { style: "currency", currency: "DOP" });
+// Las notas van en la moneda de la factura que modifican
+const moneyFor = (currency) =>
+  new Intl.NumberFormat("es-DO", { style: "currency", currency: currency === "USD" ? "USD" : "DOP" });
 
 const round = (value) => Math.round(Number(value || 0) * 100) / 100;
 
@@ -69,6 +71,7 @@ export default function FiscalNotesModal({ invoice, tenant, onClose, onChanged }
   const [retryingId, setRetryingId] = useState(null);
   const [message, setMessage] = useState(null);
 
+  const money = moneyFor(invoice.currency);
   const exemptOnly = invoice.invoiceType === "special_regime";
   const selected = NOTE_OPTIONS.find((item) => item.value === option);
   const isFullCancel = option === "credit-1";
@@ -257,6 +260,11 @@ export default function FiscalNotesModal({ invoice, tenant, onClose, onChanged }
             <div><span>Subtotal</span><strong>${money.format(Number(note.subtotal))}</strong></div>
             <div><span>ITBIS</span><strong>${money.format(Number(note.tax))}</strong></div>
             <div class="total"><span>Total</span><strong>${money.format(Number(note.total))}</strong></div>
+            ${
+              note.currency === "USD" && Number(note.exchangeRate) > 0
+                ? `<div><span>Tasa de cambio</span><strong>RD$ ${Number(note.exchangeRate).toFixed(2)} por US$ 1</strong></div>`
+                : ""
+            }
           </div>
 
           ${

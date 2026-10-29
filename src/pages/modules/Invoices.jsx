@@ -66,6 +66,8 @@ const emptyForm = {
   status: "draft",
   amountPaid: "",
   terms: "payment_30_days",
+  currency: "DOP",
+  exchangeRate: "",
   invoiceDate: new Date().toISOString().slice(0, 10),
   dueDate: "",
   notes: "",
@@ -194,6 +196,15 @@ const money = new Intl.NumberFormat(isDO ? "es-DO" : "en-US", {
   style: "currency",
   currency: isDO ? "DOP" : "USD",
 });
+
+const usdMoney = new Intl.NumberFormat(isDO ? "es-DO" : "en-US", {
+  style: "currency",
+  currency: "USD",
+});
+
+// En RD cada factura puede estar en pesos o en dólares
+const moneyFor = (currency) => (isDO && currency === "USD" ? usdMoney : money);
+const formMoney = moneyFor(form.currency);
 
   // Las facturas para regímenes especiales (E44) van exentas de ITBIS
   const taxEnabled =
@@ -935,6 +946,16 @@ const saveCustomer = async () => {
     }
 
     if (
+      isDO &&
+      electronicInvoicingActive &&
+      form.currency === "USD" &&
+      !(Number(form.exchangeRate) > 0)
+    ) {
+      alert("La factura está en dólares: escribe la tasa de cambio (pesos por cada dólar) para poder enviarla a la DGII.");
+      return;
+    }
+
+    if (
       electronicInvoicingActive &&
       ["special_regime", "government"].includes(form.invoiceType) &&
       !form.customerRnc.trim()
@@ -984,6 +1005,8 @@ const saveCustomer = async () => {
           customerPhone: form.customerPhone,
           customerEmail: form.customerEmail,
           invoiceType: form.invoiceType,
+          currency: form.currency,
+          exchangeRate: form.currency === "USD" ? Number(form.exchangeRate) || null : null,
           electronicInvoicingEnabled: electronicInvoicingActive,
           applyRetentions: form.applyRetentions === true,
           invoiceDate: form.invoiceDate || null,
@@ -1000,6 +1023,8 @@ const saveCustomer = async () => {
           customerPhone: form.customerPhone,
           customerEmail: form.customerEmail,
           invoiceType: form.invoiceType,
+          currency: form.currency,
+          exchangeRate: form.currency === "USD" ? Number(form.exchangeRate) || null : null,
           electronicInvoicingEnabled: electronicInvoicingActive,
           applyRetentions: form.applyRetentions === true,
           invoiceDate: form.invoiceDate || null,
@@ -1113,6 +1138,8 @@ const saveCustomer = async () => {
       invoiceDate: invoice.invoiceDate || new Date().toISOString().slice(0, 10),
       dueDate: invoice.dueDate || "",
       terms: invoice.terms || "payment_30_days",
+      currency: invoice.currency || "DOP",
+      exchangeRate: invoice.exchangeRate ? String(Number(invoice.exchangeRate)) : "",
       notes: invoice.notes || "",
       applyRetentions: invoice.applyRetentions === true,
     });
@@ -1272,6 +1299,7 @@ const printHtml = (html, documentNumber) =>
   downloadHtmlAsPdf(html, documentNumber);
 
   const handlePrintInvoice = async (invoice) => {
+    const money = moneyFor(invoice.currency);
     const invoiceItems = invoice.items || [];
     const invoiceElectronic = shouldPrintElectronicInvoice(invoice);
     const qrDataUrl = await QRCode.toDataURL(
@@ -1490,6 +1518,11 @@ const printHtml = (html, documentNumber) =>
   <div class="total"><span>${t("invoices.fields.total")}</span><strong>${money.format(Number(invoice.total || 0))}</strong></div>
   <div><span>${t("invoices.fields.paid")}</span><strong>${money.format(Number(invoice.amountPaid || 0))}</strong></div>
   <div><span>${t("invoices.fields.balance")}</span><strong>${money.format(Number(invoice.balance || 0))}</strong></div>
+  ${
+    isDO && invoice.currency === "USD" && Number(invoice.exchangeRate) > 0
+      ? `<div><span>Tasa de cambio</span><strong>RD$ ${Number(invoice.exchangeRate).toFixed(2)} por US$ 1</strong></div>`
+      : ""
+  }
 </div>
 </div>
 
@@ -1532,6 +1565,7 @@ const printHtml = (html, documentNumber) =>
 };
 
 const handlePrintDraft = async () => {
+  const money = moneyFor(form.currency);
   const draftElectronic = electronicInvoicingActive;
   const qrDataUrl = await QRCode.toDataURL(
     `${window.location.origin}/public/invoice/${invoiceNumberPreview}`,
@@ -1786,6 +1820,11 @@ const handlePrintDraft = async () => {
             <div class="total"><span>${t("invoices.fields.total")}</span><strong>${money.format(totals.total)}</strong></div>
             <div><span>${t("invoices.fields.paid")}</span><strong>${money.format(totals.paid)}</strong></div>
             <div><span>${t("invoices.fields.balance")}</span><strong>${money.format(totals.balance)}</strong></div>
+            ${
+              isDO && form.currency === "USD" && Number(form.exchangeRate) > 0
+                ? `<div><span>Tasa de cambio</span><strong>RD$ ${Number(form.exchangeRate).toFixed(2)} por US$ 1</strong></div>`
+                : ""
+            }
           </div>
           </div>
 
@@ -1951,8 +1990,8 @@ const handlePrintDraft = async () => {
               )}
             </td>
             <td>{invoice.customerName}</td>
-            <td>{money.format(Number(invoice.tax || 0))}</td>
-            <td>{money.format(Number(invoice.total || 0))}</td>
+            <td>{moneyFor(invoice.currency).format(Number(invoice.tax || 0))}</td>
+            <td>{moneyFor(invoice.currency).format(Number(invoice.total || 0))}</td>
 
             <td>
               <span className={`qb-status qb-${invoice.status}`}>
@@ -2069,12 +2108,12 @@ const handlePrintDraft = async () => {
         <div className="qb-mobile-money-grid">
           <div>
             <span>{t("invoices.fields.total")}</span>
-            <strong>{money.format(Number(invoice.total || 0))}</strong>
+            <strong>{moneyFor(invoice.currency).format(Number(invoice.total || 0))}</strong>
           </div>
 
           <div>
             <span>{t("invoices.fields.balance")}</span>
-            <strong>{money.format(Number(invoice.balance || 0))}</strong>
+            <strong>{moneyFor(invoice.currency).format(Number(invoice.balance || 0))}</strong>
           </div>
         </div>
 
@@ -2117,27 +2156,27 @@ const handlePrintDraft = async () => {
 
         <div>
           <span>{t("invoices.fields.subtotal")}</span>
-          <strong>{money.format(Number(selectedInvoice.subtotal || 0))}</strong>
+          <strong>{moneyFor(selectedInvoice.currency).format(Number(selectedInvoice.subtotal || 0))}</strong>
         </div>
 
         <div>
           <span>{taxLabel}</span>
-          <strong>{money.format(Number(selectedInvoice.tax || 0))}</strong>
+          <strong>{moneyFor(selectedInvoice.currency).format(Number(selectedInvoice.tax || 0))}</strong>
         </div>
 
         <div>
           <span>{t("invoices.fields.total")}</span>
-          <strong>{money.format(Number(selectedInvoice.total || 0))}</strong>
+          <strong>{moneyFor(selectedInvoice.currency).format(Number(selectedInvoice.total || 0))}</strong>
         </div>
 
         <div>
           <span>{t("invoices.fields.paid")}</span>
-          <strong>{money.format(Number(selectedInvoice.amountPaid || 0))}</strong>
+          <strong>{moneyFor(selectedInvoice.currency).format(Number(selectedInvoice.amountPaid || 0))}</strong>
         </div>
 
         <div>
           <span>{t("invoices.fields.balance")}</span>
-          <strong>{money.format(Number(selectedInvoice.balance || 0))}</strong>
+          <strong>{moneyFor(selectedInvoice.currency).format(Number(selectedInvoice.balance || 0))}</strong>
         </div>
 
         <div>
@@ -2421,7 +2460,7 @@ const handlePrintDraft = async () => {
               <tr key={invoice.id}>
                 <td>{invoice.invoiceNumber || t("invoices.common.draft")}</td>
                 <td>{invoice.customerName || t("invoices.common.noCustomer")}</td>
-                <td>{money.format(Number(invoice.total || 0))}</td>
+                <td>{moneyFor(invoice.currency).format(Number(invoice.total || 0))}</td>
                 <td>
                   <div className="qb-actions-cell">
                     <button
@@ -2485,17 +2524,17 @@ const handlePrintDraft = async () => {
             <div className="qb-mobile-money-grid">
               <div>
                 <span>{t("invoices.fields.subtotal")}</span>
-                <strong>{money.format(Number(invoice.subtotal || 0))}</strong>
+                <strong>{moneyFor(invoice.currency).format(Number(invoice.subtotal || 0))}</strong>
               </div>
 
               <div>
                 <span>{t("invoices.fields.total")}</span>
-                <strong>{money.format(Number(invoice.total || 0))}</strong>
+                <strong>{moneyFor(invoice.currency).format(Number(invoice.total || 0))}</strong>
               </div>
             </div>
 
             <div className="qb-mobile-card-footer">
-              <span>{taxLabel} {money.format(Number(invoice.tax || 0))}</span>
+              <span>{taxLabel} {moneyFor(invoice.currency).format(Number(invoice.tax || 0))}</span>
               <strong>{t("invoices.actions.viewDetail")}</strong>
             </div>
           </button>
@@ -2537,27 +2576,27 @@ const handlePrintDraft = async () => {
 
             <div>
               <span>{t("invoices.fields.subtotal")}</span>
-              <strong>{money.format(Number(selectedDraft.subtotal || 0))}</strong>
+              <strong>{moneyFor(selectedDraft.currency).format(Number(selectedDraft.subtotal || 0))}</strong>
             </div>
 
             <div>
               <span>{taxLabel}</span>
-              <strong>{money.format(Number(selectedDraft.tax || 0))}</strong>
+              <strong>{moneyFor(selectedDraft.currency).format(Number(selectedDraft.tax || 0))}</strong>
             </div>
 
             <div>
               <span>{t("invoices.fields.total")}</span>
-              <strong>{money.format(Number(selectedDraft.total || 0))}</strong>
+              <strong>{moneyFor(selectedDraft.currency).format(Number(selectedDraft.total || 0))}</strong>
             </div>
 
             <div>
               <span>{t("invoices.fields.paid")}</span>
-              <strong>{money.format(Number(selectedDraft.amountPaid || 0))}</strong>
+              <strong>{moneyFor(selectedDraft.currency).format(Number(selectedDraft.amountPaid || 0))}</strong>
             </div>
 
             <div>
               <span>{t("invoices.fields.balance")}</span>
-              <strong>{money.format(Number(selectedDraft.balance || 0))}</strong>
+              <strong>{moneyFor(selectedDraft.currency).format(Number(selectedDraft.balance || 0))}</strong>
             </div>
           </div>
 
@@ -2985,6 +3024,39 @@ const handlePrintDraft = async () => {
                   </label>
                 )}
 
+                {isDO && (
+                  <label>
+                    Moneda
+                    <select
+                      value={form.currency}
+                      onChange={(e) =>
+                        setForm({
+                          ...form,
+                          currency: e.target.value,
+                          exchangeRate: e.target.value === "USD" ? form.exchangeRate : "",
+                        })
+                      }
+                    >
+                      <option value="DOP">RD$ Pesos dominicanos</option>
+                      <option value="USD">US$ Dólares</option>
+                    </select>
+
+                    {form.currency === "USD" && (
+                      <input
+                        type="number"
+                        inputMode="decimal"
+                        min="0"
+                        step="0.0001"
+                        placeholder="Tasa: pesos por cada US$ 1 (ej.: 60.50)"
+                        value={form.exchangeRate}
+                        onChange={(e) =>
+                          setForm({ ...form, exchangeRate: e.target.value })
+                        }
+                      />
+                    )}
+                  </label>
+                )}
+
                 <label>
                   {t("invoices.fields.terms")}
                   <select
@@ -3313,11 +3385,11 @@ const handlePrintDraft = async () => {
               )}
 
               <td className="qb-line-total">
-                <strong>{money.format(lineTotal)}</strong>
+                <strong>{formMoney.format(lineTotal)}</strong>
 
                 {taxEnabled && lineTax > 0 && (
                   <small>
-                    {taxLabel}: {money.format(lineTax)}
+                    {taxLabel}: {formMoney.format(lineTax)}
                   </small>
                 )}
               </td>
@@ -3521,17 +3593,17 @@ const handlePrintDraft = async () => {
             <div className="qb-mobile-item-total">
               <p>
                 <span>{t("invoices.fields.subtotal")}</span>
-                <strong>{money.format(lineSubtotal)}</strong>
+                <strong>{formMoney.format(lineSubtotal)}</strong>
               </p>
 
               <p>
                 <span>{taxLabel}</span>
-                <strong>{money.format(lineTax)}</strong>
+                <strong>{formMoney.format(lineTax)}</strong>
               </p>
 
               <p className="big">
                 <span>{t("invoices.fields.total")}</span>
-                <strong>{money.format(lineTotal)}</strong>
+                <strong>{formMoney.format(lineTotal)}</strong>
               </p>
             </div>
           </div>
@@ -3586,46 +3658,46 @@ const handlePrintDraft = async () => {
 
                 <p>
                   <span>{t("invoices.fields.subtotal")}</span>
-                  <strong>{money.format(totals.subtotal)}</strong>
+                  <strong>{formMoney.format(totals.subtotal)}</strong>
                 </p>
 
                 {isDO ? (
                 <p>
                   <span>{taxLabel} ({taxRate}%)</span>
-                  <strong>{money.format(totals.tax)}</strong>
+                  <strong>{formMoney.format(totals.tax)}</strong>
                 </p>
               ) : (
                 <>
                   <p>
                     <span>{t("invoices.print.stateTax")} ({usTaxBreakdown.stateRate}%)</span>
-                    <strong>{money.format(getTaxAmount(usTaxBreakdown.stateRate))}</strong>
+                    <strong>{formMoney.format(getTaxAmount(usTaxBreakdown.stateRate))}</strong>
                   </p>
 
                   <p>
                     <span>{t("invoices.print.countyTax")} ({usTaxBreakdown.countyRate}%)</span>
-                    <strong>{money.format(getTaxAmount(usTaxBreakdown.countyRate))}</strong>
+                    <strong>{formMoney.format(getTaxAmount(usTaxBreakdown.countyRate))}</strong>
                   </p>
 
                   <p>
                     <span>{t("invoices.print.cityTax")} ({usTaxBreakdown.cityRate}%)</span>
-                    <strong>{money.format(getTaxAmount(usTaxBreakdown.cityRate))}</strong>
+                    <strong>{formMoney.format(getTaxAmount(usTaxBreakdown.cityRate))}</strong>
                   </p>
 
                   <p>
                     <span>{t("invoices.print.totalTaxes")} ({taxRate}%)</span>
-                    <strong>{money.format(totals.tax)}</strong>
+                    <strong>{formMoney.format(totals.tax)}</strong>
                   </p>
                 </>
               )}
 
                 <p className="big">
                   <span>{t("invoices.fields.total")}</span>
-                  <strong>{money.format(totals.total)}</strong>
+                  <strong>{formMoney.format(totals.total)}</strong>
                 </p>
 
                 <p className="pending">
                   <span>{t("invoices.fields.balance")}</span>
-                  <strong>{money.format(totals.balance)}</strong>
+                  <strong>{formMoney.format(totals.balance)}</strong>
                 </p>
               </div>
             </section>
@@ -4182,10 +4254,10 @@ const handlePrintDraft = async () => {
                         <tr key={index}>
                           <td>{product?.name || item.description || "-"}</td>
                           <td>{item.quantity || 0}</td>
-                          <td>{money.format(Number(item.price || 0))}</td>
-                          <td>{money.format(Number(item.discount || 0))}</td>
-                          <td>{money.format(lineTax)}</td>
-                          <td>{money.format(lineTotal)}</td>
+                          <td>{formMoney.format(Number(item.price || 0))}</td>
+                          <td>{formMoney.format(Number(item.discount || 0))}</td>
+                          <td>{formMoney.format(lineTax)}</td>
+                          <td>{formMoney.format(lineTotal)}</td>
                         </tr>
                       );
                     })}
@@ -4206,41 +4278,41 @@ const handlePrintDraft = async () => {
   <div className="qb-preview-totals">
     <p>
       <span>{t("invoices.fields.subtotal")}</span>
-      <strong>{money.format(totals.subtotal)}</strong>
+      <strong>{formMoney.format(totals.subtotal)}</strong>
     </p>
 
     <p>
       <span>{taxLabel} ({taxRate}%)</span>
-      <strong>{money.format(totals.tax)}</strong>
+      <strong>{formMoney.format(totals.tax)}</strong>
     </p>
 
     {form.applyRetentions && (
       <>
         <p>
           <span>Retención ITBIS 100%</span>
-          <strong>- {money.format(totals.itbisRetention)}</strong>
+          <strong>- {formMoney.format(totals.itbisRetention)}</strong>
         </p>
 
         <p>
           <span>Retención ISR 15%</span>
-          <strong>- {money.format(totals.isrRetention)}</strong>
+          <strong>- {formMoney.format(totals.isrRetention)}</strong>
         </p>
 
         <p>
           <span>Total retenciones</span>
-          <strong>- {money.format(totals.totalRetentions)}</strong>
+          <strong>- {formMoney.format(totals.totalRetentions)}</strong>
         </p>
       </>
     )}
 
     <p className="big">
       <span>{t("invoices.fields.total")}</span>
-      <strong>{money.format(totals.total)}</strong>
+      <strong>{formMoney.format(totals.total)}</strong>
     </p>
 
     <p>
       <span>{t("invoices.fields.balance")}</span>
-      <strong>{money.format(totals.balance)}</strong>
+      <strong>{formMoney.format(totals.balance)}</strong>
     </p>
   </div>
 </div>

@@ -37,6 +37,9 @@ import {
 import { downloadHtmlAsPdf } from "../../utils/downloadPdf";
 
 
+// Facturas en US$ ocultas hasta que reportes y cuentas por cobrar conviertan a pesos
+const USD_INVOICES_ENABLED = false;
+
 // Plazos de pago: "immediate_payment" o "payment_N_days"
 const TERM_DAY_OPTIONS = [0, 7, 15, 30, 45, 60, 90];
 
@@ -3024,7 +3027,7 @@ const handlePrintDraft = async () => {
                   </label>
                 )}
 
-                {isDO && (
+                {isDO && USD_INVOICES_ENABLED && (
                   <label>
                     Moneda
                     <select

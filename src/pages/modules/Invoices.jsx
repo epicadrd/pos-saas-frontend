@@ -140,6 +140,7 @@ export default function Invoices() {
   const [selectedInvoice, setSelectedInvoice] = useState(null);
   const [noteInvoice, setNoteInvoice] = useState(null);
   const [customTerms, setCustomTerms] = useState(false);
+  const [customDaysText, setCustomDaysText] = useState("");
   const [selectedDraft, setSelectedDraft] = useState(null);
   const adminMenuRef = useRef(null);
   const actionsMenuRef = useRef(null);
@@ -466,6 +467,7 @@ const getTaxAmount = (rate, base = totals.subtotal) => {
 
   const resetInvoiceForm = () => {
     setCustomTerms(false);
+    setCustomDaysText("");
     setForm({
       ...emptyForm,
       dueDate: addDaysToDate(
@@ -1089,6 +1091,8 @@ const saveCustomer = async () => {
   };
 
   const loadDraft = (invoice) => {
+    setCustomTerms(false);
+    setCustomDaysText("");
     setActiveTab("edit");
     setEditingInvoiceId(invoice.id);
     setEditingInvoiceNumber(invoice.invoiceNumber);
@@ -2988,6 +2992,7 @@ const handlePrintDraft = async () => {
                     onChange={(e) => {
                       if (e.target.value === "custom") {
                         setCustomTerms(true);
+                        setCustomDaysText("");
                         return;
                       }
 
@@ -3002,24 +3007,35 @@ const handlePrintDraft = async () => {
                     ))}
                     <option value="custom">{t("invoices.terms.custom")}</option>
                   </select>
-                </label>
 
-                {showCustomTerms && (
-                  <label>
-                    {t("invoices.terms.customDays")}
+                  {showCustomTerms && (
                     <input
                       type="number"
+                      inputMode="numeric"
                       min="1"
                       max="365"
                       step="1"
-                      value={formTermDays ?? ""}
+                      autoFocus={customTerms}
+                      placeholder={`${t("invoices.terms.customDays")} (1-365)`}
+                      value={
+                        customTerms && customDaysText !== ""
+                          ? customDaysText
+                          : customTerms
+                            ? ""
+                            : formTermDays ?? ""
+                      }
                       onChange={(e) => {
-                        const days = Math.min(365, Math.max(1, Math.round(Number(e.target.value))));
-                        if (Number.isFinite(days)) applyTermDays(days);
+                        const text = e.target.value.replace(/\D/g, "").slice(0, 3);
+                        setCustomTerms(true);
+                        setCustomDaysText(text);
+
+                        const days = Number(text);
+                        if (days >= 1 && days <= 365) applyTermDays(days);
                       }}
                     />
-                  </label>
-                )}
+                  )}
+                </label>
+
 
                 <label>
                   {t("invoices.fields.invoiceDate")}

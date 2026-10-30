@@ -31,8 +31,12 @@ const USAGE_STATUS = {
 
 const formatENcf = (tipo, number) => `E${tipo}${String(number).padStart(10, "0")}`;
 
+// La DGII no les pone vencimiento a E32 ni E34
+const NON_EXPIRING_TYPES = ["32", "34"];
+
 const formatDate = (value) => {
   if (!value) return "—";
+  if (String(value).startsWith("9999")) return "No vence";
   const [year, month, day] = String(value).slice(0, 10).split("-");
   return `${day}/${month}/${year}`;
 };
@@ -128,7 +132,9 @@ export default function FiscalSequencesManager() {
       else if (start.value > end.value) errors.end = "Debe ser mayor o igual al inicial";
     }
 
-    if (form.expirationDate && data?.today && form.expirationDate < data.today) {
+    const needsExpiration = !NON_EXPIRING_TYPES.includes(form.tipoECF);
+
+    if (needsExpiration && form.expirationDate && data?.today && form.expirationDate < data.today) {
       errors.expirationDate = "La fecha ya pasó";
     }
 
@@ -136,7 +142,7 @@ export default function FiscalSequencesManager() {
       !Object.keys(errors).length &&
       start.value !== undefined &&
       end.value !== undefined &&
-      Boolean(form.expirationDate);
+      (!needsExpiration || Boolean(form.expirationDate));
 
     return {
       errors,
@@ -216,7 +222,7 @@ export default function FiscalSequencesManager() {
 
     const ok = await confirm({
       title: "Registrar rango de e-NCF",
-      message: `Vas a registrar ${number.format(preview.count)} número(s) ${preview.first} a ${preview.last}, tipo ${form.tipoECF} (${types[form.tipoECF]}), con vencimiento ${formatDate(form.expirationDate)}. Verifica que coincida exactamente con lo que te autorizó la DGII.`,
+      message: `Vas a registrar ${number.format(preview.count)} número(s) ${preview.first} a ${preview.last}, tipo ${form.tipoECF} (${types[form.tipoECF]}), ${NON_EXPIRING_TYPES.includes(form.tipoECF) ? "sin vencimiento" : `con vencimiento ${formatDate(form.expirationDate)}`}. Verifica que coincida exactamente con lo que te autorizó la DGII.`,
       confirmText: "Registrar rango",
       variant: "success",
     });
@@ -326,7 +332,7 @@ export default function FiscalSequencesManager() {
         return;
       }
 
-      if (ranges.some((range) => !range.expirationDate)) {
+      if (ranges.some((range) => !range.expirationDate && !NON_EXPIRING_TYPES.includes(range.tipoECF))) {
         setUpload({ fileName: file.name, ranges, ignoredTypes, needsDate: true });
         return;
       }
@@ -722,6 +728,7 @@ export default function FiscalSequencesManager() {
             )}
           </label>
 
+          {!NON_EXPIRING_TYPES.includes(form.tipoECF) && (
           <label>
             Fecha de vencimiento
             <input
@@ -736,6 +743,7 @@ export default function FiscalSequencesManager() {
               </small>
             )}
           </label>
+          )}
         </div>
 
         <div className="fiscal-seq-form-footer">
@@ -816,7 +824,7 @@ export default function FiscalSequencesManager() {
                               <Power size={16} />
                             </button>
                           )}
-                          {seq.remaining > 0 && (
+                          {seq.remaining > 0 && !NON_EXPIRING_TYPES.includes(seq.tipoECF) && (
                             <button
                               type="button"
                               className="qb-icon-action"

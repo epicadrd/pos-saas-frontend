@@ -277,6 +277,9 @@ body {
   border-bottom: 1px solid var(--ui-line);
   background: rgba(255, 255, 255, 0.85);
   backdrop-filter: saturate(180%) blur(12px);
+  /* El blur crea su propia capa: sin esto los menús quedan debajo del contenido */
+  position: relative;
+  z-index: 20;
 }
 
 .saas-topbar h1 {

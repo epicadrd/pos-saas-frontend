@@ -10,6 +10,8 @@ import {
   Eye,
   FileSearch,
   Download,
+  Inbox,
+  RotateCcw,
 } from "lucide-react";
 import { api } from "../../api/axios";
 import { useAuth } from "../../context/AuthContext";
@@ -123,6 +125,8 @@ export default function Expenses() {
     }).format(Number(value || 0));
 
   const [expenses, setExpenses] = useState([]);
+  const [receivedDocuments, setReceivedDocuments] = useState([]);
+  const [showIgnored, setShowIgnored] = useState(false);
   const [detailExpense, setDetailExpense] = useState(null);
   const [dgiiUrl, setDgiiUrl] = useState("");
   const [importingDgii, setImportingDgii] = useState(false);
@@ -147,9 +151,54 @@ export default function Expenses() {
     month: getCurrentMonth(),
   });
 
+  const pendingDocuments = receivedDocuments.filter(
+    (document) => document.status === "pending"
+  );
+  const ignoredDocuments = receivedDocuments.filter(
+    (document) => document.status === "ignored"
+  );
+  const visibleDocuments = showIgnored ? ignoredDocuments : pendingDocuments;
+
   const totalFilteredTax = useMemo(() => {
     return Number(stats.monthTaxTotal || 0);
   }, [stats.monthTaxTotal]);
+
+  const loadReceivedDocuments = async () => {
+    if (!isDO) return;
+
+    try {
+      const { data } = await api.get("/expenses/received");
+      setReceivedDocuments(data || []);
+    } catch (error) {
+      console.error("Error cargando comprobantes recibidos:", error);
+    }
+  };
+
+  const setDocumentIgnored = async (document, ignored) => {
+    try {
+      await api.patch(`/expenses/received/${document.id}`, { ignored });
+      await loadReceivedDocuments();
+    } catch (error) {
+      alert(error.response?.data?.message || t("expenses.received.updateError"));
+    }
+  };
+
+  const openFromReceived = (document) => {
+    setEditing(null);
+    setDgiiUrl("");
+    setForm({
+      ...initialForm,
+      receivedDocumentId: document.id,
+      description: document.description || document.eNcf,
+      supplierName: document.supplierName || "",
+      supplierRnc: document.supplierRnc,
+      ncf: document.eNcf,
+      expenseDate: document.issueDate,
+      tax: document.tax,
+      total: document.total,
+    });
+    setModalOpen(true);
+  };
 
   const loadExpenses = async () => {
     try {
@@ -173,6 +222,7 @@ export default function Expenses() {
       ]);
 
       setExpenses(expensesRes.data || []);
+      loadReceivedDocuments();
       setStats(
         statsRes.data || {
           monthTotal: 0,
@@ -435,6 +485,105 @@ export default function Expenses() {
           <strong>{formatMoney(totalFilteredTax)}</strong>
         </div>
       </section>
+
+      {receivedDocuments.length > 0 && (
+        <section className="expenses-panel expenses-received">
+          <div className="expenses-received-header">
+            <div>
+              <h3>
+                <Inbox size={18} />
+                {t("expenses.received.title")} ({pendingDocuments.length})
+              </h3>
+              <p>{t("expenses.received.description")}</p>
+            </div>
+
+            {ignoredDocuments.length > 0 && (
+              <button
+                type="button"
+                className="secondary"
+                onClick={() => setShowIgnored(!showIgnored)}
+              >
+                {showIgnored
+                  ? t("expenses.received.showPending")
+                  : `${t("expenses.received.showIgnored")} (${ignoredDocuments.length})`}
+              </button>
+            )}
+          </div>
+
+          {visibleDocuments.length === 0 ? (
+            <div className="expenses-empty">{t("expenses.received.empty")}</div>
+          ) : (
+            <div className="expenses-table-wrap">
+              <table className="expenses-table">
+                <thead>
+                  <tr>
+                    <th>{t("expenses.table.date")}</th>
+                    <th>{t("expenses.table.ncf")}</th>
+                    <th>{t("expenses.table.issuerName")}</th>
+                    <th>{taxLabel}</th>
+                    <th>{t("expenses.table.total")}</th>
+                    <th></th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {visibleDocuments.map((document) => (
+                    <tr key={document.id}>
+                      <td>
+                        {new Date(
+                          `${document.issueDate}T00:00:00`
+                        ).toLocaleDateString(locale)}
+                      </td>
+                      <td>{document.eNcf}</td>
+                      <td>{document.supplierName || document.supplierRnc}</td>
+                      <td>{formatMoney(document.tax)}</td>
+                      <td>
+                        <strong>{formatMoney(document.total)}</strong>
+                      </td>
+                      <td className="expenses-received-actions">
+                        {showIgnored ? (
+                          <button
+                            type="button"
+                            className="secondary"
+                            onClick={() => setDocumentIgnored(document, false)}
+                          >
+                            <RotateCcw size={15} />
+                            {t("expenses.received.restore")}
+                          </button>
+                        ) : (
+                          <>
+                            {document.tipoECF === "34" ? (
+                              <span className="expense-chip">
+                                {t("expenses.received.creditNote")}
+                              </span>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => openFromReceived(document)}
+                              >
+                                <Plus size={15} />
+                                {t("expenses.received.register")}
+                              </button>
+                            )}
+
+                            <button
+                              type="button"
+                              className="secondary"
+                              onClick={() => setDocumentIgnored(document, true)}
+                            >
+                              {t("expenses.received.ignore")}
+                            </button>
+                          </>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
+      )}
 
       <section className="expenses-panel">
         <div className="expenses-filters">
@@ -843,7 +992,7 @@ export default function Expenses() {
               </label>
             </div>
 
-            {!editing && (
+            {!editing && !form.receivedDocumentId && (
               <div className="expense-dgii-import">
                 <div className="expense-dgii-header">
                   <div className="expense-dgii-icon">

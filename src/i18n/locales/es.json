@@ -1960,6 +1960,18 @@
   }
 },
 "expenses": {
+    "received": {
+      "title": "Comprobantes recibidos",
+      "description": "Facturas electrónicas que tus proveedores emitieron a tu nombre. Revísalas y pásalas a gastos.",
+      "register": "Pasar a gastos",
+      "ignore": "Descartar",
+      "restore": "Recuperar",
+      "showIgnored": "Ver descartados",
+      "showPending": "Ver pendientes",
+      "creditNote": "Nota de crédito",
+      "empty": "No tienes comprobantes pendientes.",
+      "updateError": "No se pudo actualizar el comprobante."
+    },
   "header": {
     "eyebrow": "Contabilidad",
     "title": "Gastos",

@@ -1946,6 +1946,18 @@
   }
 },
 "expenses": {
+    "received": {
+      "title": "Received documents",
+      "description": "Electronic invoices your suppliers issued to you. Review them and add them to expenses.",
+      "register": "Add to expenses",
+      "ignore": "Dismiss",
+      "restore": "Restore",
+      "showIgnored": "View dismissed",
+      "showPending": "View pending",
+      "creditNote": "Credit note",
+      "empty": "You have no pending documents.",
+      "updateError": "The document could not be updated."
+    },
     "header": {
     "eyebrow": "Accounting",
     "title": "Expenses",

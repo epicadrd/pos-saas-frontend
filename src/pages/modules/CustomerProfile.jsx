@@ -12,6 +12,7 @@ import {
   Pencil,
   Phone,
   ReceiptText,
+  UserCheck,
   Wallet,
 } from "lucide-react";
 import { api } from "../../api/axios";
@@ -47,13 +48,16 @@ const getInitials = (name = "") =>
 export default function CustomerProfile() {
   const { id } = useParams();
   const { t } = useTranslation();
-  const { tenant } = useAuth();
+  const { tenant, user } = useAuth();
 
   // Resultado de la última carga, ligado al id para no mostrar otro cliente
   const [result, setResult] = useState({ id: null, profile: null, error: "" });
   const [reloadKey, setReloadKey] = useState(0);
   const [activeTab, setActiveTab] = useState("invoices");
   const [editing, setEditing] = useState(false);
+  const [reactivateError, setReactivateError] = useState("");
+
+  const canReactivate = ["master", "admin"].includes(user?.role);
 
   const isDO = isDominicanTenant(tenant);
   const locale = isDO ? "es-DO" : "en-US";
@@ -102,6 +106,16 @@ export default function CustomerProfile() {
   const error = loading ? "" : result.error;
 
   const loadProfile = () => setReloadKey((key) => key + 1);
+
+  const handleReactivate = async () => {
+    try {
+      setReactivateError("");
+      await api.patch(`/customers/${id}/reactivate`);
+      loadProfile();
+    } catch (err) {
+      setReactivateError(err.response?.data?.message || t("customers.messages.saveError"));
+    }
+  };
 
   const tabs = useMemo(
     () => [
@@ -365,6 +379,13 @@ export default function CustomerProfile() {
             <Pencil size={16} />
             {t("customers.actions.edit")}
           </button>
+          {canReactivate && !customer.isActive && (
+            <button type="button" className="secondary-btn" onClick={handleReactivate}>
+              <UserCheck size={16} />
+              {t("customers.actions.reactivate")}
+            </button>
+          )}
+          {reactivateError && <div className="customers-error">{reactivateError}</div>}
           <small>{t("customers.profile.since", { date: formatDate(customer.createdAt) })}</small>
           {summary.lastActivity && (
             <small>

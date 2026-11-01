@@ -2327,6 +2327,7 @@
       "viewProfile": "Ver perfil",
       "edit": "Editar",
       "deactivate": "Desactivar",
+      "reactivate": "Reactivar",
       "back": "Volver a clientes"
     },
     "empty": "No hay clientes para mostrar.",

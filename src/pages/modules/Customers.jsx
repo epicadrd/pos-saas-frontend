@@ -8,6 +8,7 @@ import {
   Pencil,
   Plus,
   Search,
+  UserCheck,
   UserX,
   Users,
 } from "lucide-react";
@@ -117,6 +118,15 @@ export default function Customers() {
     }
   };
 
+  const handleReactivate = async (customer) => {
+    try {
+      await api.patch(`/customers/${customer.id}/reactivate`);
+      loadCustomers();
+    } catch (err) {
+      setError(err.response?.data?.message || t("customers.messages.saveError"));
+    }
+  };
+
   const handleSaved = () => {
     setModalCustomer(null);
     loadCustomers();
@@ -140,6 +150,16 @@ export default function Customers() {
           onClick={() => handleDeactivate(customer)}
         >
           <UserX size={16} />
+        </button>
+      )}
+
+      {canDeactivate && !customer.isActive && (
+        <button
+          type="button"
+          title={t("customers.actions.reactivate")}
+          onClick={() => handleReactivate(customer)}
+        >
+          <UserCheck size={16} />
         </button>
       )}
 

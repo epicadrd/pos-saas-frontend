@@ -2313,6 +2313,7 @@
       "viewProfile": "View profile",
       "edit": "Edit",
       "deactivate": "Deactivate",
+      "reactivate": "Reactivate",
       "back": "Back to customers"
     },
     "empty": "No customers to show.",

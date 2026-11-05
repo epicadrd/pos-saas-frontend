@@ -666,7 +666,10 @@
   },
   "items": {
   "title": "Productos y servicios",
-  "productService": "Producto o servicio"
+  "productService": "Producto o servicio",
+  "description": "Descripción",
+  "descriptionOptional": "opcional",
+  "descriptionPlaceholder": "Detalles, especificaciones, alcance o condiciones de este producto o servicio"
 }
   
 },

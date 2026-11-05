@@ -31,6 +31,17 @@ const emptyQuote = {
   validUntil: "",
   notes: "",
 };
+
+// El backend recorta la descripción de cada línea a 1000 caracteres
+const DESCRIPTION_MAX = 1000;
+
+const escapeHtml = (value) =>
+  String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+
 const getStatusLabel = (status, t) =>
   ({
     draft: t("quotes.status.draft"),
@@ -534,8 +545,13 @@ const cleanItems = items.map((item) => ({
         h1 { margin: 0; color: ${quoteColor}; }
         .box { background: #f8fafc; padding: 18px; border-radius: 12px; margin-bottom: 20px; }
         table { width: 100%; border-collapse: collapse; margin-top: 25px; }
-        th, td { border-bottom: 1px solid #e5e7eb; padding: 12px; text-align: left; font-size: 14px; }
-        th { background: #f8fafc; }
+        th, td { border-bottom: 1px solid #e5e7eb; padding: 12px 8px; text-align: left; font-size: 13px; vertical-align: top; }
+        th { background: #f8fafc; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: #475569; }
+        th.num, td.num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+        th.col-product { width: 38%; }
+        tr { page-break-inside: avoid; break-inside: avoid; }
+        .item-name { font-weight: 600; color: #111827; overflow-wrap: anywhere; }
+        .item-desc { margin-top: 5px; padding-left: 9px; border-left: 2px solid ${quoteColor}; color: #64748b; font-size: 11.5px; line-height: 1.5; white-space: pre-line; overflow-wrap: anywhere; }
         .totals { margin-left: auto; width: 320px; margin-top: 25px; }
         .totals div { display: flex; justify-content: space-between; padding: 8px 0; }
         .total { font-size: 20px; font-weight: bold; border-top: 2px solid #111827; margin-top: 10px; padding-top: 12px; }
@@ -582,13 +598,13 @@ const cleanItems = items.map((item) => ({
           <table>
             <thead>
               <tr>
-               <th>${t("quotes.fields.product")}</th>
-                <th>${t("quotes.fields.quantityShort")}</th>
-                <th>${t("quotes.fields.price")}</th>
-                <th>${t("quotes.fields.discountShort")}</th>
-                <th>${t("quotes.fields.subtotal")}</th>
-                <th>${taxLabel}</th>
-                <th>${t("quotes.fields.total")}</th>
+                <th class="col-product">${t("quotes.fields.product")}</th>
+                <th class="num">${t("quotes.fields.quantityShort")}</th>
+                <th class="num">${t("quotes.fields.price")}</th>
+                <th class="num">${t("quotes.fields.discountShort")}</th>
+                <th class="num">${t("quotes.fields.subtotal")}</th>
+                <th class="num">${taxLabel}</th>
+                <th class="num">${t("quotes.fields.total")}</th>
               </tr>
             </thead>
             <tbody>
@@ -596,13 +612,20 @@ const cleanItems = items.map((item) => ({
                 .map(
                   (item) => `
                   <tr>
-                    <td>${item.productName}</td>
-                    <td>${item.quantity}</td>
-                    <td>${money.format(Number(item.price || 0))}</td>
-                    <td>${Number(item.discount || 0)}%</td>
-                    <td>${money.format(Number(item.subtotal || 0))}</td>
-                    <td>${money.format(Number(item.tax || 0))}</td>
-                    <td>${money.format(Number(item.total || 0))}</td>
+                    <td>
+                      <div class="item-name">${escapeHtml(item.productName)}</div>
+                      ${
+                        String(item.description || "").trim()
+                          ? `<div class="item-desc">${escapeHtml(String(item.description).trim())}</div>`
+                          : ""
+                      }
+                    </td>
+                    <td class="num">${item.quantity}</td>
+                    <td class="num">${money.format(Number(item.price || 0))}</td>
+                    <td class="num">${Number(item.discount || 0)}%</td>
+                    <td class="num">${money.format(Number(item.subtotal || 0))}</td>
+                    <td class="num">${money.format(Number(item.tax || 0))}</td>
+                    <td class="num">${money.format(Number(item.total || 0))}</td>
                   </tr>
                 `
                 )
@@ -1362,6 +1385,23 @@ return (
   >
     <Trash2 size={16} />
   </button>
+
+  <label className="quote-item-desc">
+    <small>
+      {t("quotes.items.description")}
+      <em>{t("quotes.items.descriptionOptional")}</em>
+    </small>
+
+    <textarea
+      rows={2}
+      maxLength={DESCRIPTION_MAX}
+      value={item.description || ""}
+      onChange={(e) =>
+        handleItemChange(index, "description", e.target.value)
+      }
+      placeholder={t("quotes.items.descriptionPlaceholder")}
+    />
+  </label>
 </div>
         );
       })}
@@ -1428,6 +1468,20 @@ return (
     ))}
   </datalist>
 </label>
+
+              <label className="quote-mobile-item-desc">
+                {t("quotes.items.description")}
+                <textarea
+                  rows={3}
+                  maxLength={DESCRIPTION_MAX}
+                  value={item.description || ""}
+                  onChange={(e) =>
+                    handleItemChange(index, "description", e.target.value)
+                  }
+                  placeholder={t("quotes.items.descriptionPlaceholder")}
+                />
+              </label>
+
               <div className="quote-mobile-item-row-2">
                 <label>
                   {t("quotes.fields.quantity")}

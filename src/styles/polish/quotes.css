@@ -175,3 +175,69 @@
     background: #fff5f5;
   }
 }
+
+/* Descripción por línea de producto o servicio */
+.quote-page .quote-item-row {
+  border-color: var(--ui-line-soft);
+  background: #fbfdfe;
+}
+
+.quote-page .quote-item-desc {
+  grid-column: 1 / -1;
+  display: block;
+  margin: 0;
+}
+
+.quote-page .quote-item-desc small {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.quote-page .quote-item-desc small em {
+  color: var(--ui-faint);
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 500;
+}
+
+.quote-page :is(.quote-item-desc, .quote-mobile-item-desc) textarea {
+  display: block;
+  width: 100%;
+  min-height: 46px;
+  max-height: 220px;
+  padding: 10px 12px;
+  border: 1px solid #dce5ea;
+  border-radius: 12px;
+  background: #ffffff;
+  color: var(--ui-ink);
+  font: inherit;
+  font-size: 13.5px;
+  line-height: 1.5;
+  resize: vertical;
+  field-sizing: content;
+  overflow-wrap: anywhere;
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.quote-page :is(.quote-item-desc, .quote-mobile-item-desc) textarea:hover {
+  border-color: #c6d8de;
+}
+
+.quote-page :is(.quote-item-desc, .quote-mobile-item-desc) textarea:focus {
+  border-color: var(--ui-teal);
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(0, 191, 174, 0.12);
+}
+
+.quote-page :is(.quote-item-desc, .quote-mobile-item-desc) textarea::placeholder {
+  color: var(--ui-faint);
+}
+
+.quote-page .quote-mobile-item-desc textarea {
+  min-height: 84px;
+  padding: 12px 14px;
+  font-size: 15px;
+}

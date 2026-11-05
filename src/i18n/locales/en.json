@@ -659,7 +659,8 @@
   "productService": "Product or service",
   "description": "Description",
   "descriptionOptional": "optional",
-  "descriptionPlaceholder": "Details, specifications, scope or terms for this product or service"
+  "descriptionPlaceholder": "Details, scope or terms",
+  "legacyDiscount": "Includes {{value}}% discount"
 }
 },
 

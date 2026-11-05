@@ -183,9 +183,49 @@
 }
 
 .quote-page .quote-item-desc {
-  grid-column: 1 / -1;
   display: block;
   margin: 0;
+  min-width: 0;
+}
+
+.quote-page .quote-item-total em,
+.quote-page .quote-mobile-item-discount {
+  display: block;
+  margin-top: 4px;
+  color: var(--ui-muted);
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 500;
+}
+
+/* Escritorio: Producto | Descripción | Cant. | Precio | ITBIS | Total | borrar */
+@media (min-width: 1001px) {
+  .quote-page .quote-item-row {
+    grid-template-columns:
+      minmax(150px, 1.4fr) minmax(200px, 2.3fr) 0.55fr 0.85fr 1fr 0.95fr 44px;
+    align-items: start;
+  }
+
+  .quote-page .quote-item-row small {
+    line-height: 16px;
+  }
+
+  .quote-page .quote-item-total strong {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    min-height: 46px;
+  }
+
+  .quote-page .quote-item-total small,
+  .quote-page .quote-item-total em {
+    text-align: right;
+  }
+
+  .quote-page .quote-item-row .remove-item-btn {
+    align-self: start;
+    margin-top: 23px;
+  }
 }
 
 .quote-page .quote-item-desc small {
@@ -205,8 +245,8 @@
   display: block;
   width: 100%;
   min-height: 46px;
-  max-height: 220px;
-  padding: 10px 12px;
+  max-height: 180px;
+  padding: 12px;
   border: 1px solid #dce5ea;
   border-radius: 12px;
   background: #ffffff;

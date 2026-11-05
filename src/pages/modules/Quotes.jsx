@@ -535,6 +535,12 @@ const cleanItems = items.map((item) => ({
 };
 
   const handlePrint = async (quote) => {
+   // En las filas los montos van sin símbolo para dar espacio a la descripción;
+   // los totales sí lo llevan
+   const amount = new Intl.NumberFormat(locale, {
+     minimumFractionDigits: 2,
+     maximumFractionDigits: 2,
+   });
    const html = `
   <html>
     <head>
@@ -548,10 +554,13 @@ const cleanItems = items.map((item) => ({
         th, td { border-bottom: 1px solid #e5e7eb; padding: 12px 8px; text-align: left; font-size: 13px; vertical-align: top; }
         th { background: #f8fafc; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: #475569; }
         th.num, td.num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
-        th.col-product { width: 38%; }
+        th.col-product { width: 20%; }
+        th.col-desc { width: 34%; }
         tr { page-break-inside: avoid; break-inside: avoid; }
-        .item-name { font-weight: 600; color: #111827; overflow-wrap: anywhere; }
-        .item-desc { margin-top: 5px; padding-left: 9px; border-left: 2px solid ${quoteColor}; color: #64748b; font-size: 11.5px; line-height: 1.5; white-space: pre-line; overflow-wrap: anywhere; }
+        .item-name { font-weight: 600; color: #111827; overflow-wrap: break-word; }
+        .item-desc { color: #475569; font-size: 12px; line-height: 1.5; white-space: pre-line; overflow-wrap: break-word; }
+        .item-desc-empty { color: #cbd5e1; }
+        .item-discount { display: block; margin-top: 3px; color: #64748b; font-size: 10px; }
         .totals { margin-left: auto; width: 320px; margin-top: 25px; }
         .totals div { display: flex; justify-content: space-between; padding: 8px 0; }
         .total { font-size: 20px; font-weight: bold; border-top: 2px solid #111827; margin-top: 10px; padding-top: 12px; }
@@ -599,9 +608,9 @@ const cleanItems = items.map((item) => ({
             <thead>
               <tr>
                 <th class="col-product">${t("quotes.fields.product")}</th>
+                <th class="col-desc">${t("quotes.items.description")}</th>
                 <th class="num">${t("quotes.fields.quantityShort")}</th>
                 <th class="num">${t("quotes.fields.price")}</th>
-                <th class="num">${t("quotes.fields.discountShort")}</th>
                 <th class="num">${t("quotes.fields.subtotal")}</th>
                 <th class="num">${taxLabel}</th>
                 <th class="num">${t("quotes.fields.total")}</th>
@@ -612,20 +621,26 @@ const cleanItems = items.map((item) => ({
                 .map(
                   (item) => `
                   <tr>
+                    <td><div class="item-name">${escapeHtml(item.productName)}</div></td>
                     <td>
-                      <div class="item-name">${escapeHtml(item.productName)}</div>
                       ${
                         String(item.description || "").trim()
                           ? `<div class="item-desc">${escapeHtml(String(item.description).trim())}</div>`
-                          : ""
+                          : `<span class="item-desc-empty">—</span>`
                       }
                     </td>
                     <td class="num">${item.quantity}</td>
-                    <td class="num">${money.format(Number(item.price || 0))}</td>
-                    <td class="num">${Number(item.discount || 0)}%</td>
-                    <td class="num">${money.format(Number(item.subtotal || 0))}</td>
-                    <td class="num">${money.format(Number(item.tax || 0))}</td>
-                    <td class="num">${money.format(Number(item.total || 0))}</td>
+                    <td class="num">
+                      ${amount.format(Number(item.price || 0))}
+                      ${
+                        Number(item.discount || 0) > 0
+                          ? `<span class="item-discount">${escapeHtml(t("quotes.fields.discountShort"))} ${Number(item.discount)}%</span>`
+                          : ""
+                      }
+                    </td>
+                    <td class="num">${amount.format(Number(item.subtotal || 0))}</td>
+                    <td class="num">${amount.format(Number(item.tax || 0))}</td>
+                    <td class="num">${amount.format(Number(item.total || 0))}</td>
                   </tr>
                 `
                 )
@@ -1310,6 +1325,23 @@ return (
     </datalist>
   </div>
 
+  <label className="quote-item-desc">
+    <small>
+      {t("quotes.items.description")}
+      <em>{t("quotes.items.descriptionOptional")}</em>
+    </small>
+
+    <textarea
+      rows={1}
+      maxLength={DESCRIPTION_MAX}
+      value={item.description || ""}
+      onChange={(e) =>
+        handleItemChange(index, "description", e.target.value)
+      }
+      placeholder={t("quotes.items.descriptionPlaceholder")}
+    />
+  </label>
+
   <div>
     <small>{t("quotes.fields.quantity")}</small>
 
@@ -1339,22 +1371,6 @@ return (
   </div>
 
   <div>
-    <small>{t("quotes.fields.discount")} %</small>
-
-    <input
-      type="number"
-      step="0.01"
-      min="0"
-      max="100"
-      value={item.discount}
-      onChange={(e) =>
-        handleItemChange(index, "discount", e.target.value)
-      }
-      placeholder={`${t("quotes.fields.discount")} %`}
-    />
-  </div>
-
-  <div>
     <small>{taxLabel}</small>
 
     <select
@@ -1373,9 +1389,12 @@ return (
     </select>
   </div>
 
-  <div>
+  <div className="quote-item-total">
     <small>{t("quotes.fields.total")}</small>
     <strong>{money.format(total)}</strong>
+    {discount > 0 && (
+      <em>{t("quotes.items.legacyDiscount", { value: discount })}</em>
+    )}
   </div>
 
   <button
@@ -1385,23 +1404,6 @@ return (
   >
     <Trash2 size={16} />
   </button>
-
-  <label className="quote-item-desc">
-    <small>
-      {t("quotes.items.description")}
-      <em>{t("quotes.items.descriptionOptional")}</em>
-    </small>
-
-    <textarea
-      rows={2}
-      maxLength={DESCRIPTION_MAX}
-      value={item.description || ""}
-      onChange={(e) =>
-        handleItemChange(index, "description", e.target.value)
-      }
-      placeholder={t("quotes.items.descriptionPlaceholder")}
-    />
-  </label>
 </div>
         );
       })}
@@ -1504,21 +1506,8 @@ return (
                 </label>
               </div>
 
-              <div className="quote-mobile-item-row-2">
-                <label>
-                  {t("quotes.fields.discount")} %
-                  <input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    max="100"
-                    value={item.discount}
-                    onChange={(e) => handleItemChange(index, "discount", e.target.value)}
-                  />
-                </label>
-
-                <label>
-                  {taxLabel}
+              <label>
+                {taxLabel}
                   <select
                     value={item.isTaxable === false ? "false" : "true"}
                     onChange={(e) => handleItemChange(index, "isTaxable", e.target.value)}
@@ -1532,7 +1521,6 @@ return (
                     </option>
                   </select>
                 </label>
-              </div>
             </div>
 
             <div className="quote-mobile-item-total">
@@ -1550,6 +1538,12 @@ return (
                 <span>{t("quotes.fields.total")}</span>
                 <strong>{money.format(total)}</strong>
               </p>
+
+              {discount > 0 && (
+                <p className="quote-mobile-item-discount">
+                  {t("quotes.items.legacyDiscount", { value: discount })}
+                </p>
+              )}
             </div>
           </div>
         );

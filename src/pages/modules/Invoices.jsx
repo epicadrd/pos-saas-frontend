@@ -35,12 +35,14 @@ import {
   isDominicanTenant,
 } from "../../utils/taxConfig";
 import { downloadHtmlAsPdf } from "../../utils/downloadPdf";
+import { createMoneyFormatter } from "../../utils/currency";
 
-
-// Facturas en US$ ocultas hasta que reportes y cuentas por cobrar conviertan a pesos
-const USD_INVOICES_ENABLED = false;
 
 // Plazos de pago: "immediate_payment" o "payment_N_days"
+// "2026-11-03" -> "03/11/2026"
+const formatRateDate = (value) =>
+  String(value || "").split("-").reverse().join("/");
+
 const TERM_DAY_OPTIONS = [0, 7, 15, 30, 45, 60, 90];
 
 const getTermDays = (terms) => {
@@ -134,6 +136,14 @@ export default function Invoices() {
   const [editingInvoiceNumber, setEditingInvoiceNumber] = useState(null);
 
   const [form, setForm] = useState(emptyForm);
+  // Tasa del dólar del BCRD (o del mercado si el BCRD no responde)
+  const [usdRateInfo, setUsdRateInfo] = useState(null);
+  const [loadingUsdRate, setLoadingUsdRate] = useState(false);
+  const formRef = useRef(form);
+
+  useEffect(() => {
+    formRef.current = form;
+  }, [form]);
   const [items, setItems] = useState([]);
   const [ecfRequestStatus, setEcfRequestStatus] = useState("not_requested");
   const [loadingEcfRequest, setLoadingEcfRequest] = useState(true);
@@ -208,6 +218,9 @@ const usdMoney = new Intl.NumberFormat(isDO ? "es-DO" : "en-US", {
 // En RD cada factura puede estar en pesos o en dólares
 const moneyFor = (currency) => (isDO && currency === "USD" ? usdMoney : money);
 const formMoney = moneyFor(form.currency);
+
+// En pantalla, las facturas en US$ muestran también los pesos (no en la impresa)
+const formatMoney = createMoneyFormatter(isDO);
 
   // Las facturas para regímenes especiales (E44) van exentas de ITBIS
   const taxEnabled =
@@ -704,7 +717,7 @@ const saveQuickProduct = async (event) => {
         description: createdProduct.description || "",
         quantity: 1,
         unit: createdProduct.unit || "unidad",
-        price: Number(createdProduct.salePrice || 0),
+        price: priceForInvoice(createdProduct.salePrice),
         discount: 0,
         isTaxable: tenant?.invoiceTaxEnabled !== false,
         taxRate: Number(tenant?.invoiceTaxRate || 18),
@@ -728,6 +741,80 @@ const saveQuickProduct = async (event) => {
     setSavingQuickProduct(false);
   }
 };
+
+  // Los precios del inventario están en pesos; en una factura en US$ se
+  // convierten con la tasa de la factura
+  const convertPesos = (pesos, currency, exchangeRate) => {
+    const amount = Number(pesos || 0);
+    const rate = Number(exchangeRate);
+
+    return currency === "USD" && rate > 0
+      ? Math.round((amount / rate) * 100) / 100
+      : amount;
+  };
+
+  const priceForInvoice = (pesos) =>
+    convertPesos(pesos, form.currency, form.exchangeRate);
+
+  // Al cambiar moneda o tasa se recalculan las líneas de inventario cuyo
+  // precio no se editó a mano
+  const changeInvoiceCurrency = (currency, exchangeRate, base = form) => {
+    setItems((currentItems) =>
+      currentItems.map((item) => {
+        const product = item.productId
+          ? products.find((p) => String(p.id) === String(item.productId))
+          : null;
+
+        if (!product) return item;
+
+        const pesos = product.salePrice || product.price;
+        const previous = convertPesos(pesos, base.currency, base.exchangeRate);
+
+        if (Math.abs(Number(item.price || 0) - previous) > 0.005) return item;
+
+        return { ...item, price: convertPesos(pesos, currency, exchangeRate) };
+      })
+    );
+
+    setForm({ ...base, currency, exchangeRate });
+  };
+
+  const fetchUsdRate = async () => {
+    try {
+      setLoadingUsdRate(true);
+      const { data } = await api.get("/exchange-rates/usd");
+      setUsdRateInfo(data);
+      return data;
+    } catch {
+      setUsdRateInfo(null);
+      return null;
+    } finally {
+      setLoadingUsdRate(false);
+    }
+  };
+
+  const selectInvoiceCurrency = async (currency) => {
+    if (currency !== "USD" || form.exchangeRate) {
+      changeInvoiceCurrency(currency, currency === "USD" ? form.exchangeRate : "");
+      return;
+    }
+
+    // Tasa ya consultada en esta pantalla
+    if (usdRateInfo?.rate) {
+      changeInvoiceCurrency("USD", String(usdRateInfo.rate));
+      return;
+    }
+
+    changeInvoiceCurrency("USD", "");
+
+    const info = await fetchUsdRate();
+    const current = formRef.current;
+
+    // Solo si la factura sigue en US$ y nadie escribió una tasa mientras tanto
+    if (info?.rate && current.currency === "USD" && !current.exchangeRate) {
+      changeInvoiceCurrency("USD", String(info.rate), current);
+    }
+  };
 
   const addLine = () => {
     setItems([
@@ -759,7 +846,7 @@ const saveQuickProduct = async (event) => {
         description: product?.description || "",
         quantity: 1,
         unit: product?.unit || "UND",
-        price: Number(product?.salePrice || product?.price || 0),
+        price: priceForInvoice(product?.salePrice || product?.price),
         discount: 0,
         isTaxable: tenant?.invoiceTaxEnabled !== false,
         taxRate: Number(tenant?.invoiceTaxRate || 18),
@@ -1993,8 +2080,8 @@ const handlePrintDraft = async () => {
               )}
             </td>
             <td>{invoice.customerName}</td>
-            <td>{moneyFor(invoice.currency).format(Number(invoice.tax || 0))}</td>
-            <td>{moneyFor(invoice.currency).format(Number(invoice.total || 0))}</td>
+            <td>{formatMoney(invoice.tax, invoice)}</td>
+            <td>{formatMoney(invoice.total, invoice)}</td>
 
             <td>
               <span className={`qb-status qb-${invoice.status}`}>
@@ -2111,12 +2198,12 @@ const handlePrintDraft = async () => {
         <div className="qb-mobile-money-grid">
           <div>
             <span>{t("invoices.fields.total")}</span>
-            <strong>{moneyFor(invoice.currency).format(Number(invoice.total || 0))}</strong>
+            <strong>{formatMoney(invoice.total, invoice)}</strong>
           </div>
 
           <div>
             <span>{t("invoices.fields.balance")}</span>
-            <strong>{moneyFor(invoice.currency).format(Number(invoice.balance || 0))}</strong>
+            <strong>{formatMoney(invoice.balance, invoice)}</strong>
           </div>
         </div>
 
@@ -2159,27 +2246,27 @@ const handlePrintDraft = async () => {
 
         <div>
           <span>{t("invoices.fields.subtotal")}</span>
-          <strong>{moneyFor(selectedInvoice.currency).format(Number(selectedInvoice.subtotal || 0))}</strong>
+          <strong>{formatMoney(selectedInvoice.subtotal, selectedInvoice)}</strong>
         </div>
 
         <div>
           <span>{taxLabel}</span>
-          <strong>{moneyFor(selectedInvoice.currency).format(Number(selectedInvoice.tax || 0))}</strong>
+          <strong>{formatMoney(selectedInvoice.tax, selectedInvoice)}</strong>
         </div>
 
         <div>
           <span>{t("invoices.fields.total")}</span>
-          <strong>{moneyFor(selectedInvoice.currency).format(Number(selectedInvoice.total || 0))}</strong>
+          <strong>{formatMoney(selectedInvoice.total, selectedInvoice)}</strong>
         </div>
 
         <div>
           <span>{t("invoices.fields.paid")}</span>
-          <strong>{moneyFor(selectedInvoice.currency).format(Number(selectedInvoice.amountPaid || 0))}</strong>
+          <strong>{formatMoney(selectedInvoice.amountPaid, selectedInvoice)}</strong>
         </div>
 
         <div>
           <span>{t("invoices.fields.balance")}</span>
-          <strong>{moneyFor(selectedInvoice.currency).format(Number(selectedInvoice.balance || 0))}</strong>
+          <strong>{formatMoney(selectedInvoice.balance, selectedInvoice)}</strong>
         </div>
 
         <div>
@@ -2463,7 +2550,7 @@ const handlePrintDraft = async () => {
               <tr key={invoice.id}>
                 <td>{invoice.invoiceNumber || t("invoices.common.draft")}</td>
                 <td>{invoice.customerName || t("invoices.common.noCustomer")}</td>
-                <td>{moneyFor(invoice.currency).format(Number(invoice.total || 0))}</td>
+                <td>{formatMoney(invoice.total, invoice)}</td>
                 <td>
                   <div className="qb-actions-cell">
                     <button
@@ -2527,17 +2614,17 @@ const handlePrintDraft = async () => {
             <div className="qb-mobile-money-grid">
               <div>
                 <span>{t("invoices.fields.subtotal")}</span>
-                <strong>{moneyFor(invoice.currency).format(Number(invoice.subtotal || 0))}</strong>
+                <strong>{formatMoney(invoice.subtotal, invoice)}</strong>
               </div>
 
               <div>
                 <span>{t("invoices.fields.total")}</span>
-                <strong>{moneyFor(invoice.currency).format(Number(invoice.total || 0))}</strong>
+                <strong>{formatMoney(invoice.total, invoice)}</strong>
               </div>
             </div>
 
             <div className="qb-mobile-card-footer">
-              <span>{taxLabel} {moneyFor(invoice.currency).format(Number(invoice.tax || 0))}</span>
+              <span>{taxLabel} {formatMoney(invoice.tax, invoice)}</span>
               <strong>{t("invoices.actions.viewDetail")}</strong>
             </div>
           </button>
@@ -2579,27 +2666,27 @@ const handlePrintDraft = async () => {
 
             <div>
               <span>{t("invoices.fields.subtotal")}</span>
-              <strong>{moneyFor(selectedDraft.currency).format(Number(selectedDraft.subtotal || 0))}</strong>
+              <strong>{formatMoney(selectedDraft.subtotal, selectedDraft)}</strong>
             </div>
 
             <div>
               <span>{taxLabel}</span>
-              <strong>{moneyFor(selectedDraft.currency).format(Number(selectedDraft.tax || 0))}</strong>
+              <strong>{formatMoney(selectedDraft.tax, selectedDraft)}</strong>
             </div>
 
             <div>
               <span>{t("invoices.fields.total")}</span>
-              <strong>{moneyFor(selectedDraft.currency).format(Number(selectedDraft.total || 0))}</strong>
+              <strong>{formatMoney(selectedDraft.total, selectedDraft)}</strong>
             </div>
 
             <div>
               <span>{t("invoices.fields.paid")}</span>
-              <strong>{moneyFor(selectedDraft.currency).format(Number(selectedDraft.amountPaid || 0))}</strong>
+              <strong>{formatMoney(selectedDraft.amountPaid, selectedDraft)}</strong>
             </div>
 
             <div>
               <span>{t("invoices.fields.balance")}</span>
-              <strong>{moneyFor(selectedDraft.currency).format(Number(selectedDraft.balance || 0))}</strong>
+              <strong>{formatMoney(selectedDraft.balance, selectedDraft)}</strong>
             </div>
           </div>
 
@@ -3027,18 +3114,12 @@ const handlePrintDraft = async () => {
                   </label>
                 )}
 
-                {isDO && USD_INVOICES_ENABLED && (
+                {isDO && (
                   <label>
                     Moneda
                     <select
                       value={form.currency}
-                      onChange={(e) =>
-                        setForm({
-                          ...form,
-                          currency: e.target.value,
-                          exchangeRate: e.target.value === "USD" ? form.exchangeRate : "",
-                        })
-                      }
+                      onChange={(e) => selectInvoiceCurrency(e.target.value)}
                     >
                       <option value="DOP">RD$ Pesos dominicanos</option>
                       <option value="USD">US$ Dólares</option>
@@ -3053,9 +3134,40 @@ const handlePrintDraft = async () => {
                         placeholder="Tasa: pesos por cada US$ 1 (ej.: 60.50)"
                         value={form.exchangeRate}
                         onChange={(e) =>
-                          setForm({ ...form, exchangeRate: e.target.value })
+                          changeInvoiceCurrency(form.currency, e.target.value)
                         }
                       />
+                    )}
+
+                    {form.currency === "USD" && (
+                      <small className="usd-rate-hint">
+                        {loadingUsdRate
+                          ? "Consultando la tasa del dólar..."
+                          : usdRateInfo
+                            ? Number(form.exchangeRate) === Number(usdRateInfo.rate)
+                              ? (
+                                <>
+                                  {`Tasa ${usdRateInfo.source === "BCRD" ? "de compra del Banco Central" : "del mercado (el Banco Central no respondió)"} del ${formatRateDate(usdRateInfo.date)}.`}
+                                  <span className="usd-rate-check">
+                                    Verifica que sea la tasa correcta antes de guardar; si acordaste otra con tu cliente, cámbiala aquí.
+                                  </span>
+                                </>
+                              )
+                              : (
+                                <>
+                                  {`Tasa ${usdRateInfo.source === "BCRD" ? "BCRD" : "del mercado"}: ${Number(usdRateInfo.rate).toFixed(4)}. `}
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      changeInvoiceCurrency("USD", String(usdRateInfo.rate))
+                                    }
+                                  >
+                                    Usar esta
+                                  </button>
+                                </>
+                              )
+                            : "No se pudo consultar la tasa; escríbela manualmente."}
+                      </small>
                     )}
                   </label>
                 )}

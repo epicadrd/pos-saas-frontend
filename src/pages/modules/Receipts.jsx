@@ -18,6 +18,7 @@ import { useAuth } from "../../context/AuthContext";
 import es from "../../i18n/locales/es.json";
 import en from "../../i18n/locales/en.json";
 import { downloadHtmlAsPdf } from "../../utils/downloadPdf";
+import { createMoneyFormatter, toDop } from "../../utils/currency";
 
 const emptyReceipt = {
   invoiceId: "",
@@ -29,6 +30,11 @@ const emptyReceipt = {
   notes: "",
   receiptDate: new Date(),
 };
+
+// Un recibo está en la moneda de su factura; los totales se suman en pesos
+const receiptCurrency = (receipt) => receipt?.Invoice?.currency || "DOP";
+
+const receiptAmountInDop = (receipt) => toDop(receipt.amount, receipt?.Invoice);
 
 export default function Receipts() {
   const { confirm } = useConfirm();
@@ -70,6 +76,17 @@ export default function Receipts() {
   [isDO]
 );
 
+  // En RD, las facturas (y sus recibos) pueden ir en US$
+  const usdMoney = useMemo(
+    () => new Intl.NumberFormat("es-DO", { style: "currency", currency: "USD" }),
+    []
+  );
+  const moneyFor = (rowCurrency) =>
+    isDO && rowCurrency === "USD" ? usdMoney : money;
+
+  // En pantalla, los montos en US$ muestran también los pesos
+  const formatMoney = useMemo(() => createMoneyFormatter(isDO), [isDO]);
+
   const formatReceiptDate = (value) => {
   if (!value) return "-";
 
@@ -83,6 +100,10 @@ export default function Receipts() {
     return text.includes(search.toLowerCase());
   });
 
+  const selectedFormInvoice = invoices.find(
+    (invoice) => String(invoice.id) === String(form.invoiceId)
+  );
+
   const pendingInvoices = invoices.filter(
     (invoice) =>
       invoice.status !== "paid" &&
@@ -94,17 +115,17 @@ export default function Receipts() {
     const totalReceipts = receipts.length;
 
     const totalReceived = receipts.reduce(
-      (acc, item) => acc + Number(item.amount || 0),
+      (acc, item) => acc + receiptAmountInDop(item),
       0
     );
 
     const cashTotal = receipts
       .filter((item) => item.paymentMethod === "cash")
-      .reduce((acc, item) => acc + Number(item.amount || 0), 0);
+      .reduce((acc, item) => acc + receiptAmountInDop(item), 0);
 
     const transferTotal = receipts
       .filter((item) => item.paymentMethod === "transfer")
-      .reduce((acc, item) => acc + Number(item.amount || 0), 0);
+      .reduce((acc, item) => acc + receiptAmountInDop(item), 0);
 
     return {
       totalReceipts,
@@ -496,7 +517,7 @@ export default function Receipts() {
           </div>
 
           <div class="amount">
-            ${money.format(Number(receipt.amount || 0))}
+            ${moneyFor(receiptCurrency(receipt)).format(Number(receipt.amount || 0))}
           </div>
 
           ${
@@ -669,7 +690,7 @@ export default function Receipts() {
 
             <td>
               <strong>
-                {money.format(Number(receipt.amount || 0))}
+                {formatMoney(receipt.amount, receipt.Invoice)}
               </strong>
             </td>
 
@@ -739,7 +760,7 @@ export default function Receipts() {
         <div className="receipt-mobile-money-grid">
           <div>
             <span>{t("receipts.fields.amount")}</span>
-            <strong>{money.format(Number(receipt.amount || 0))}</strong>
+            <strong>{formatMoney(receipt.amount, receipt.Invoice)}</strong>
           </div>
 
           <div>
@@ -814,7 +835,7 @@ export default function Receipts() {
 
         <div>
           <span>{t("receipts.fields.amount")}</span>
-          <strong>{money.format(Number(selectedReceipt.amount || 0))}</strong>
+          <strong>{formatMoney(selectedReceipt.amount, selectedReceipt.Invoice)}</strong>
         </div>
 
         <div>
@@ -896,7 +917,7 @@ export default function Receipts() {
                     {pendingInvoices.map((invoice) => (
                       <option key={invoice.id} value={invoice.id}>
                         {getFiscalNumber(invoice)} - {invoice.customerName} - {t("receipts.messages.pending")}:{" "}
-                        {money.format(Number(invoice.balance || 0))}
+                        {formatMoney(invoice.balance, invoice)}
                       </option>
                     ))}
                   </select>
@@ -914,7 +935,10 @@ export default function Receipts() {
                 </div>
 
                 <div className="form-row">
-                  <label>{t("receipts.fields.amountReceivedRequired")}</label>
+                  <label>
+                    {t("receipts.fields.amountReceivedRequired")}
+                    {selectedFormInvoice?.currency === "USD" && isDO && " (US$)"}
+                  </label>
                   <input
                     name="amount"
                     type="number"

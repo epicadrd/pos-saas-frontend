@@ -20,6 +20,7 @@ import { useAuth } from "../../context/AuthContext";
 import { isDominicanTenant } from "../../utils/taxConfig";
 import { getFiscalNumber } from "../../utils/fiscalNumber";
 import CustomerFormModal from "../../components/CustomerFormModal";
+import { createMoneyFormatter } from "../../utils/currency";
 
 const INVOICE_BADGE = {
   issued: "info",
@@ -61,12 +62,9 @@ export default function CustomerProfile() {
 
   const isDO = isDominicanTenant(tenant);
   const locale = isDO ? "es-DO" : "en-US";
-  const currency = isDO ? "DOP" : "USD";
 
-  const formatMoney = (value) =>
-    new Intl.NumberFormat(locale, { style: "currency", currency }).format(
-      Number(value || 0)
-    );
+  // formatMoney(valor, factura o recibo): en US$ muestra también los pesos
+  const formatMoney = createMoneyFormatter(isDO);
 
   const formatDate = (value) => {
     if (!value) return "—";
@@ -185,9 +183,9 @@ export default function CustomerProfile() {
                   <td className={invoice.isOverdue ? "customer-overdue" : ""}>
                     {formatDate(invoice.dueDate)}
                   </td>
-                  <td className="num">{formatMoney(invoice.total)}</td>
-                  <td className="num">{formatMoney(invoice.amountPaid)}</td>
-                  <td className="num"><strong>{formatMoney(invoice.balance)}</strong></td>
+                  <td className="num">{formatMoney(invoice.total, invoice)}</td>
+                  <td className="num">{formatMoney(invoice.amountPaid, invoice)}</td>
+                  <td className="num"><strong>{formatMoney(invoice.balance, invoice)}</strong></td>
                   <td>
                     <div className="customer-badges">
                       <span className={`badge ${INVOICE_BADGE[invoice.status] || "neutral"}`}>
@@ -212,7 +210,7 @@ export default function CustomerProfile() {
                 <small>{formatDate(invoice.invoiceDate || invoice.createdAt)}</small>
               </div>
               <div className="customer-doc-right">
-                <strong>{formatMoney(invoice.total)}</strong>
+                <strong>{formatMoney(invoice.total, invoice)}</strong>
                 <span className={`badge ${invoice.isOverdue ? "danger" : INVOICE_BADGE[invoice.status] || "neutral"}`}>
                   {invoice.isOverdue
                     ? t("customers.profile.overdueTag")
@@ -304,7 +302,7 @@ export default function CustomerProfile() {
                   <td>{receipt.invoiceNumber || "—"}</td>
                   <td className="customer-concept">{receipt.concept}</td>
                   <td>{t(`receipts.paymentMethods.${receipt.paymentMethod}`, receipt.paymentMethod)}</td>
-                  <td className="num"><strong>{formatMoney(receipt.amount)}</strong></td>
+                  <td className="num"><strong>{formatMoney(receipt.amount, receipt)}</strong></td>
                   <td>
                     <span className={`badge ${receipt.status === "paid" ? "ok" : "danger"}`}>
                       {t(`customers.profile.receiptStatus.${receipt.status}`, receipt.status)}
@@ -327,7 +325,7 @@ export default function CustomerProfile() {
                 </small>
               </div>
               <div className="customer-doc-right">
-                <strong>{formatMoney(receipt.amount)}</strong>
+                <strong>{formatMoney(receipt.amount, receipt)}</strong>
                 <span className={`badge ${receipt.status === "paid" ? "ok" : "danger"}`}>
                   {t(`customers.profile.receiptStatus.${receipt.status}`, receipt.status)}
                 </span>

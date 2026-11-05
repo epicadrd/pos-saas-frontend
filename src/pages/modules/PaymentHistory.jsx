@@ -6,6 +6,7 @@ import es from "../../i18n/locales/es.json";
 import en from "../../i18n/locales/en.json";
 import { getTaxLabel, isDominicanTenant } from "../../utils/taxConfig";
 import { getFiscalNumber } from "../../utils/fiscalNumber";
+import { createMoneyFormatter, toDop } from "../../utils/currency";
 
 export default function PaymentHistory() {
   const { tenant, language } = useAuth();
@@ -36,17 +37,10 @@ export default function PaymentHistory() {
 
   const isDO = isDominicanTenant(tenant);
   const locale = isDO ? "es-DO" : "en-US";
-  const currency = isDO ? "DOP" : "USD";
   const taxLabel = getTaxLabel(tenant);
 
-  const money = useMemo(
-    () =>
-      new Intl.NumberFormat(locale, {
-        style: "currency",
-        currency,
-      }),
-    [locale, currency]
-  );
+  // formatMoney(valor, factura): las facturas en US$ muestran también los pesos
+  const formatMoney = useMemo(() => createMoneyFormatter(isDO), [isDO]);
 
   const formatDate = (value) => {
     if (!value) return "-";
@@ -91,10 +85,11 @@ export default function PaymentHistory() {
   const totals = useMemo(() => {
     return paidInvoices.reduce(
       (acc, invoice) => {
-        acc.subtotal += Number(invoice.subtotal || 0);
-        acc.tax += Number(invoice.tax || 0);
-        acc.total += Number(invoice.total || 0);
-        acc.amountPaid += Number(invoice.amountPaid || 0);
+        // Los totales se suman en pesos, con la tasa de cada factura
+        acc.subtotal += toDop(invoice.subtotal, invoice);
+        acc.tax += toDop(invoice.tax, invoice);
+        acc.total += toDop(invoice.total, invoice);
+        acc.amountPaid += toDop(invoice.amountPaid, invoice);
         return acc;
       },
       { subtotal: 0, tax: 0, total: 0, amountPaid: 0 }
@@ -163,7 +158,7 @@ export default function PaymentHistory() {
           </div>
           <div>
             <span>{t("paymentHistory.stats.totalCollected")}</span>
-            <strong>{money.format(totals.amountPaid)}</strong>
+            <strong>{formatMoney(totals.amountPaid)}</strong>
           </div>
         </div>
 
@@ -173,7 +168,7 @@ export default function PaymentHistory() {
           </div>
           <div>
             <span>{t("paymentHistory.stats.subtotal")}</span>
-            <strong>{money.format(totals.subtotal)}</strong>
+            <strong>{formatMoney(totals.subtotal)}</strong>
           </div>
         </div>
 
@@ -183,7 +178,7 @@ export default function PaymentHistory() {
           </div>
           <div>
             <span>{taxLabel}</span>
-            <strong>{money.format(totals.tax)}</strong>
+            <strong>{formatMoney(totals.tax)}</strong>
           </div>
         </div>
 
@@ -218,12 +213,12 @@ export default function PaymentHistory() {
                 <td>{getFiscalNumber(invoice)}</td>
                 <td>{invoice.customerName}</td>
                 <td>{formatDate(invoice.createdAt)}</td>
-                <td>{money.format(Number(invoice.subtotal || 0))}</td>
-                <td>{money.format(Number(invoice.tax || 0))}</td>
-                <td>{money.format(Number(invoice.total || 0))}</td>
+                <td>{formatMoney(invoice.subtotal, invoice)}</td>
+                <td>{formatMoney(invoice.tax, invoice)}</td>
+                <td>{formatMoney(invoice.total, invoice)}</td>
                 <td>
                   <strong>
-                    {money.format(Number(invoice.amountPaid || 0))}
+                    {formatMoney(invoice.amountPaid, invoice)}
                   </strong>
                 </td>
               </tr>
@@ -268,20 +263,20 @@ export default function PaymentHistory() {
               <div className="payment-mobile-money-grid">
                 <div>
                   <span>{t("paymentHistory.mobile.total")}</span>
-                  <strong>{money.format(Number(invoice.total || 0))}</strong>
+                  <strong>{formatMoney(invoice.total, invoice)}</strong>
                 </div>
 
                 <div>
                   <span>{t("paymentHistory.mobile.paid")}</span>
                   <strong>
-                    {money.format(Number(invoice.amountPaid || 0))}
+                    {formatMoney(invoice.amountPaid, invoice)}
                   </strong>
                 </div>
               </div>
 
               <div className="payment-mobile-footer">
                 <span>
-                  {taxLabel} {money.format(Number(invoice.tax || 0))}
+                  {taxLabel} {formatMoney(invoice.tax, invoice)}
                 </span>
                 <strong>{t("paymentHistory.mobile.viewDetail")}</strong>
               </div>
@@ -331,28 +326,28 @@ export default function PaymentHistory() {
               <div>
                 <span>{t("paymentHistory.detail.subtotal")}</span>
                 <strong>
-                  {money.format(Number(selectedInvoice.subtotal || 0))}
+                  {formatMoney(selectedInvoice.subtotal, selectedInvoice)}
                 </strong>
               </div>
 
               <div>
                 <span>{taxLabel}</span>
                 <strong>
-                  {money.format(Number(selectedInvoice.tax || 0))}
+                  {formatMoney(selectedInvoice.tax, selectedInvoice)}
                 </strong>
               </div>
 
               <div>
                 <span>{t("paymentHistory.detail.total")}</span>
                 <strong>
-                  {money.format(Number(selectedInvoice.total || 0))}
+                  {formatMoney(selectedInvoice.total, selectedInvoice)}
                 </strong>
               </div>
 
               <div>
                 <span>{t("paymentHistory.detail.paid")}</span>
                 <strong>
-                  {money.format(Number(selectedInvoice.amountPaid || 0))}
+                  {formatMoney(selectedInvoice.amountPaid, selectedInvoice)}
                 </strong>
               </div>
             </div>

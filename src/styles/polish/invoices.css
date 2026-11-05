@@ -666,3 +666,35 @@
 .saas-content .qb-icon-print:hover:not(:disabled) {
   background: #f5f8fa;
 }
+
+/* Origen de la tasa del dólar en facturas en US$ */
+.usd-rate-hint {
+  display: block;
+  margin-top: 6px;
+  color: var(--ui-muted, #627d98);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.usd-rate-hint button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ui-teal-dark, #00897b);
+  font: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.usd-rate-hint .usd-rate-check {
+  display: block;
+  margin-top: 6px;
+  padding: 7px 10px;
+  border: 1px solid #fde7b0;
+  border-radius: 8px;
+  background: #fffaeb;
+  color: #8a5a00;
+  font-weight: 600;
+}

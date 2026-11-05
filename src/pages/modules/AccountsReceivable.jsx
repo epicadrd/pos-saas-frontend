@@ -17,6 +17,7 @@ import es from "../../i18n/locales/es.json";
 import en from "../../i18n/locales/en.json";
 import { isDominicanTenant } from "../../utils/taxConfig";
 import { getFiscalNumber } from "../../utils/fiscalNumber";
+import { createMoneyFormatter } from "../../utils/currency";
 
 export default function AccountsReceivable() {
   const { tenant, language } = useAuth();
@@ -48,13 +49,9 @@ export default function AccountsReceivable() {
 
   const isDO = isDominicanTenant(tenant);
   const locale = isDO ? "es-DO" : "en-US";
-  const currency = isDO ? "DOP" : "USD";
 
-  const formatMoney = (value) =>
-    new Intl.NumberFormat(locale, {
-      style: "currency",
-      currency,
-    }).format(Number(value || 0));
+  // formatMoney(valor, factura o recibo): en US$ muestra también los pesos
+  const formatMoney = createMoneyFormatter(isDO);
 
   const [loading, setLoading] = useState(true);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
@@ -297,11 +294,11 @@ export default function AccountsReceivable() {
                         : "—"}
                     </td>
 
-                    <td>{formatMoney(invoice.total)}</td>
-                    <td>{formatMoney(invoice.amountPaid)}</td>
+                    <td>{formatMoney(invoice.total, invoice)}</td>
+                    <td>{formatMoney(invoice.amountPaid, invoice)}</td>
 
                     <td>
-                      <strong>{formatMoney(invoice.balance)}</strong>
+                      <strong>{formatMoney(invoice.balance, invoice)}</strong>
                       <div className="ar-balance-bar">
                         <div
                           style={{
@@ -386,12 +383,12 @@ export default function AccountsReceivable() {
       <div className="ar-mobile-money-grid">
         <div>
           <span>{t("accountsReceivable.table.total")}</span>
-          <strong>{formatMoney(invoice.total)}</strong>
+          <strong>{formatMoney(invoice.total, invoice)}</strong>
         </div>
 
         <div>
           <span>{t("accountsReceivable.table.balance")}</span>
-          <strong>{formatMoney(invoice.balance)}</strong>
+          <strong>{formatMoney(invoice.balance, invoice)}</strong>
         </div>
       </div>
 
@@ -466,17 +463,17 @@ export default function AccountsReceivable() {
 
         <div>
           <span>{t("accountsReceivable.table.total")}</span>
-          <strong>{formatMoney(selectedInvoice.total)}</strong>
+          <strong>{formatMoney(selectedInvoice.total, selectedInvoice)}</strong>
         </div>
 
         <div>
           <span>{t("accountsReceivable.table.paid")}</span>
-          <strong>{formatMoney(selectedInvoice.amountPaid)}</strong>
+          <strong>{formatMoney(selectedInvoice.amountPaid, selectedInvoice)}</strong>
         </div>
 
         <div>
           <span>{t("accountsReceivable.table.balance")}</span>
-          <strong>{formatMoney(selectedInvoice.balance)}</strong>
+          <strong>{formatMoney(selectedInvoice.balance, selectedInvoice)}</strong>
         </div>
 
         <div>
@@ -550,7 +547,7 @@ export default function AccountsReceivable() {
                     </span>
                   </div>
 
-                  <b>{formatMoney(receipt.amount)}</b>
+                  <b>{formatMoney(receipt.amount, receipt)}</b>
                 </div>
               ))
             )}

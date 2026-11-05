@@ -11,6 +11,7 @@ import { useAuth } from "../../context/AuthContext";
 import es from "../../i18n/locales/es.json";
 import en from "../../i18n/locales/en.json";
 import { isDominicanTenant } from "../../utils/taxConfig";
+import { createMoneyFormatter } from "../../utils/currency";
 
 export default function AccountingSummary() {
   const { tenant, language } = useAuth();
@@ -33,13 +34,9 @@ export default function AccountingSummary() {
 
   const isDO = isDominicanTenant(tenant);
   const locale = isDO ? "es-DO" : "en-US";
-  const currency = isDO ? "DOP" : "USD";
 
-  const formatMoney = (value) =>
-    new Intl.NumberFormat(locale, {
-      style: "currency",
-      currency,
-    }).format(Number(value || 0));
+  // formatMoney(valor, factura o recibo): en US$ muestra también los pesos
+  const formatMoney = createMoneyFormatter(isDO);
 
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -225,7 +222,7 @@ export default function AccountingSummary() {
                 </div>
 
                 <div>
-                  <strong>{formatMoney(receipt.amount)}</strong>
+                  <strong>{formatMoney(receipt.amount, receipt)}</strong>
                   <small>{receipt.paymentMethod}</small>
                 </div>
               </div>

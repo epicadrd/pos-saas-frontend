@@ -14,6 +14,7 @@ import { useAuth } from "../../context/AuthContext";
 import es from "../../i18n/locales/es.json";
 import en from "../../i18n/locales/en.json";
 import { isDominicanTenant } from "../../utils/taxConfig";
+import { createMoneyFormatter } from "../../utils/currency";
 
 const today = new Date().toISOString().slice(0, 10);
 
@@ -60,11 +61,8 @@ export default function Reports() {
 
   const isDO = isDominicanTenant(tenant);
 
-  const formatMoney = (value) =>
-    new Intl.NumberFormat(isDO ? "es-DO" : "en-US", {
-      style: "currency",
-      currency: isDO ? "DOP" : "USD",
-    }).format(Number(value || 0));
+  // formatMoney(valor, factura o recibo): en US$ muestra también los pesos
+  const formatMoney = createMoneyFormatter(isDO);
 
   const summary = report?.summary || {};
 
@@ -366,8 +364,8 @@ export default function Reports() {
                           {statusLabels[invoice.status] || invoice.status}
                         </span>
                       </td>
-                      <td>{formatMoney(invoice.total)}</td>
-                      <td>{formatMoney(invoice.balance)}</td>
+                      <td>{formatMoney(invoice.total, invoice)}</td>
+                      <td>{formatMoney(invoice.balance, invoice)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -404,12 +402,12 @@ export default function Reports() {
         <div className="reports-mobile-grid">
           <div>
             <span>{t("reports.tables.total")}</span>
-            <strong>{formatMoney(invoice.total)}</strong>
+            <strong>{formatMoney(invoice.total, invoice)}</strong>
           </div>
 
           <div>
             <span>{t("reports.tables.balance")}</span>
-            <strong>{formatMoney(invoice.balance)}</strong>
+            <strong>{formatMoney(invoice.balance, invoice)}</strong>
           </div>
         </div>
       </div>

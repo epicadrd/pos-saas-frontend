@@ -22,6 +22,7 @@ import { api } from "../api/axios";
 import { useAuth } from "../context/AuthContext";
 import { isDominicanTenant } from "../utils/taxConfig";
 import { getFiscalNumber } from "../utils/fiscalNumber";
+import { createMoneyFormatter } from "../utils/currency";
 
 export default function Dashboard() {
   const { user, tenant } = useAuth();
@@ -29,13 +30,9 @@ export default function Dashboard() {
 
   const isDO = isDominicanTenant(tenant);
   const locale = isDO ? "es-DO" : "en-US";
-  const currency = isDO ? "DOP" : "USD";
 
-  const formatMoney = (value) =>
-    new Intl.NumberFormat(locale, {
-      style: "currency",
-      currency,
-    }).format(Number(value || 0));
+  // formatMoney(valor, factura o recibo): en US$ muestra también los pesos
+  const formatMoney = createMoneyFormatter(isDO);
 
   const statusLabel = {
     draft: t("dashboard.status.draft"),
@@ -321,7 +318,7 @@ export default function Dashboard() {
                       </div>
 
                       <div className="dash-row-right">
-                        <strong>{formatMoney(invoice.total)}</strong>
+                        <strong>{formatMoney(invoice.total, invoice)}</strong>
                         <small className={`dash-badge ${invoice.status}`}>
                           {statusLabel[invoice.status] || invoice.status}
                         </small>

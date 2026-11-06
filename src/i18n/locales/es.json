@@ -441,6 +441,7 @@
     "unit": "Unidad",
     "price": "Precio",
     "discount": "Descuento",
+    "legacyDiscount": "Incluye descuento de {{value}}",
     "appliesTax": "Aplica {{taxLabel}}",
     "service": "Servicio",
     "insufficientStock": "Stock insuficiente: {{stock}}",

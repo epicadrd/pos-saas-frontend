@@ -121,7 +121,7 @@
 }
 
 .qb-invoice-items-table .qb-col-description {
-  width: 23%;
+  width: 33%;
 }
 
 .qb-invoice-items-table .qb-col-quantity {
@@ -134,10 +134,6 @@
 
 .qb-invoice-items-table .qb-col-price {
   width: 11%;
-}
-
-.qb-invoice-items-table .qb-col-discount {
-  width: 10%;
 }
 
 .qb-invoice-items-table .qb-col-taxable {
@@ -248,7 +244,7 @@
   }
 
   .qb-invoice-items-table .qb-col-description {
-    width: 19%;
+    width: 29%;
   }
 
   .qb-invoice-items-table .qb-line-total strong {

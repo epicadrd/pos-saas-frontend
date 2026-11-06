@@ -93,6 +93,30 @@ const emptyQuickProductForm = {
   showInCatalog: true,
 };
 
+const escapeHtml = (value) =>
+  String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+
+// Celdas de producto + descripción para la factura impresa.
+// En líneas manuales la descripción hace de nombre: no se repite.
+const renderPrintItemCells = (name, description) => {
+  const cleanDescription = String(description || "").trim();
+  const itemName = String(name || "").trim() || cleanDescription || "-";
+  const showDescription = cleanDescription && cleanDescription !== itemName;
+
+  return `
+    <td><div class="item-name">${escapeHtml(itemName)}</div></td>
+    <td>${
+      showDescription
+        ? `<div class="item-desc">${escapeHtml(cleanDescription)}</div>`
+        : `<span class="item-desc-empty">—</span>`
+    }</td>
+  `;
+};
+
 export default function Invoices() {
   const { t } = useTranslation();
   
@@ -1421,6 +1445,13 @@ const printHtml = (html, documentNumber) =>
             table { width: 100%; border-collapse: collapse; margin-top: 16px; }
             th, td { border-bottom: 1px solid #e5e7eb; padding: 12px; text-align: left; font-size: 14px; }
             th { background: #f8fafc; }
+            td { vertical-align: top; }
+            th.col-product { width: 22%; }
+            th.col-desc { width: 30%; }
+            .item-name { font-weight: 600; overflow-wrap: break-word; }
+            .item-desc { color: #475569; font-size: 12px; line-height: 1.5; white-space: pre-line; overflow-wrap: break-word; }
+            .item-desc-empty { color: #cbd5e1; }
+            .item-discount { display: block; margin-top: 3px; color: #64748b; font-size: 10px; }
             .box { background: #f8fafc; padding: 12px 16px; border-radius: 10px; margin-bottom: 14px; }
             .invoice-footer {
               display: flex;
@@ -1525,10 +1556,10 @@ const printHtml = (html, documentNumber) =>
           <table>
             <thead>
               <tr>
-                <th>${t("invoices.print.productService")}</th>
+                <th class="col-product">${t("invoices.print.productService")}</th>
+                <th class="col-desc">${t("invoices.items.description")}</th>
                 <th>${t("invoices.items.quantity")}</th>
                 <th>${t("invoices.items.price")}</th>
-                <th>${t("invoices.items.discount")}</th>
                 <th>${t("invoices.fields.subtotal")}</th>
                ${taxMode === "line" ? `<th>${taxLabel}</th>` : ""}
                 <th>${t("invoices.fields.total")}</th>
@@ -1545,10 +1576,16 @@ const printHtml = (html, documentNumber) =>
 
                         return `
                           <tr>
-                            <td>${item.productName || item.product?.name || item.description || "-"}</td>
+                            ${renderPrintItemCells(item.productName || item.product?.name, item.description)}
                             <td>${values.quantity}</td>
-                            <td>${money.format(values.price)}</td>
-                            <td>${money.format(values.discount)}</td>
+                            <td>
+                              ${money.format(values.price)}
+                              ${
+                                values.discount > 0
+                                  ? `<span class="item-discount">${escapeHtml(t("invoices.items.discount"))} ${money.format(values.discount)}</span>`
+                                  : ""
+                              }
+                            </td>
                             <td>${money.format(values.lineSubtotal)}</td>
                             ${
                               taxMode === "line"
@@ -1700,6 +1737,13 @@ const handlePrintDraft = async () => {
             table { width: 100%; border-collapse: collapse; margin-top: 16px; }
             th, td { border-bottom: 1px solid #e5e7eb; padding: 12px; text-align: left; font-size: 14px; }
             th { background: #f8fafc; }
+            td { vertical-align: top; }
+            th.col-product { width: 22%; }
+            th.col-desc { width: 30%; }
+            .item-name { font-weight: 600; overflow-wrap: break-word; }
+            .item-desc { color: #475569; font-size: 12px; line-height: 1.5; white-space: pre-line; overflow-wrap: break-word; }
+            .item-desc-empty { color: #cbd5e1; }
+            .item-discount { display: block; margin-top: 3px; color: #64748b; font-size: 10px; }
             .box {
               background: #f8fafc;
               padding: 12px 16px;
@@ -1824,10 +1868,10 @@ const handlePrintDraft = async () => {
           <table>
             <thead>
               <tr>
-                <th>${t("invoices.print.productService")}</th>
+                <th class="col-product">${t("invoices.print.productService")}</th>
+                <th class="col-desc">${t("invoices.items.description")}</th>
                 <th>${t("invoices.items.quantity")}</th>
                 <th>${t("invoices.items.price")}</th>
-                <th>${t("invoices.items.discount")}</th>
                 <th>${t("invoices.fields.subtotal")}</th>
                 ${taxMode === "line" ? `<th>${taxLabel}</th>` : ""}
                 <th>${t("invoices.fields.total")}</th>
@@ -1847,10 +1891,16 @@ const handlePrintDraft = async () => {
 
                         return `
                           <tr>
-                            <td>${item.productName || product?.name || item.description || "-"}</td>
+                            ${renderPrintItemCells(item.productName || product?.name, item.description)}
                             <td>${values.quantity}</td>
-                            <td>${money.format(values.price)}</td>
-                            <td>${money.format(values.discount)}</td>
+                            <td>
+                              ${money.format(values.price)}
+                              ${
+                                values.discount > 0
+                                  ? `<span class="item-discount">${escapeHtml(t("invoices.items.discount"))} ${money.format(values.discount)}</span>`
+                                  : ""
+                              }
+                            </td>
                             <td>${money.format(values.lineSubtotal)}</td>
                             ${
                               taxMode === "line"
@@ -3285,7 +3335,6 @@ const handlePrintDraft = async () => {
       <col className="qb-col-quantity" />
       <col className="qb-col-unit" />
       <col className="qb-col-price" />
-      <col className="qb-col-discount" />
 
       {taxMode === "line" && <col className="qb-col-taxable" />}
 
@@ -3306,8 +3355,6 @@ const handlePrintDraft = async () => {
         <th title={t("invoices.items.unit")}>{t("invoices.items.unit")}</th>
 
         <th>{t("invoices.items.price")}</th>
-
-        <th>{t("invoices.items.discount")}</th>
 
         {taxMode === "line" && (
           <th>{t("invoices.items.appliesTax", { taxLabel })}</th>
@@ -3460,19 +3507,6 @@ const handlePrintDraft = async () => {
                 />
               </td>
 
-              <td>
-                <input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={item.discount}
-                  onChange={(e) =>
-                    updateItem(index, "discount", e.target.value)
-                  }
-                  aria-label={t("invoices.items.discount")}
-                />
-              </td>
-
               {taxMode === "line" && (
                 <td>
                   <select
@@ -3507,6 +3541,15 @@ const handlePrintDraft = async () => {
                     {taxLabel}: {formMoney.format(lineTax)}
                   </small>
                 )}
+
+                {/* Líneas de facturas viejas que traían descuento */}
+                {Number(item.discount || 0) > 0 && (
+                  <small className="qb-legacy-discount">
+                    {t("invoices.items.legacyDiscount", {
+                      value: formMoney.format(Number(item.discount)),
+                    })}
+                  </small>
+                )}
               </td>
 
               <td className="qb-actions-cell">
@@ -3526,7 +3569,7 @@ const handlePrintDraft = async () => {
       ) : (
         <tr>
           <td
-            colSpan={taxMode === "line" ? 10 : 9}
+            colSpan={taxMode === "line" ? 9 : 8}
             className="qb-empty"
           >
             {t("invoices.messages.addItemsToBuild")}
@@ -3671,23 +3714,10 @@ const handlePrintDraft = async () => {
                 </label>
               </div>
 
-              <div className="qb-mobile-item-row-2">
-                <label>
-                  {t("invoices.items.discount")}
-                  <input
-                    type="number"
-                    value={item.discount}
-                    onChange={(e) =>
-                      updateItem(index, "discount", e.target.value)
-                    }
-                  />
-                </label>
-
-                <label>
-                  {t("invoices.items.unit")}
-                  <input value={item.unit || "UND"} disabled />
-                </label>
-              </div>
+              <label>
+                {t("invoices.items.unit")}
+                <input value={item.unit || "UND"} disabled />
+              </label>
 
               {taxMode === "line" && (
                 <label>
@@ -3720,6 +3750,14 @@ const handlePrintDraft = async () => {
                 <span>{t("invoices.fields.total")}</span>
                 <strong>{formMoney.format(lineTotal)}</strong>
               </p>
+
+              {Number(item.discount || 0) > 0 && (
+                <p className="qb-legacy-discount">
+                  {t("invoices.items.legacyDiscount", {
+                    value: formMoney.format(Number(item.discount)),
+                  })}
+                </p>
+              )}
             </div>
           </div>
         );
@@ -4338,9 +4376,9 @@ const handlePrintDraft = async () => {
                   <thead>
                     <tr>
                       <th>{t("invoices.items.productService")}</th>
+                      <th>{t("invoices.items.description")}</th>
                       <th>{t("invoices.items.qtyShort")}</th>
                       <th>{t("invoices.items.price")}</th>
-                      <th>{t("invoices.items.discountShort")}</th>
                       <th>{t("invoices.fields.taxes")}</th>
                       <th>{t("invoices.fields.total")}</th>
                     </tr>
@@ -4365,12 +4403,31 @@ const handlePrintDraft = async () => {
                       const lineTax = isTaxable ? lineSubtotal * (taxRate / 100) : 0;
                       const lineTotal = lineSubtotal + lineTax;
 
+                      const itemName =
+                        String(item.productName || product?.name || "").trim() ||
+                        String(item.description || "").trim() ||
+                        "-";
+                      const itemDescription = String(item.description || "").trim();
+
                       return (
                         <tr key={index}>
-                          <td>{product?.name || item.description || "-"}</td>
+                          <td>{itemName}</td>
+                          <td className="qb-preview-desc">
+                            {itemDescription && itemDescription !== itemName
+                              ? itemDescription
+                              : "—"}
+                          </td>
                           <td>{item.quantity || 0}</td>
-                          <td>{formMoney.format(Number(item.price || 0))}</td>
-                          <td>{formMoney.format(Number(item.discount || 0))}</td>
+                          <td>
+                            {formMoney.format(Number(item.price || 0))}
+                            {Number(item.discount || 0) > 0 && (
+                              <small className="qb-legacy-discount">
+                                {t("invoices.items.legacyDiscount", {
+                                  value: formMoney.format(Number(item.discount)),
+                                })}
+                              </small>
+                            )}
+                          </td>
                           <td>{formMoney.format(lineTax)}</td>
                           <td>{formMoney.format(lineTotal)}</td>
                         </tr>

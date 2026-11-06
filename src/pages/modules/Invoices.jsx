@@ -29,6 +29,8 @@ import QRCode from "qrcode";
 import { getFiscalNumber } from "../../utils/fiscalNumber";
 import { INVOICE_ECF_TYPES, ECF_INVOICE_TITLES } from "../../utils/ecfTypes";
 import FiscalNotesModal from "../../components/FiscalNotesModal";
+import CustomerEmailsField from "../../components/CustomerEmailsField";
+import { buildEmailState, toEmailPayload } from "../../utils/customerEmails";
 import {
   getTaxRate,
   getTaxLabel,
@@ -151,6 +153,7 @@ export default function Invoices() {
     address: "",
   });
 
+  const [customerEmails, setCustomerEmails] = useState(() => buildEmailState(null));
   const [selectedCustomerId, setSelectedCustomerId] = useState("");
   const [editingCustomerId, setEditingCustomerId] = useState(null);
 
@@ -895,6 +898,7 @@ const saveQuickProduct = async (event) => {
     address: "",
   });
 
+  setCustomerEmails(buildEmailState(null));
   setEditingCustomerId(null);
 };
 
@@ -936,6 +940,7 @@ const openEditCustomerModal = () => {
     address: customer.address || "",
   });
 
+  setCustomerEmails(buildEmailState(customer));
   setCustomerModalOpen(true);
 };
 
@@ -981,12 +986,20 @@ const saveCustomer = async () => {
     return;
   }
 
+  const { email, emails, invalid } = toEmailPayload(customerEmails);
+
+  if (invalid) {
+    alert(t("customers.messages.invalidEmail", { email: invalid }));
+    return;
+  }
+
   try {
     const payload = {
       name: newCustomer.name.trim(),
       rnc: newCustomer.rnc.trim(),
       phone: newCustomer.phone.trim(),
-      email: newCustomer.email.trim(),
+      email,
+      emails,
       address: newCustomer.address.trim(),
     };
 
@@ -4165,16 +4178,11 @@ const handlePrintDraft = async () => {
                 />
               </label>
 
-              <label>
-                {t("invoices.fields.emailShort")}
-                <input
-                  value={newCustomer.email}
-                  onChange={(e) =>
-                    setNewCustomer({ ...newCustomer, email: e.target.value })
-                  }
-                  placeholder="cliente@email.com"
-                />
-              </label>
+              <CustomerEmailsField
+                className="full"
+                value={customerEmails}
+                onChange={setCustomerEmails}
+              />
 
               <label className="full">
                 {t("invoices.fields.address")}

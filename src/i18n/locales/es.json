@@ -2345,6 +2345,12 @@
       "rnc": "RNC/Cédula",
       "phone": "Teléfono",
       "email": "Correo electrónico",
+      "emails": "Correos electrónicos",
+      "primaryEmail": "Principal",
+      "makePrimary": "Hacer principal",
+      "addEmail": "Agregar correo",
+      "removeEmail": "Quitar correo",
+      "emailsHint": "Hasta 5 correos. El principal es el que se usa en facturas y cotizaciones.",
       "address": "Dirección",
       "cancel": "Cancelar",
       "save": "Guardar cliente",
@@ -2359,6 +2365,7 @@
       "loadError": "No se pudieron cargar los clientes",
       "saveError": "No se pudo guardar el cliente",
       "nameRequired": "El nombre del cliente es obligatorio",
+      "invalidEmail": "El correo \"{{email}}\" no es válido",
       "profileError": "No se pudo cargar el perfil del cliente"
     },
     "profile": {

@@ -2331,6 +2331,12 @@
       "rnc": "Tax ID",
       "phone": "Phone",
       "email": "Email",
+      "emails": "Email addresses",
+      "primaryEmail": "Primary",
+      "makePrimary": "Make primary",
+      "addEmail": "Add email",
+      "removeEmail": "Remove email",
+      "emailsHint": "Up to 5 emails. The primary one is used on invoices and quotes.",
       "address": "Address",
       "cancel": "Cancel",
       "save": "Save customer",
@@ -2345,6 +2351,7 @@
       "loadError": "Could not load customers",
       "saveError": "Could not save the customer",
       "nameRequired": "Customer name is required",
+      "invalidEmail": "The email \"{{email}}\" is not valid",
       "profileError": "Could not load the customer profile"
     },
     "profile": {

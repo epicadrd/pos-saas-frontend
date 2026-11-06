@@ -683,3 +683,26 @@
     flex-direction: column;
   }
 }
+
+/* Correos múltiples: principal en el perfil y +N en el listado */
+.customer-email-primary {
+  margin-left: 6px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  color: #087f8c;
+  background: rgba(0, 191, 174, 0.12);
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 700;
+}
+
+.customers-email-more {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  color: #475569;
+  background: #eef2f6;
+  font-size: 11px;
+  font-weight: 700;
+}

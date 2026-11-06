@@ -2,6 +2,8 @@ import { useState } from "react";
 import { X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { api } from "../api/axios";
+import CustomerEmailsField from "./CustomerEmailsField";
+import { buildEmailState, toEmailPayload } from "../utils/customerEmails";
 
 const emptyCustomer = {
   name: "",
@@ -27,6 +29,7 @@ export default function CustomerFormModal({ customer, onClose, onSaved }) {
         }
       : {}),
   }));
+  const [emailState, setEmailState] = useState(() => buildEmailState(customer));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -43,12 +46,20 @@ export default function CustomerFormModal({ customer, onClose, onSaved }) {
       return;
     }
 
+    const { email, emails, invalid } = toEmailPayload(emailState);
+
+    if (invalid) {
+      setError(t("customers.messages.invalidEmail", { email: invalid }));
+      return;
+    }
+
     try {
       setSaving(true);
 
+      const payload = { ...form, email, emails };
       const { data } = isEditing
-        ? await api.put(`/customers/${customer.id}`, form)
-        : await api.post("/customers", form);
+        ? await api.put(`/customers/${customer.id}`, payload)
+        : await api.post("/customers", payload);
 
       onSaved(data.customer);
     } catch (err) {
@@ -95,10 +106,11 @@ export default function CustomerFormModal({ customer, onClose, onSaved }) {
             <input name="phone" type="tel" value={form.phone} onChange={handleChange} />
           </div>
 
-          <div className="form-row full">
-            <label>{t("customers.form.email")}</label>
-            <input name="email" type="email" value={form.email} onChange={handleChange} />
-          </div>
+          <CustomerEmailsField
+            className="form-row full"
+            value={emailState}
+            onChange={setEmailState}
+          />
 
           <div className="form-row full">
             <label>{t("customers.form.address")}</label>

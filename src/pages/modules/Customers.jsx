@@ -81,7 +81,7 @@ export default function Customers() {
     if (!term) return customers;
 
     return customers.filter((customer) =>
-      [customer.name, customer.rnc, customer.phone, customer.email]
+      [customer.name, customer.rnc, customer.phone, ...(customer.emails || [customer.email])]
         .filter(Boolean)
         .some((value) => String(value).toLowerCase().includes(term))
     );
@@ -280,7 +280,14 @@ export default function Customers() {
                       </td>
                       <td>{customer.rnc || "—"}</td>
                       <td>{customer.phone || "—"}</td>
-                      <td>{customer.email || "—"}</td>
+                      <td>
+                        {customer.email || "—"}
+                        {customer.emails?.length > 1 && (
+                          <span className="customers-email-more">
+                            +{customer.emails.length - 1}
+                          </span>
+                        )}
+                      </td>
                       <td>
                         <span className={`badge ${customer.isActive ? "ok" : "neutral"}`}>
                           {customer.isActive

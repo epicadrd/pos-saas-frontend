@@ -149,7 +149,15 @@ export default function CustomerProfile() {
   const { customer, summary, invoices, quotes, receipts } = profile;
   const contacts = [
     customer.phone && { icon: Phone, value: customer.phone },
-    customer.email && { icon: Mail, value: customer.email },
+    ...(customer.emails?.length ? customer.emails : [customer.email])
+      .filter(Boolean)
+      .map((email, index) => ({
+        icon: Mail,
+        value: email,
+        badge: index === 0 && customer.emails?.length > 1
+          ? t("customers.form.primaryEmail")
+          : null,
+      })),
     customer.address && { icon: MapPin, value: customer.address },
   ].filter(Boolean);
 
@@ -361,10 +369,11 @@ export default function CustomerProfile() {
               {contacts.length === 0 ? (
                 <span>{t("customers.profile.noContact")}</span>
               ) : (
-                contacts.map(({ icon: Icon, value }) => (
+                contacts.map(({ icon: Icon, value, badge }) => (
                   <span key={value}>
                     <Icon size={14} />
                     {value}
+                    {badge && <em className="customer-email-primary">{badge}</em>}
                   </span>
                 ))
               )}

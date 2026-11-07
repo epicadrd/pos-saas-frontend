@@ -508,6 +508,7 @@
     "deleteDraftMessage": "Delete this draft? This action cannot be undone.",
     "issueTitle": "Issue Invoice",
     "issueMessage": "Issue draft {{number}}?",
+    "issueWithoutEcf": "e-CF is turned off: this invoice will be issued without an e-NCF.",
     "markPaidTitle": "Mark Invoice as Paid",
     "markPaidMessage": "Mark {{number}} as paid?"
   },

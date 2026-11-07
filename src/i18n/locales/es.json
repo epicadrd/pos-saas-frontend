@@ -517,6 +517,7 @@
     "deleteDraftMessage": "¿Eliminar este borrador? Esta acción no se puede deshacer.",
     "issueTitle": "Emitir factura",
     "issueMessage": "¿Emitir el borrador {{number}}?",
+    "issueWithoutEcf": "El e-CF está desactivado: esta factura se emitirá sin e-NCF.",
     "markPaidTitle": "Marcar factura como pagada",
     "markPaidMessage": "¿Marcar {{number}} como pagada?"
   },

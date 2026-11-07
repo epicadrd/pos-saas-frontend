@@ -1124,7 +1124,7 @@ const saveCustomer = async () => {
           setPreviewModalOpen(false);
       }
 
-      if (editingInvoiceId && status === "draft") {
+      if (editingInvoiceId) {
         await api.put(`/invoices/${editingInvoiceId}/draft`, {
           customerId: getLinkedCustomerId(),
           customerName: form.customerName,
@@ -1142,6 +1142,13 @@ const saveCustomer = async () => {
           notes: form.notes,
           items: cleanItems,
         });
+
+        if (status !== "draft") {
+          await issueDraftAndEmitEcf(
+            editingInvoiceId,
+            status === "paid" ? totals.total : Number(form.amountPaid || 0)
+          );
+        }
       } else {
        const { data } = await api.post("/invoices", {
           customerId: getLinkedCustomerId(),
@@ -1258,9 +1265,7 @@ const saveCustomer = async () => {
       customerEmail: invoice.customerEmail || "",
       invoiceType: invoice.invoiceType || "consumer_final",
       electronicInvoicingEnabled:
-      canUseElectronicInvoicing &&
-      tenant?.electronicInvoicingEnabled === true &&
-      invoice.electronicInvoicingEnabled === true,
+        canUseElectronicInvoicing && tenant?.electronicInvoicingEnabled === true,
       amountPaid: invoice.amountPaid || "",
       invoiceDate: invoice.invoiceDate || new Date().toISOString().slice(0, 10),
       dueDate: invoice.dueDate || "",
@@ -1309,9 +1314,18 @@ const saveCustomer = async () => {
   };
 
   const issueDraft = async (invoice) => {
+    // Avisa cuando la empresa puede emitir e-CF pero tiene el switch apagado
+    const ecfSwitchOff =
+      isDO && canUseElectronicInvoicing && tenant?.electronicInvoicingEnabled !== true;
+
     const ok = await confirm({
       title: t("invoices.confirm.issueTitle"),
-      message: t("invoices.confirm.issueMessage", { number: invoice.invoiceNumber }),
+      message: [
+        t("invoices.confirm.issueMessage", { number: invoice.invoiceNumber }),
+        ecfSwitchOff && t("invoices.confirm.issueWithoutEcf"),
+      ]
+        .filter(Boolean)
+        .join(" "),
       confirmText: t("invoices.actions.issue"),
       variant: "success",
     });
@@ -1319,18 +1333,44 @@ const saveCustomer = async () => {
     if (!ok) return;
 
     try {
-      await api.patch(`/invoices/${invoice.id}/issue`, {
-        amountPaid: 0,
-      });
-
-      await loadData();
-
-      if (editingInvoiceId === invoice.id) {
-        resetInvoiceForm();
-        setView("list");
-      }
+      await issueDraftAndEmitEcf(invoice.id, 0);
     } catch (error) {
       alert(error.response?.data?.message || t("invoices.messages.issueDraftError"));
+      return;
+    }
+
+    await loadData();
+
+    if (editingInvoiceId === invoice.id) {
+      resetInvoiceForm();
+      setView("list");
+    }
+  };
+
+  // Emite el borrador y, si la empresa factura electrónicamente, pide su
+  // e-NCF a la DGII. El backend indica si hace falta (requiresEcf).
+  // Si el e-CF falla, la factura queda emitida con "Emitir e-CF" en la lista.
+  const issueDraftAndEmitEcf = async (invoiceId, amountPaid) => {
+    const { data } = await api.patch(`/invoices/${invoiceId}/issue`, {
+      amountPaid,
+    });
+
+    if (!data.requiresEcf) return data.invoice;
+
+    try {
+      const { data: ecfData } = await api.post(
+        `/electronic-invoices/invoice/${invoiceId}/emit`
+      );
+
+      handlePrintInvoice(ecfData.invoice);
+      return ecfData.invoice;
+    } catch (ecfError) {
+      alert(
+        `La factura ${data.invoice?.invoiceNumber || ""} se emitió, pero el e-CF no se envió a la DGII:\n\n${
+          ecfError.response?.data?.message || ecfError.message
+        }\n\nPuedes reintentarlo desde la lista de facturas con el botón "Emitir e-CF".`
+      );
+      return data.invoice;
     }
   };
 

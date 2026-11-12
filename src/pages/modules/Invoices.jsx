@@ -589,6 +589,23 @@ const getTaxAmount = (rate, base = totals.subtotal) => {
 
   const nextValue = !previousValue;
 
+  // Apagar el e-CF requiere aceptar la responsabilidad ante la DGII;
+  // el backend lo exige y lo deja en el historial de actividad
+  if (!nextValue) {
+    const accepted = await confirm({
+      title: "¿Desactivar la facturación electrónica?",
+      message:
+        "Mientras esté desactivada, las facturas que emitas no se enviarán a la DGII como comprobantes fiscales electrónicos (e-CF). " +
+        "Si tu empresa está autorizada como emisor electrónico, la DGII exige que tus ventas tengan su e-CF. " +
+        "Desactivarla es decisión y responsabilidad de tu empresa. Quedará registrado en el historial de actividad que aceptaste este aviso, con tu usuario, la fecha y la hora.",
+      confirmText: "Acepto, desactivar",
+      cancelText: "Mantener activada",
+      variant: "danger",
+    });
+
+    if (!accepted) return;
+  }
+
   setForm((prev) => ({
     ...prev,
     electronicInvoicingEnabled: nextValue,
@@ -614,6 +631,7 @@ const getTaxAmount = (rate, base = totals.subtotal) => {
       ),
       country: tenant?.country || "DO",
       electronicInvoicingEnabled: nextValue,
+      ecfDisableAccepted: !nextValue,
       usStateTaxRate: Number(
         tenant?.usStateTaxRate || 0
       ),

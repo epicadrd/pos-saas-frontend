@@ -260,11 +260,6 @@ export default function FiscalNotesModal({ invoice, tenant, onClose, onChanged }
             <div><span>Subtotal</span><strong>${money.format(Number(note.subtotal))}</strong></div>
             <div><span>ITBIS</span><strong>${money.format(Number(note.tax))}</strong></div>
             <div class="total"><span>Total</span><strong>${money.format(Number(note.total))}</strong></div>
-            ${
-              note.currency === "USD" && Number(note.exchangeRate) > 0
-                ? `<div><span>Tasa de cambio</span><strong>RD$ ${Number(note.exchangeRate).toFixed(2)} por US$ 1</strong></div>`
-                : ""
-            }
           </div>
 
           ${

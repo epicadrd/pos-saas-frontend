@@ -166,6 +166,7 @@ export default function Invoices() {
   // Tasa del dólar del BCRD (o del mercado si el BCRD no responde)
   const [usdRateInfo, setUsdRateInfo] = useState(null);
   const [loadingUsdRate, setLoadingUsdRate] = useState(false);
+  const [usdRateFailed, setUsdRateFailed] = useState(false);
   const formRef = useRef(form);
 
   useEffect(() => {
@@ -175,6 +176,8 @@ export default function Invoices() {
   const [ecfRequestStatus, setEcfRequestStatus] = useState("not_requested");
   const [loadingEcfRequest, setLoadingEcfRequest] = useState(true);
   const [saving, setSaving] = useState(false);
+  // Guardar un borrador no envía nada a la DGII; el aviso de carga lo distingue
+  const [savingDraft, setSavingDraft] = useState(false);
   const [retryingEcfId, setRetryingEcfId] = useState(null);
   const [previewModalOpen, setPreviewModalOpen] = useState(false);
   const [actionsOpen, setActionsOpen] = useState(false);
@@ -827,11 +830,13 @@ const saveQuickProduct = async (event) => {
   const fetchUsdRate = async () => {
     try {
       setLoadingUsdRate(true);
+      setUsdRateFailed(false);
       const { data } = await api.get("/exchange-rates/usd");
       setUsdRateInfo(data);
       return data;
     } catch {
       setUsdRateInfo(null);
+      setUsdRateFailed(true);
       return null;
     } finally {
       setLoadingUsdRate(false);
@@ -1137,6 +1142,7 @@ const saveCustomer = async () => {
 
     try {
       setSaving(true);
+      setSavingDraft(status === "draft");
 
         if (status !== "draft") {
           setPreviewModalOpen(false);
@@ -1716,11 +1722,6 @@ const printHtml = (html, documentNumber) =>
   <div class="total"><span>${t("invoices.fields.total")}</span><strong>${money.format(Number(invoice.total || 0))}</strong></div>
   <div><span>${t("invoices.fields.paid")}</span><strong>${money.format(Number(invoice.amountPaid || 0))}</strong></div>
   <div><span>${t("invoices.fields.balance")}</span><strong>${money.format(Number(invoice.balance || 0))}</strong></div>
-  ${
-    isDO && invoice.currency === "USD" && Number(invoice.exchangeRate) > 0
-      ? `<div><span>Tasa de cambio</span><strong>RD$ ${Number(invoice.exchangeRate).toFixed(2)} por US$ 1</strong></div>`
-      : ""
-  }
 </div>
 </div>
 
@@ -2031,11 +2032,6 @@ const handlePrintDraft = async () => {
             <div class="total"><span>${t("invoices.fields.total")}</span><strong>${money.format(totals.total)}</strong></div>
             <div><span>${t("invoices.fields.paid")}</span><strong>${money.format(totals.paid)}</strong></div>
             <div><span>${t("invoices.fields.balance")}</span><strong>${money.format(totals.balance)}</strong></div>
-            ${
-              isDO && form.currency === "USD" && Number(form.exchangeRate) > 0
-                ? `<div><span>Tasa de cambio</span><strong>RD$ ${Number(form.exchangeRate).toFixed(2)} por US$ 1</strong></div>`
-                : ""
-            }
           </div>
           </div>
 
@@ -3287,7 +3283,22 @@ const handlePrintDraft = async () => {
                                   </button>
                                 </>
                               )
-                            : "No se pudo consultar la tasa; escríbela manualmente."}
+                            : usdRateFailed
+                              ? "No se pudo consultar la tasa; escríbela manualmente."
+                              : form.exchangeRate
+                                ? (
+                                  // Borrador o factura reabierta: la tasa ya estaba guardada
+                                  <>
+                                    {"Tasa guardada en esta factura. "}
+                                    <button type="button" onClick={fetchUsdRate}>
+                                      Consultar la de hoy
+                                    </button>
+                                    <span className="usd-rate-check">
+                                      Verifica que sea la tasa correcta antes de emitir.
+                                    </span>
+                                  </>
+                                )
+                                : "Escribe la tasa: pesos por cada dólar."}
                       </small>
                     )}
                   </label>
@@ -4595,15 +4606,19 @@ const handlePrintDraft = async () => {
               </div>
 
               <strong>
-                {electronicInvoicingActive
-                  ? "Emitiendo e-CF..."
-                  : "Generando factura..."}
+                {savingDraft
+                  ? "Guardando borrador..."
+                  : electronicInvoicingActive
+                    ? "Emitiendo e-CF..."
+                    : "Generando factura..."}
               </strong>
 
               <p>
-                {electronicInvoicingActive
-                  ? "Estamos generando la factura electrónica y enviándola a la DGII."
-                  : "Estamos generando la factura. Esto puede tardar unos segundos."}
+                {savingDraft
+                  ? "El borrador no se envía a la DGII. El e-CF se genera cuando emitas la factura."
+                  : electronicInvoicingActive
+                    ? "Estamos generando la factura electrónica y enviándola a la DGII."
+                    : "Estamos generando la factura. Esto puede tardar unos segundos."}
               </p>
             </div>
           </div>

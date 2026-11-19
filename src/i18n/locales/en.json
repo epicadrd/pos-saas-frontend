@@ -885,6 +885,7 @@
     },
     "units": {
       "unit": "Unit",
+      "product": "Product",
       "box": "Box",
       "package": "Package",
       "service": "Service",

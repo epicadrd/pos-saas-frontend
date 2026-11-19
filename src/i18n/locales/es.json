@@ -897,6 +897,7 @@
     },
     "units": {
       "unit": "Unidad",
+      "product": "Producto",
       "box": "Caja",
       "package": "Paquete",
       "service": "Servicio",

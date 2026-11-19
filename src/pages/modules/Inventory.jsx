@@ -1360,6 +1360,7 @@ const removeProductImage = () => {
                 <label>{t("inventory.fields.unit")}</label>
                 <select name="unit" value={form.unit} onChange={handleChange}>
                   <option value="unidad">{t("inventory.units.unit")}</option>
+                  <option value="producto">{t("inventory.units.product")}</option>
                   <option value="caja">{t("inventory.units.box")}</option>
                   <option value="paquete">{t("inventory.units.package")}</option>
                   <option value="servicio">{t("inventory.units.service")}</option>

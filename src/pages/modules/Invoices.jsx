@@ -4088,6 +4088,7 @@ const handlePrintDraft = async () => {
                 }
               >
                 <option value="unidad">Unidad</option>
+                <option value="producto">Producto</option>
                 <option value="caja">Caja</option>
                 <option value="paquete">Paquete</option>
                 <option value="metro">Metro</option>

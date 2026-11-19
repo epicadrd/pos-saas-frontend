@@ -47,6 +47,14 @@ const formatRateDate = (value) =>
 
 const TERM_DAY_OPTIONS = [0, 7, 15, 30, 45, 60, 90];
 
+// Cómo pagó el cliente (opcional); se imprime en la factura
+const PAYMENT_METHOD_LABELS = {
+  cash: "Efectivo",
+  card: "Tarjeta",
+  transfer: "Transferencia",
+  payment_link: "Link de pago",
+};
+
 const getTermDays = (terms) => {
   if (terms === "immediate_payment") return 0;
   const match = /^payment_(\d+)_days$/.exec(String(terms || ""));
@@ -73,6 +81,7 @@ const emptyForm = {
   status: "draft",
   amountPaid: "",
   terms: "payment_30_days",
+  paymentMethod: "",
   currency: "DOP",
   exchangeRate: "",
   invoiceDate: new Date().toISOString().slice(0, 10),
@@ -1179,6 +1188,7 @@ const saveCustomer = async () => {
           invoiceDate: form.invoiceDate || null,
           dueDate: form.dueDate || null,
           terms: form.terms,
+          paymentMethod: form.paymentMethod || null,
           notes: form.notes,
           items: cleanItems,
         });
@@ -1204,6 +1214,7 @@ const saveCustomer = async () => {
           invoiceDate: form.invoiceDate || null,
           dueDate: form.dueDate || null,
           terms: form.terms,
+          paymentMethod: form.paymentMethod || null,
           notes: form.notes,
           status,
           amountPaid:
@@ -1310,6 +1321,7 @@ const saveCustomer = async () => {
       invoiceDate: invoice.invoiceDate || new Date().toISOString().slice(0, 10),
       dueDate: invoice.dueDate || "",
       terms: invoice.terms || "payment_30_days",
+      paymentMethod: invoice.paymentMethod || "",
       currency: invoice.currency || "DOP",
       exchangeRate: invoice.exchangeRate ? String(Number(invoice.exchangeRate)) : "",
       notes: invoice.notes || "",
@@ -1643,6 +1655,7 @@ const printHtml = (html, documentNumber) =>
             <strong>${t("invoices.fields.invoiceDate")}:</strong> ${invoice.invoiceDate || "-"}<br/>
             <strong>${t("invoices.fields.dueDate")}:</strong> ${invoice.dueDate || "-"}<br/>
             <strong>${t("invoices.fields.terms")}:</strong> ${getTermsLabel(invoice.terms)}
+            ${PAYMENT_METHOD_LABELS[invoice.paymentMethod] ? `<br/><strong>Método de pago:</strong> ${PAYMENT_METHOD_LABELS[invoice.paymentMethod]}` : ""}
              
           </div>
 
@@ -1951,6 +1964,7 @@ const handlePrintDraft = async () => {
             <strong>${t("invoices.fields.invoiceDate")}:</strong> ${form.invoiceDate || "-"}<br/>
             <strong>${t("invoices.fields.dueDate")}:</strong> ${form.dueDate || "-"}<br/>
             <strong>${t("invoices.fields.terms")}:</strong> ${getTermsLabel(form.terms)}
+            ${PAYMENT_METHOD_LABELS[form.paymentMethod] ? `<br/><strong>Método de pago:</strong> ${PAYMENT_METHOD_LABELS[form.paymentMethod]}` : ""}
           </div>
 
           <table>
@@ -2401,6 +2415,13 @@ const handlePrintDraft = async () => {
           <span>{t("invoices.fields.total")}</span>
           <strong>{formatMoney(selectedInvoice.total, selectedInvoice)}</strong>
         </div>
+
+        {PAYMENT_METHOD_LABELS[selectedInvoice.paymentMethod] && (
+          <div>
+            <span>Método de pago</span>
+            <strong>{PAYMENT_METHOD_LABELS[selectedInvoice.paymentMethod]}</strong>
+          </div>
+        )}
 
         <div>
           <span>{t("invoices.fields.paid")}</span>
@@ -3387,6 +3408,22 @@ const handlePrintDraft = async () => {
                   )}
                 </label>
 
+                <label>
+                  Método de pago
+                  <select
+                    value={form.paymentMethod}
+                    onChange={(e) =>
+                      setForm((current) => ({ ...current, paymentMethod: e.target.value }))
+                    }
+                  >
+                    <option value="">Sin especificar</option>
+                    {Object.entries(PAYMENT_METHOD_LABELS).map(([value, label]) => (
+                      <option key={value} value={value}>
+                        {label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
 
                 <label>
                   {t("invoices.fields.invoiceDate")}

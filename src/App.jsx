@@ -14,6 +14,7 @@ import CustomerProfile from "./pages/modules/CustomerProfile";
 import Receipts from "./pages/modules/Receipts";
 import PurchaseOrders from "./pages/modules/PurchaseOrders";
 import PaymentHistory from "./pages/modules/PaymentHistory";
+import FiscalNotes from "./pages/modules/FiscalNotes";
 import InvoiceCustomization from "./pages/modules/InvoiceCustomization";
 import InvoicePreferences from "./pages/modules/InvoicePreferences";
 import InvoiceNumbering from "./pages/modules/InvoiceNumbering";
@@ -91,6 +92,7 @@ function App() {
           <Route index element={<Dashboard />} />
           <Route path="facturacion" element={<Invoices />} />
           <Route path="facturacion/historial-pagos" element={<PaymentHistory />} />
+          <Route path="facturacion/notas" element={<FiscalNotes />} />
           <Route path="cotizaciones" element={<Quotes />} />
           <Route path="clientes" element={<Customers />} />
           <Route path="clientes/:id" element={<CustomerProfile />} />

@@ -1,0 +1,61 @@
+/* Lista de notas de crédito y débito (Facturación → Notas) */
+
+.saas-content .fiscal-notes-page-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #087f8c;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.saas-content .fiscal-notes-page-back:hover {
+  color: #00bfae;
+}
+
+.saas-content .fiscal-notes-page-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.saas-content .fiscal-notes-page-actions .qb-secondary-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.saas-content .fiscal-notes-page-reason {
+  max-width: 220px;
+  color: #475569;
+  overflow-wrap: anywhere;
+}
+
+.saas-content .fiscal-notes-page-error {
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: #fef2f2;
+  color: #b91c1c;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* En el celular, los botones ocupan todo el ancho de la tarjeta */
+@media (max-width: 768px) {
+  .saas-content .fiscal-notes-page .payment-mobile-card .fiscal-notes-page-actions {
+    margin-top: 12px;
+  }
+
+  .saas-content .fiscal-notes-page .payment-mobile-card .fiscal-notes-page-actions .qb-secondary-btn {
+    flex: 1;
+    justify-content: center;
+  }
+}

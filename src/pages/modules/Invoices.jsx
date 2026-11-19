@@ -594,19 +594,34 @@ const getTaxAmount = (rate, base = totals.subtotal) => {
 
   // Apagar el e-CF requiere aceptar la responsabilidad ante la DGII;
   // el backend lo exige y lo deja en el historial de actividad
+  // El texto lo da el backend, que guarda esa misma versión en el historial
+  let noticeVersion = null;
+
   if (!nextValue) {
+    let notice;
+
+    try {
+      const { data } = await api.get("/auth/ecf-disable-notice");
+      notice = data;
+    } catch (error) {
+      alert(
+        error.response?.data?.message ||
+          "No se pudo cargar el aviso para desactivar la facturación electrónica."
+      );
+      return;
+    }
+
     const accepted = await confirm({
-      title: "¿Desactivar la facturación electrónica?",
-      message:
-        "Mientras esté desactivada, las facturas que emitas no se enviarán a la DGII como comprobantes fiscales electrónicos (e-CF). " +
-        "Si tu empresa está autorizada como emisor electrónico, la DGII exige que tus ventas tengan su e-CF. " +
-        "Desactivarla es decisión y responsabilidad de tu empresa. Quedará registrado en el historial de actividad que aceptaste este aviso, con tu usuario, la fecha y la hora.",
-      confirmText: "Acepto, desactivar",
-      cancelText: "Mantener activada",
+      title: notice.title,
+      message: notice.message,
+      confirmText: notice.confirmText,
+      cancelText: notice.cancelText,
       variant: "danger",
     });
 
     if (!accepted) return;
+
+    noticeVersion = notice.version;
   }
 
   setForm((prev) => ({
@@ -635,6 +650,7 @@ const getTaxAmount = (rate, base = totals.subtotal) => {
       country: tenant?.country || "DO",
       electronicInvoicingEnabled: nextValue,
       ecfDisableAccepted: !nextValue,
+      ecfDisableNoticeVersion: noticeVersion,
       usStateTaxRate: Number(
         tenant?.usStateTaxRate || 0
       ),
@@ -2138,6 +2154,16 @@ const handlePrintDraft = async () => {
               {t("invoices.actions.paymentHistory")}
             </button>
 
+            {isDO && (
+              <button
+                className="qb-secondary-btn"
+                onClick={() => navigate("/dashboard/facturacion/notas")}
+              >
+                <FileText size={16} />
+                Notas de crédito y débito
+              </button>
+            )}
+
             <button
               className="qb-secondary-btn"
               onClick={() => {
@@ -2646,6 +2672,12 @@ const handlePrintDraft = async () => {
         <button onClick={() => navigate("/dashboard/facturacion/historial-pagos")}>
           {t("invoices.actions.paymentHistory")}
         </button>
+
+        {isDO && (
+          <button onClick={() => navigate("/dashboard/facturacion/notas")}>
+            Notas de crédito y débito
+          </button>
+        )}
       </div>
 
       {activeTab === "drafts" ? (

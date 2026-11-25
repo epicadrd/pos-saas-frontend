@@ -134,7 +134,10 @@ export default function Invoices() {
   const { confirm } = useConfirm();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { tenant, setTenant } = useAuth();
+  const { user, tenant, setTenant } = useAuth();
+
+  // Solo el usuario principal enciende o apaga el e-CF de la empresa
+  const canToggleEcf = user?.role === "master";
 
   const invoiceColor = tenant?.primaryColor || "#00bfae";
   const invoiceLogo = tenant?.logoDataUrl || "";
@@ -592,6 +595,13 @@ const getTaxAmount = (rate, base = totals.subtotal) => {
   if (!canUseElectronicInvoicing) {
     alert(
       "El switch e-CF estará disponible cuando tu solicitud de facturación electrónica sea aceptada."
+    );
+    return;
+  }
+
+  if (!canToggleEcf) {
+    alert(
+      "Solo el usuario principal de la empresa puede activar o desactivar la facturación electrónica."
     );
     return;
   }
@@ -1225,7 +1235,7 @@ const saveCustomer = async () => {
         if (status !== "draft") {
           const invoiceWithItems = {
             ...data.invoice,
-            electronicInvoicingEnabled: electronicInvoicingActive,
+            electronicInvoicingEnabled: data.requiresEcf === true,
             items: cleanItems.map((item) => {
               const product = products.find(
                 (p) => String(p.id) === String(item.productId)
@@ -1239,11 +1249,12 @@ const saveCustomer = async () => {
             }),
           };
 
-          if (electronicInvoicingActive) {
+          // El backend decide si lleva e-CF (requiresEcf) según el estado de la empresa
+          if (data.requiresEcf === true) {
             // La factura ya quedó guardada: si el e-CF falla no se debe
             // volver a enviar el formulario (crearía una factura duplicada)
             try {
-              const fiscalInvoice = await emitElectronicInvoice(invoiceWithItems);
+              const fiscalInvoice = await emitElectronicInvoice(invoiceWithItems, true);
               handlePrintInvoice(fiscalInvoice);
             } catch (ecfError) {
               alert(
@@ -1461,8 +1472,8 @@ const buildInvoiceQrValue = (invoice) => {
   return getInvoiceQrTarget(invoice);
 };
 
-const emitElectronicInvoice = async (invoice) => {
-  if (!electronicInvoicingActive) {
+const emitElectronicInvoice = async (invoice, requiredByBackend = false) => {
+  if (!requiredByBackend && !electronicInvoicingActive) {
     return {
       ...invoice,
       electronicInvoicingEnabled: false,
@@ -3025,15 +3036,18 @@ const handlePrintDraft = async () => {
                     onClick={toggleElectronicInvoicingPreference}
                     disabled={
                       loadingEcfRequest ||
-                      !canUseElectronicInvoicing
+                      !canUseElectronicInvoicing ||
+                      !canToggleEcf
                     }
                     aria-pressed={electronicInvoicingActive}
                     title={
                       loadingEcfRequest
                         ? "Consultando estado de la solicitud e-CF"
-                        : canUseElectronicInvoicing
-                        ? "Activar o desactivar la facturación electrónica"
-                        : "Disponible cuando la solicitud e-CF sea aceptada"
+                        : !canUseElectronicInvoicing
+                        ? "Disponible cuando la solicitud e-CF sea aceptada"
+                        : !canToggleEcf
+                        ? "Solo el usuario principal de la empresa puede cambiarlo"
+                        : "Activar o desactivar la facturación electrónica"
                     }
                     style={{
                       display: "inline-flex",
@@ -3052,7 +3066,7 @@ const handlePrintDraft = async () => {
                         : "#94a3b8",
                       fontSize: "12px",
                       fontWeight: 900,
-                      cursor: canUseElectronicInvoicing
+                      cursor: canUseElectronicInvoicing && canToggleEcf
                         ? "pointer"
                         : "not-allowed",
                       opacity: loadingEcfRequest ? 0.7 : 1,

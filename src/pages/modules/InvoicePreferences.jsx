@@ -19,6 +19,7 @@ const navigate = useNavigate();
 const { tenant, setTenant } = useAuth();
 const [certificate, setCertificate] = useState(null);
 const [certificatePassword, setCertificatePassword] = useState("");
+const [draggingCertificate, setDraggingCertificate] = useState(false);
 const [acceptedAuthorization, setAcceptedAuthorization] = useState(false);
 const [ecfRequest, setEcfRequest] = useState(null);
 const [loadingEcfRequest, setLoadingEcfRequest] = useState(true);
@@ -83,12 +84,11 @@ const [form, setForm] = useState({
   loadElectronicInvoicingRequest();
 }, [tenant?.country]);
 
-const handleCertificateChange = (event) => {
-  const file = event.target.files?.[0];
-
+// Valida el certificado venga del selector o arrastrado; devuelve si se aceptó
+const selectCertificateFile = (file) => {
   if (!file) {
     setCertificate(null);
-    return;
+    return false;
   }
 
   const extension = file.name
@@ -96,20 +96,51 @@ const handleCertificateChange = (event) => {
     .toLowerCase();
 
   if (![".p12", ".pfx"].includes(extension)) {
-    event.target.value = "";
     setCertificate(null);
     alert("Selecciona un certificado con extensión .p12 o .pfx");
-    return;
+    return false;
   }
 
   if (file.size > 5 * 1024 * 1024) {
-    event.target.value = "";
     setCertificate(null);
     alert("El certificado no puede superar los 5 MB");
-    return;
+    return false;
   }
 
   setCertificate(file);
+  return true;
+};
+
+const handleCertificateChange = (event) => {
+  if (!selectCertificateFile(event.target.files?.[0])) {
+    event.target.value = "";
+  }
+};
+
+const handleCertificateDragOver = (event) => {
+  event.preventDefault();
+  event.dataTransfer.dropEffect = "copy";
+  setDraggingCertificate(true);
+};
+
+const handleCertificateDragLeave = (event) => {
+  // Ignora el paso del cursor por los elementos internos del recuadro
+  if (event.currentTarget.contains(event.relatedTarget)) return;
+  setDraggingCertificate(false);
+};
+
+const handleCertificateDrop = (event) => {
+  event.preventDefault();
+  setDraggingCertificate(false);
+
+  const files = event.dataTransfer.files;
+
+  if (files.length > 1) {
+    alert("Arrastra un solo certificado");
+    return;
+  }
+
+  selectCertificateFile(files[0]);
 };
 
 const submitCertificate = async () => {
@@ -357,7 +388,15 @@ const requestIsProcessing = [
 
         {!requestIsProcessing && (
           <div className="qb-certificate-form">
-            <label className="qb-certificate-upload">
+            <label
+              className={`qb-certificate-upload ${
+                draggingCertificate ? "is-dragging" : ""
+              }`}
+              onDragEnter={handleCertificateDragOver}
+              onDragOver={handleCertificateDragOver}
+              onDragLeave={handleCertificateDragLeave}
+              onDrop={handleCertificateDrop}
+            >
               <input
                 id="digital-certificate"
                 type="file"
@@ -369,9 +408,11 @@ const requestIsProcessing = [
 
               <div>
                 <strong>
-                  {certificate
+                  {draggingCertificate
+                    ? "Suelta el certificado aquí"
+                    : certificate
                     ? certificate.name
-                    : "Seleccionar certificado digital"}
+                    : "Arrastra el certificado aquí o haz clic para seleccionarlo"}
                 </strong>
 
                 <small>

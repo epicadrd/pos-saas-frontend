@@ -567,6 +567,17 @@
   font-weight: 700;
 }
 
+/* Certificado arrastrado sobre el recuadro */
+.saas-content .qb-certificate-upload.is-dragging {
+  border-style: solid;
+  border-color: var(--invoice-color, #00bfae);
+  background: #f0fdfa;
+}
+
+.saas-content .qb-certificate-upload.is-dragging > * {
+  pointer-events: none;
+}
+
 .saas-content .qb-certificate-authorization {
   border-color: var(--ui-line);
   border-radius: 12px;

@@ -22,6 +22,7 @@ import {
   isDominicanTenant,
 } from "../../utils/taxConfig";
 import { downloadHtmlAsPdf } from "../../utils/downloadPdf";
+import { toDop } from "../../utils/currency";
 
 const emptyQuote = {
   customerName: "",
@@ -30,7 +31,15 @@ const emptyQuote = {
   customerEmail: "",
   validUntil: "",
   notes: "",
+  // En RD la cotización puede ir en US$ con una tasa de referencia
+  currency: "DOP",
+  exchangeRate: "",
+  // Base del ITBIS: 100 (18% normal) o 10 (18% sobre el 10%, Norma 07-2007)
+  taxBasePercent: 100,
 };
+
+// "2026-11-03" -> "03/11/2026"
+const formatRateDate = (value) => String(value || "").split("-").reverse().join("/");
 
 // El backend recorta la descripción de cada línea a 1000 caracteres
 const DESCRIPTION_MAX = 1000;
@@ -100,6 +109,56 @@ export default function Quotes() {
     }
   );
 
+  // En RD una cotización puede ir en US$
+  const usdMoney = new Intl.NumberFormat("es-DO", { style: "currency", currency: "USD" });
+  const moneyFor = (currency) => (isDO && currency === "USD" ? usdMoney : money);
+  const formMoney = moneyFor(quoteForm.currency);
+
+  // Tasa del dólar (Banco Central, o mercado si no responde)
+  const [usdRateInfo, setUsdRateInfo] = useState(null);
+  const [convertState, setConvertState] = useState(null);
+
+  const fetchUsdRate = async () => {
+    if (usdRateInfo) return usdRateInfo;
+
+    try {
+      const { data } = await api.get("/exchange-rates/usd");
+      setUsdRateInfo(data);
+      return data;
+    } catch {
+      return null;
+    }
+  };
+
+  // Los precios del inventario están en pesos
+  const priceForQuote = (pesos) => {
+    const amount = Number(pesos || 0);
+    const rate = Number(quoteForm.exchangeRate);
+    return quoteForm.currency === "USD" && rate > 0
+      ? Math.round((amount / rate) * 100) / 100
+      : amount;
+  };
+
+  const changeQuoteCurrency = async (currency) => {
+    setQuoteForm((prev) => ({
+      ...prev,
+      currency,
+      exchangeRate: currency === "USD" ? prev.exchangeRate : "",
+    }));
+
+    if (currency !== "USD" || quoteForm.exchangeRate) return;
+
+    const info = await fetchUsdRate();
+
+    if (info?.rate) {
+      setQuoteForm((prev) =>
+        prev.currency === "USD" && !prev.exchangeRate
+          ? { ...prev, exchangeRate: String(info.rate) }
+          : prev
+      );
+    }
+  };
+
   const formatDateOnly = (value) => {
   if (!value) return "";
 
@@ -145,6 +204,13 @@ const taxRate = isDO
     Number(tenant?.usCityTaxRate || 0);
 
 const taxLabel = getTaxLabel(tenant);
+
+// ITBIS sobre el 10% del monto: total x 0.018 en vez de x 0.18 (solo RD)
+const isReducedBase = (base) => isDO && Number(base) === 10;
+const taxBaseFactorFor = (base) => (isReducedBase(base) ? 0.1 : 1);
+const formTaxFactor = taxBaseFactorFor(quoteForm.taxBasePercent);
+const taxRateLabel = (base) =>
+  isReducedBase(base) ? `${taxRate}% s/ 10%` : `${taxRate}%`;
 
   const usTaxBreakdown = {
     stateRate: Number(tenant?.usStateTaxRate || 0),
@@ -213,7 +279,7 @@ const taxLabel = getTaxLabel(tenant);
       const gross = Number(item.quantity || 0) * Number(item.price || 0);
       const discountPercent = Math.min(Math.max(Number(item.discount || 0), 0), 100);
       const lineSubtotal = Math.max(gross - gross * (discountPercent / 100), 0);
-      return acc + (item.isTaxable === false ? 0 : lineSubtotal * (taxRate / 100));
+      return acc + (item.isTaxable === false ? 0 : lineSubtotal * (taxRate / 100) * formTaxFactor);
     }, 0);
 
     return {
@@ -221,12 +287,12 @@ const taxLabel = getTaxLabel(tenant);
       tax,
       total: subtotal + tax,
     };
-  }, [items, taxRate]);
+  }, [items, taxRate, formTaxFactor]);
 
   const stats = useMemo(() => {
     return {
       totalQuotes: quotes.length,
-      totalAmount: quotes.reduce((acc, item) => acc + Number(item.total || 0), 0),
+      totalAmount: quotes.reduce((acc, item) => acc + toDop(item.total, item), 0),
       approvedQuotes: quotes.filter((item) => getStatus(item) === "approved").length,
       draftQuotes: quotes.filter((item) => getStatus(item) === "draft").length,
     };
@@ -338,7 +404,7 @@ const taxLabel = getTaxLabel(tenant);
         productId: product?.id || "",
         productName: product?.name || "",
         description: product?.description || "",
-        price: Number(product?.salePrice || 0),
+        price: priceForQuote(product?.salePrice),
         quantity: 1,
         discount: 0,
         isTaxable: true,
@@ -475,6 +541,22 @@ const cleanItems = items.map((item) => ({
 
 
   const handleConvertToInvoice = async (quote) => {
+  if (isDO && quote.currency === "USD") {
+    setConvertState({
+      quote,
+      currency: "DOP",
+      rate: quote.exchangeRate ? String(Number(quote.exchangeRate)) : "",
+      saving: false,
+    });
+
+    // Se sugiere la tasa del día; la de la cotización queda de referencia
+    const info = await fetchUsdRate();
+    if (info?.rate) {
+      setConvertState((prev) => (prev ? { ...prev, rate: String(info.rate) } : prev));
+    }
+    return;
+  }
+
   const ok = await confirm({
     title: t("quotes.confirm.convertTitle"),
     message: t("quotes.confirm.convertMessage", {
@@ -497,6 +579,31 @@ const cleanItems = items.map((item) => ({
   }
 };
 
+  const submitUsdConversion = async () => {
+  const { quote, currency, rate } = convertState;
+
+  if (!(Number(rate) > 0)) {
+    alert("Escribe la tasa del dólar para facturar la cotización.");
+    return;
+  }
+
+  try {
+    setConvertState((prev) => ({ ...prev, saving: true }));
+    await api.post(`/quotes/${quote.id}/convert-to-invoice`, {
+      currency,
+      exchangeRate: Number(rate),
+    });
+    setConvertState(null);
+    await loadQuotes();
+    alert(t("quotes.messages.convertedSuccess"));
+    navigate("/dashboard/facturacion");
+  } catch (error) {
+    console.log(error);
+    setConvertState((prev) => (prev ? { ...prev, saving: false } : prev));
+    alert(error.response?.data?.message || t("quotes.messages.convertError"));
+  }
+};
+
  
 
   const openEditQuote = (quote) => {
@@ -513,6 +620,9 @@ const cleanItems = items.map((item) => ({
     customerEmail: quote.customerEmail || "",
     validUntil: quote.validUntil ? quote.validUntil.slice(0, 10) : "",
     notes: quote.notes || "",
+    currency: quote.currency || "DOP",
+    exchangeRate: quote.exchangeRate ? String(Number(quote.exchangeRate)) : "",
+    taxBasePercent: Number(quote.taxBasePercent) === 10 ? 10 : 100,
   });
 
   setItems(
@@ -651,14 +761,14 @@ const cleanItems = items.map((item) => ({
           <div class="totals">
             <div>
               <span>${t("quotes.fields.subtotal")}</span>
-              <strong>${money.format(Number(quote.subtotal || 0))}</strong>
+              <strong>${moneyFor(quote.currency).format(Number(quote.subtotal || 0))}</strong>
             </div>
             ${
   isDO
     ? `
       <div>
-        <span>${taxLabel} (${taxRate}%)</span>
-        <strong>${money.format(Number(quote.tax || 0))}</strong>
+        <span>${taxLabel} (${taxRateLabel(quote.taxBasePercent)})</span>
+        <strong>${moneyFor(quote.currency).format(Number(quote.tax || 0))}</strong>
       </div>
     `
     : `
@@ -679,13 +789,13 @@ const cleanItems = items.map((item) => ({
 
       <div>
         <span>${t("quotes.tax.total")} (${taxRate}%)</span>
-        <strong>${money.format(Number(quote.tax || 0))}</strong>
+        <strong>${moneyFor(quote.currency).format(Number(quote.tax || 0))}</strong>
       </div>
     `
 }
             <div class="total">
               <span>${t("quotes.fields.total")}</span>
-              <strong>${money.format(Number(quote.total || 0))}</strong>
+              <strong>${moneyFor(quote.currency).format(Number(quote.total || 0))}</strong>
             </div>
           </div>
 
@@ -850,9 +960,9 @@ return (
 
               <td>{quote.customerName}</td>
               <td>{new Date(quote.createdAt).toLocaleDateString(locale)}</td>
-              <td>{money.format(Number(quote.tax || 0))}</td>
+              <td>{moneyFor(quote.currency).format(Number(quote.tax || 0))}</td>
               <td>
-                <strong>{money.format(Number(quote.total || 0))}</strong>
+                <strong>{moneyFor(quote.currency).format(Number(quote.total || 0))}</strong>
               </td>
 
               <td>
@@ -978,12 +1088,12 @@ return (
           <div className="quote-mobile-money-grid">
             <div>
               <span>{t("quotes.fields.subtotal")}</span>
-              <strong>{money.format(Number(quote.subtotal || 0))}</strong>
+              <strong>{moneyFor(quote.currency).format(Number(quote.subtotal || 0))}</strong>
             </div>
 
             <div>
               <span>{t("quotes.fields.total")}</span>
-              <strong>{money.format(Number(quote.total || 0))}</strong>
+              <strong>{moneyFor(quote.currency).format(Number(quote.total || 0))}</strong>
             </div>
           </div>
 
@@ -1003,6 +1113,104 @@ return (
     <div className="quote-mobile-empty">{t("quotes.messages.empty")}</div>
   )}
 </div>
+
+{convertState && (
+  <div className="quote-detail-overlay" onClick={() => !convertState.saving && setConvertState(null)}>
+    <div className="quote-detail-modal quote-convert-modal" onClick={(e) => e.stopPropagation()}>
+      <div className="quote-detail-header">
+        <div>
+          <span>Facturar cotización en US$</span>
+          <h3>{convertState.quote.quoteNumber}</h3>
+        </div>
+
+        <button type="button" onClick={() => setConvertState(null)} disabled={convertState.saving}>
+          <X size={20} />
+        </button>
+      </div>
+
+      <div className="quote-detail-list">
+        <div>
+          <span>Total cotizado</span>
+          <strong>{usdMoney.format(Number(convertState.quote.total || 0))}</strong>
+        </div>
+      </div>
+
+      <div className="quote-convert-options">
+        <label className={convertState.currency === "DOP" ? "is-selected" : ""}>
+          <input
+            type="radio"
+            name="convertCurrency"
+            checked={convertState.currency === "DOP"}
+            onChange={() => setConvertState((prev) => ({ ...prev, currency: "DOP" }))}
+          />
+          <span>
+            <strong>Facturar en pesos (RD$)</strong>
+            <small>Convierte los precios a pesos con la tasa.</small>
+          </span>
+        </label>
+
+        <label className={convertState.currency === "USD" ? "is-selected" : ""}>
+          <input
+            type="radio"
+            name="convertCurrency"
+            checked={convertState.currency === "USD"}
+            onChange={() => setConvertState((prev) => ({ ...prev, currency: "USD" }))}
+          />
+          <span>
+            <strong>Facturar en dólares (US$)</strong>
+            <small>La factura queda en US$; la DGII la recibe en pesos con la tasa.</small>
+          </span>
+        </label>
+      </div>
+
+      <div className="form-row quote-convert-rate">
+        <label>Tasa del dólar (RD$ por US$ 1)</label>
+        <input
+          type="number"
+          min="0"
+          step="0.0001"
+          value={convertState.rate}
+          onChange={(e) => setConvertState((prev) => ({ ...prev, rate: e.target.value }))}
+        />
+        <small className="quote-rate-hint">
+          {usdRateInfo
+            ? `Sugerida: Banco Central ${Number(usdRateInfo.rate).toFixed(4)} del ${formatRateDate(usdRateInfo.date)}. `
+            : ""}
+          {convertState.quote.exchangeRate
+            ? `En la cotización: ${Number(convertState.quote.exchangeRate).toFixed(4)}. `
+            : ""}
+          Puedes escribir la que acordaste con tu cliente.
+        </small>
+        {convertState.currency === "DOP" && Number(convertState.rate) > 0 && (
+          <p className="quote-convert-total">
+            Total aproximado en pesos:{" "}
+            <strong>{money.format(Number(convertState.quote.total || 0) * Number(convertState.rate))}</strong>
+          </p>
+        )}
+      </div>
+
+      <div className="quote-detail-actions">
+        <button
+          type="button"
+          className="quote-action-btn"
+          onClick={() => setConvertState(null)}
+          disabled={convertState.saving}
+        >
+          Cancelar
+        </button>
+        <button
+          type="button"
+          className="quote-action-btn quote-primary-action"
+          onClick={submitUsdConversion}
+          disabled={convertState.saving}
+        >
+          <FilePlus2 size={16} />
+          {convertState.saving ? "Facturando..." : "Crear factura"}
+        </button>
+      </div>
+    </div>
+  </div>
+)}
 
 {selectedQuote && (
   <div className="quote-detail-overlay" onClick={() => setSelectedQuote(null)}>
@@ -1046,13 +1254,13 @@ return (
 
         <div>
           <span>{t("quotes.fields.subtotal")}</span>
-          <strong>{money.format(Number(selectedQuote.subtotal || 0))}</strong>
+          <strong>{moneyFor(selectedQuote.currency).format(Number(selectedQuote.subtotal || 0))}</strong>
         </div>
 
         {isDO ? (
   <div>
     <span>{taxLabel}</span>
-    <strong>{money.format(Number(selectedQuote.tax || 0))}</strong>
+    <strong>{moneyFor(selectedQuote.currency).format(Number(selectedQuote.tax || 0))}</strong>
   </div>
 ) : (
   <>
@@ -1094,14 +1302,14 @@ return (
 
     <div>
       <span>{t("quotes.tax.total")}</span>
-      <strong>{money.format(Number(selectedQuote.tax || 0))}</strong>
+      <strong>{moneyFor(selectedQuote.currency).format(Number(selectedQuote.tax || 0))}</strong>
     </div>
   </>
 )}
 
         <div>
           <span>{t("quotes.fields.total")}</span>
-          <strong>{money.format(Number(selectedQuote.total || 0))}</strong>
+          <strong>{moneyFor(selectedQuote.currency).format(Number(selectedQuote.total || 0))}</strong>
         </div>
 
         <div>
@@ -1250,6 +1458,59 @@ return (
     />
   </div>
 
+  {isDO && (
+    <div className="form-row">
+      <label>Moneda</label>
+      <select
+        value={quoteForm.currency}
+        onChange={(e) => changeQuoteCurrency(e.target.value)}
+      >
+        <option value="DOP">RD$ Pesos dominicanos</option>
+        <option value="USD">US$ Dólares</option>
+      </select>
+    </div>
+  )}
+
+  {isDO && (
+    <div className="form-row">
+      <label>{taxLabel}</label>
+      <select
+        value={quoteForm.taxBasePercent}
+        onChange={(e) =>
+          setQuoteForm((prev) => ({
+            ...prev,
+            taxBasePercent: Number(e.target.value),
+          }))
+        }
+      >
+        <option value={100}>{taxLabel} {taxRate}%</option>
+        <option value={10}>{taxLabel} {taxRate}% sobre el 10% (construcción)</option>
+      </select>
+    </div>
+  )}
+
+  {isDO && quoteForm.currency === "USD" && (
+    <div className="form-row">
+      <label>Tasa de referencia (RD$ por US$ 1)</label>
+      <input
+        type="number"
+        min="0"
+        step="0.0001"
+        placeholder="Ej.: 60.50"
+        value={quoteForm.exchangeRate}
+        onChange={(e) =>
+          setQuoteForm((prev) => ({ ...prev, exchangeRate: e.target.value }))
+        }
+      />
+      <small className="quote-rate-hint">
+        {usdRateInfo
+          ? `Banco Central: ${Number(usdRateInfo.rate).toFixed(4)} (${formatRateDate(usdRateInfo.date)}). `
+          : ""}
+        Solo sirve de referencia: la tasa para facturar se elige al convertir la cotización.
+      </small>
+    </div>
+  )}
+
   
 </div>
 
@@ -1280,7 +1541,7 @@ return (
         const tax =
           item.isTaxable === false
             ? 0
-            : subtotal * (taxRate / 100);
+            : subtotal * (taxRate / 100) * formTaxFactor;
         const total = subtotal + tax;
 
         return (
@@ -1391,7 +1652,7 @@ return (
 
   <div className="quote-item-total">
     <small>{t("quotes.fields.total")}</small>
-    <strong>{money.format(total)}</strong>
+    <strong>{formMoney.format(total)}</strong>
     {discount > 0 && (
       <em>{t("quotes.items.legacyDiscount", { value: discount })}</em>
     )}
@@ -1417,7 +1678,7 @@ return (
         const tax =
             item.isTaxable === false
               ? 0
-              : subtotal * (taxRate / 100);
+              : subtotal * (taxRate / 100) * formTaxFactor;
         const total = subtotal + tax;
 
         return (
@@ -1526,17 +1787,17 @@ return (
             <div className="quote-mobile-item-total">
               <p>
                 <span>{t("quotes.fields.subtotal")}</span>
-                <strong>{money.format(subtotal)}</strong>
+                <strong>{formMoney.format(subtotal)}</strong>
               </p>
 
               <p>
                 <span>{taxLabel}</span>
-                <strong>{money.format(tax)}</strong>
+                <strong>{formMoney.format(tax)}</strong>
               </p>
 
               <p className="big">
                 <span>{t("quotes.fields.total")}</span>
-                <strong>{money.format(total)}</strong>
+                <strong>{formMoney.format(total)}</strong>
               </p>
 
               {discount > 0 && (
@@ -1566,41 +1827,41 @@ return (
               <div className="quote-summary">
   <div>
     <span>{t("quotes.fields.subtotal")}</span>
-    <strong>{money.format(totals.subtotal)}</strong>
+    <strong>{formMoney.format(totals.subtotal)}</strong>
   </div>
 
   {isDO ? (
     <div>
-      <span>{taxLabel} ({taxRate}%)</span>
-      <strong>{money.format(totals.tax)}</strong>
+      <span>{taxLabel} ({taxRateLabel(quoteForm.taxBasePercent)})</span>
+      <strong>{formMoney.format(totals.tax)}</strong>
     </div>
   ) : (
     <>
       <div>
         <span>{t("quotes.tax.state")} ({usTaxBreakdown.stateRate}%)</span>
-        <strong>{money.format(getTaxAmount(usTaxBreakdown.stateRate, totals.subtotal))}</strong>
+        <strong>{formMoney.format(getTaxAmount(usTaxBreakdown.stateRate, totals.subtotal))}</strong>
       </div>
 
       <div>
         <span>{t("quotes.tax.county")} ({usTaxBreakdown.countyRate}%)</span>
-        <strong>{money.format(getTaxAmount(usTaxBreakdown.countyRate, totals.subtotal))}</strong>
+        <strong>{formMoney.format(getTaxAmount(usTaxBreakdown.countyRate, totals.subtotal))}</strong>
       </div>
 
       <div>
         <span>{t("quotes.tax.city")} ({usTaxBreakdown.cityRate}%)</span>
-        <strong>{money.format(getTaxAmount(usTaxBreakdown.cityRate, totals.subtotal))}</strong>
+        <strong>{formMoney.format(getTaxAmount(usTaxBreakdown.cityRate, totals.subtotal))}</strong>
       </div>
 
       <div>
         <span>{t("quotes.tax.total")} ({taxRate}%)</span>
-        <strong>{money.format(totals.tax)}</strong>
+        <strong>{formMoney.format(totals.tax)}</strong>
       </div>
     </>
   )}
 
   <div className="summary-total">
     <span>{t("quotes.fields.total")}</span>
-    <strong>{money.format(totals.total)}</strong>
+    <strong>{formMoney.format(totals.total)}</strong>
   </div>
 </div>
 

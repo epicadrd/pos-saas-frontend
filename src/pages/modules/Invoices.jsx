@@ -84,6 +84,8 @@ const emptyForm = {
   paymentMethod: "",
   currency: "DOP",
   exchangeRate: "",
+  // Base del ITBIS: 100 (18% normal) o 10 (18% sobre el 10%, Norma 07-2007)
+  taxBasePercent: 100,
   invoiceDate: new Date().toISOString().slice(0, 10),
   dueDate: "",
   notes: "",
@@ -271,6 +273,12 @@ const formatMoney = createMoneyFormatter(isDO);
   const taxMode = tenant?.invoiceTaxMode || "global";
   const taxRate = getTaxRate(tenant);
   const taxLabel = getTaxLabel(tenant);
+
+  // ITBIS sobre el 10% del monto: total x 0.018 en vez de x 0.18 (solo RD)
+  const isReducedBase = (base) => isDO && Number(base) === 10;
+  const formTaxFactor = isReducedBase(form.taxBasePercent) ? 0.1 : 1;
+  const taxRateLabel = (base) =>
+    isReducedBase(base) ? `${taxRate}% s/ 10%` : `${taxRate}%`;
   const usTaxBreakdown = {
   stateRate: Number(tenant?.usStateTaxRate || 0),
   countyRate: Number(tenant?.usCountyTaxRate || 0),
@@ -375,7 +383,7 @@ const getTaxAmount = (rate, base = totals.subtotal) => {
     const isTaxable =
       taxEnabled && (taxMode === "global" ? true : item.isTaxable !== false);
 
-    return acc + (isTaxable ? lineSubtotal * (taxRate / 100) : 0);
+    return acc + (isTaxable ? lineSubtotal * (taxRate / 100) * formTaxFactor : 0);
   }, 0);
 
   const applyRetentions = form.applyRetentions === true;
@@ -1199,6 +1207,7 @@ const saveCustomer = async () => {
           dueDate: form.dueDate || null,
           terms: form.terms,
           paymentMethod: form.paymentMethod || null,
+          taxBasePercent: isDO ? Number(form.taxBasePercent) || 100 : 100,
           notes: form.notes,
           items: cleanItems,
         });
@@ -1225,6 +1234,7 @@ const saveCustomer = async () => {
           dueDate: form.dueDate || null,
           terms: form.terms,
           paymentMethod: form.paymentMethod || null,
+          taxBasePercent: isDO ? Number(form.taxBasePercent) || 100 : 100,
           notes: form.notes,
           status,
           amountPaid:
@@ -1335,6 +1345,7 @@ const saveCustomer = async () => {
       paymentMethod: invoice.paymentMethod || "",
       currency: invoice.currency || "DOP",
       exchangeRate: invoice.exchangeRate ? String(Number(invoice.exchangeRate)) : "",
+      taxBasePercent: Number(invoice.taxBasePercent) === 10 ? 10 : 100,
       notes: invoice.notes || "",
       applyRetentions: invoice.applyRetentions === true,
     });
@@ -1454,7 +1465,7 @@ const saveCustomer = async () => {
         : taxEnabled && (taxMode === "global" ? true : item.isTaxable !== false);
 
     const lineTax =
-      savedTax !== null ? savedTax : isTaxable ? lineSubtotal * (taxRate / 100) : 0;
+      savedTax !== null ? savedTax : isTaxable ? lineSubtotal * (taxRate / 100) * formTaxFactor : 0;
     const lineTotal = lineSubtotal + lineTax;
 
     return {
@@ -1740,7 +1751,7 @@ const printHtml = (html, documentNumber) =>
 
   ${
     isDO
-      ? `<div><span>${taxLabel} (${taxRate}%)</span><strong>${money.format(Number(invoice.tax || 0))}</strong></div>`
+      ? `<div><span>${taxLabel} (${taxRateLabel(invoice.taxBasePercent)})</span><strong>${money.format(Number(invoice.tax || 0))}</strong></div>`
       : `
         <div><span>State Tax (${usTaxBreakdown.stateRate}%)</span><strong>${money.format(getTaxAmount(usTaxBreakdown.stateRate, Number(invoice.subtotal || 0)))}</strong></div>
         <div><span>County Tax (${usTaxBreakdown.countyRate}%)</span><strong>${money.format(getTaxAmount(usTaxBreakdown.countyRate, Number(invoice.subtotal || 0)))}</strong></div>
@@ -2051,7 +2062,7 @@ const handlePrintDraft = async () => {
 
             ${
               isDO
-                ? `<div><span>${taxLabel} (${taxRate}%)</span><strong>${money.format(totals.tax)}</strong></div>`
+                ? `<div><span>${taxLabel} (${taxRateLabel(form.taxBasePercent)})</span><strong>${money.format(totals.tax)}</strong></div>`
                 : `
                   <div><span>${t("invoices.print.stateTax")} (${usTaxBreakdown.stateRate}%)</span><strong>${money.format(getTaxAmount(usTaxBreakdown.stateRate))}</strong></div>
                   <div><span>${t("invoices.print.countyTax")} (${usTaxBreakdown.countyRate}%)</span><strong>${money.format(getTaxAmount(usTaxBreakdown.countyRate))}</strong></div>
@@ -3298,6 +3309,24 @@ const handlePrintDraft = async () => {
                   </label>
                 )}
 
+                {isDO && taxEnabled && (
+                  <label>
+                    {taxLabel}
+                    <select
+                      value={form.taxBasePercent}
+                      onChange={(e) =>
+                        setForm((current) => ({
+                          ...current,
+                          taxBasePercent: Number(e.target.value),
+                        }))
+                      }
+                    >
+                      <option value={100}>{taxLabel} {taxRate}%</option>
+                      <option value={10}>{taxLabel} {taxRate}% sobre el 10% (construcción)</option>
+                    </select>
+                  </label>
+                )}
+
                 {isDO && (
                   <label>
                     Moneda
@@ -3553,7 +3582,7 @@ const handlePrintDraft = async () => {
             (taxMode === "global" ? true : item.isTaxable !== false);
 
           const lineTax = isTaxable
-            ? lineSubtotal * (taxRate / 100)
+            ? lineSubtotal * (taxRate / 100) * formTaxFactor
             : 0;
 
           const lineTotal = lineSubtotal + lineTax;
@@ -3764,7 +3793,7 @@ const handlePrintDraft = async () => {
         const isTaxable =
           taxEnabled && (taxMode === "global" ? true : item.isTaxable !== false);
 
-        const lineTax = isTaxable ? lineSubtotal * (taxRate / 100) : 0;
+        const lineTax = isTaxable ? lineSubtotal * (taxRate / 100) * formTaxFactor : 0;
         const lineTotal = lineSubtotal + lineTax;
 
         const stockError =
@@ -3981,7 +4010,7 @@ const handlePrintDraft = async () => {
 
                 {isDO ? (
                 <p>
-                  <span>{taxLabel} ({taxRate}%)</span>
+                  <span>{taxLabel} ({taxRateLabel(form.taxBasePercent)})</span>
                   <strong>{formMoney.format(totals.tax)}</strong>
                 </p>
               ) : (
@@ -4561,7 +4590,7 @@ const handlePrintDraft = async () => {
                         taxEnabled &&
                         (taxMode === "global" ? true : item.isTaxable !== false);
 
-                      const lineTax = isTaxable ? lineSubtotal * (taxRate / 100) : 0;
+                      const lineTax = isTaxable ? lineSubtotal * (taxRate / 100) * formTaxFactor : 0;
                       const lineTotal = lineSubtotal + lineTax;
 
                       const itemName =
@@ -4615,7 +4644,7 @@ const handlePrintDraft = async () => {
     </p>
 
     <p>
-      <span>{taxLabel} ({taxRate}%)</span>
+      <span>{taxLabel} ({taxRateLabel(form.taxBasePercent)})</span>
       <strong>{formMoney.format(totals.tax)}</strong>
     </p>
 

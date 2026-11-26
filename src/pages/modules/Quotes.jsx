@@ -36,6 +36,8 @@ const emptyQuote = {
   exchangeRate: "",
   // Base del ITBIS: 100 (18% normal) o 10 (18% sobre el 10%, Norma 07-2007)
   taxBasePercent: 100,
+  // Descuento en monto sobre toda la cotización (se resta antes del ITBIS)
+  discountAmount: "",
 };
 
 // "2026-11-03" -> "03/11/2026"
@@ -282,12 +284,18 @@ const taxRateLabel = (base) =>
       return acc + (item.isTaxable === false ? 0 : lineSubtotal * (taxRate / 100) * formTaxFactor);
     }, 0);
 
+    // El descuento general reduce la base del ITBIS en la misma proporción
+    const discount = Math.min(Math.max(Number(quoteForm.discountAmount) || 0, 0), subtotal);
+    const discountRatio = subtotal > 0 ? discount / subtotal : 0;
+    const taxAfterDiscount = tax * (1 - discountRatio);
+
     return {
       subtotal,
-      tax,
-      total: subtotal + tax,
+      discount,
+      tax: taxAfterDiscount,
+      total: subtotal - discount + taxAfterDiscount,
     };
-  }, [items, taxRate, formTaxFactor]);
+  }, [items, taxRate, formTaxFactor, quoteForm.discountAmount]);
 
   const stats = useMemo(() => {
     return {
@@ -623,6 +631,7 @@ const cleanItems = items.map((item) => ({
     currency: quote.currency || "DOP",
     exchangeRate: quote.exchangeRate ? String(Number(quote.exchangeRate)) : "",
     taxBasePercent: Number(quote.taxBasePercent) === 10 ? 10 : 100,
+    discountAmount: Number(quote.discountAmount) > 0 ? String(Number(quote.discountAmount)) : "",
   });
 
   setItems(
@@ -763,6 +772,14 @@ const cleanItems = items.map((item) => ({
               <span>${t("quotes.fields.subtotal")}</span>
               <strong>${moneyFor(quote.currency).format(Number(quote.subtotal || 0))}</strong>
             </div>
+            ${
+              Number(quote.discountAmount || 0) > 0
+                ? `<div>
+              <span>Descuento</span>
+              <strong>-${moneyFor(quote.currency).format(Number(quote.discountAmount))}</strong>
+            </div>`
+                : ""
+            }
             ${
   isDO
     ? `
@@ -1256,6 +1273,13 @@ return (
           <span>{t("quotes.fields.subtotal")}</span>
           <strong>{moneyFor(selectedQuote.currency).format(Number(selectedQuote.subtotal || 0))}</strong>
         </div>
+
+        {Number(selectedQuote.discountAmount || 0) > 0 && (
+          <div>
+            <span>Descuento</span>
+            <strong>-{moneyFor(selectedQuote.currency).format(Number(selectedQuote.discountAmount))}</strong>
+          </div>
+        )}
 
         {isDO ? (
   <div>
@@ -1829,6 +1853,29 @@ return (
     <span>{t("quotes.fields.subtotal")}</span>
     <strong>{formMoney.format(totals.subtotal)}</strong>
   </div>
+
+  <div className="quote-discount-row">
+    <label htmlFor="quote-discount">Descuento</label>
+    <input
+      id="quote-discount"
+      type="number"
+      inputMode="decimal"
+      min="0"
+      step="0.01"
+      placeholder="0.00"
+      value={quoteForm.discountAmount}
+      onChange={(e) =>
+        setQuoteForm((prev) => ({ ...prev, discountAmount: e.target.value }))
+      }
+    />
+  </div>
+
+  {totals.discount > 0 && (
+    <div>
+      <span>Subtotal con descuento</span>
+      <strong>{formMoney.format(totals.subtotal - totals.discount)}</strong>
+    </div>
+  )}
 
   {isDO ? (
     <div>

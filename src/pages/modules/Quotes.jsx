@@ -38,7 +38,25 @@ const emptyQuote = {
   taxBasePercent: 100,
   // Descuento en monto sobre toda la cotización (se resta antes del ITBIS)
   discountAmount: "",
+  // % que se imprime junto a "Descuento"; vacío = no se imprime
+  discountPercent: "",
+  // El usuario borró el %: ya no se recalcula solo (no se envía al backend)
+  discountPercentCleared: false,
 };
+
+// Porcentaje que representa el descuento sobre el subtotal: "17.11", "10"
+const discountPercentFor = (discount, subtotal) => {
+  const amount = Number(discount || 0);
+  const base = Number(subtotal || 0);
+  if (!(amount > 0) || !(base > 0)) return "";
+  return String(Number(((amount / base) * 100).toFixed(2)));
+};
+
+// "Descuento (17.11%)", o solo "Descuento" si se borró el %
+const discountLabel = (percent) =>
+  percent !== null && percent !== undefined && percent !== ""
+    ? `Descuento (${Number(percent)}%)`
+    : "Descuento";
 
 // "2026-11-03" -> "03/11/2026"
 const formatRateDate = (value) => String(value || "").split("-").reverse().join("/");
@@ -296,6 +314,15 @@ const taxRateLabel = (base) =>
       total: subtotal - discount + taxAfterDiscount,
     };
   }, [items, taxRate, formTaxFactor, quoteForm.discountAmount]);
+
+  // Si cambian las líneas, el monto del descuento se mantiene y el % se ajusta
+  useEffect(() => {
+    setQuoteForm((prev) => {
+      if (prev.discountPercentCleared || !(Number(prev.discountAmount) > 0)) return prev;
+      const percent = discountPercentFor(prev.discountAmount, totals.subtotal);
+      return percent === prev.discountPercent ? prev : { ...prev, discountPercent: percent };
+    });
+  }, [totals.subtotal]);
 
   const stats = useMemo(() => {
     return {
@@ -632,6 +659,13 @@ const cleanItems = items.map((item) => ({
     exchangeRate: quote.exchangeRate ? String(Number(quote.exchangeRate)) : "",
     taxBasePercent: Number(quote.taxBasePercent) === 10 ? 10 : 100,
     discountAmount: Number(quote.discountAmount) > 0 ? String(Number(quote.discountAmount)) : "",
+    discountPercent:
+      quote.discountPercent !== null && quote.discountPercent !== undefined
+        ? String(Number(quote.discountPercent))
+        : "",
+    discountPercentCleared:
+      Number(quote.discountAmount) > 0 &&
+      (quote.discountPercent === null || quote.discountPercent === undefined),
   });
 
   setItems(
@@ -775,7 +809,7 @@ const cleanItems = items.map((item) => ({
             ${
               Number(quote.discountAmount || 0) > 0
                 ? `<div>
-              <span>Descuento</span>
+              <span>${discountLabel(quote.discountPercent)}</span>
               <strong>-${moneyFor(quote.currency).format(Number(quote.discountAmount))}</strong>
             </div>`
                 : ""
@@ -1276,7 +1310,7 @@ return (
 
         {Number(selectedQuote.discountAmount || 0) > 0 && (
           <div>
-            <span>Descuento</span>
+            <span>{discountLabel(selectedQuote.discountPercent)}</span>
             <strong>-{moneyFor(selectedQuote.currency).format(Number(selectedQuote.discountAmount))}</strong>
           </div>
         )}
@@ -1855,7 +1889,46 @@ return (
   </div>
 
   <div className="quote-discount-row">
-    <label htmlFor="quote-discount">Descuento</label>
+    <label htmlFor="quote-discount" className="quote-discount-label">
+      Descuento
+      <span className="quote-discount-percent">
+        <input
+          type="number"
+          inputMode="decimal"
+          min="0"
+          max="100"
+          step="0.01"
+          placeholder="%"
+          aria-label="Porcentaje de descuento"
+          title="Bórralo si no quieres que el % salga en la cotización"
+          value={quoteForm.discountPercent}
+          onChange={(e) => {
+            const value = e.target.value;
+
+            // Borrar el % solo lo oculta; el monto se mantiene
+            if (value === "") {
+              setQuoteForm((prev) => ({
+                ...prev,
+                discountPercent: "",
+                discountPercentCleared: true,
+              }));
+              return;
+            }
+
+            const percent = Math.min(Math.max(Number(value) || 0, 0), 100);
+            const amount = Math.round(totals.subtotal * percent) / 100;
+
+            setQuoteForm((prev) => ({
+              ...prev,
+              discountPercent: value,
+              discountPercentCleared: false,
+              discountAmount: amount > 0 ? String(amount) : "",
+            }));
+          }}
+        />
+        %
+      </span>
+    </label>
     <input
       id="quote-discount"
       type="number"
@@ -1864,9 +1937,16 @@ return (
       step="0.01"
       placeholder="0.00"
       value={quoteForm.discountAmount}
-      onChange={(e) =>
-        setQuoteForm((prev) => ({ ...prev, discountAmount: e.target.value }))
-      }
+      onChange={(e) => {
+        const value = e.target.value;
+        setQuoteForm((prev) => ({
+          ...prev,
+          discountAmount: value,
+          discountPercent: prev.discountPercentCleared
+            ? ""
+            : discountPercentFor(value, totals.subtotal),
+        }));
+      }}
     />
   </div>
 

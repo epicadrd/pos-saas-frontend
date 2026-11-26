@@ -369,3 +369,41 @@
     max-width: min(96vw, 1400px) !important;
   }
 }
+
+/* % del descuento: campo sin fondo, solo una línea abajo */
+.quote-summary .quote-discount-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.quote-summary .quote-discount-percent {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 2px;
+  color: #64748b;
+}
+
+.quote-summary .quote-discount-percent input {
+  width: 52px;
+  padding: 0 2px 1px;
+  border: 0;
+  border-bottom: 1px solid #94a3b8;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: right;
+  -moz-appearance: textfield;
+}
+
+.quote-summary .quote-discount-percent input:focus {
+  outline: none;
+  border-bottom-color: var(--ui-teal, #00bfae);
+}
+
+.quote-summary .quote-discount-percent input::-webkit-outer-spin-button,
+.quote-summary .quote-discount-percent input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
